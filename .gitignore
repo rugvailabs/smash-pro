@@ -1,0 +1,40 @@
+# ─── Runtime media (application-managed uploads) ─────────────────────────────
+# Everything in media/ is runtime content, except its README.
+media/*
+!media/README.md
+
+# ─── Environment & secrets ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# ─── Dependencies & build output (stack-agnostic; stack not yet chosen) ──────
+node_modules/
+vendor/
+dist/
+build/
+out/
+.cache/
+coverage/
+*.log
+
+# ─── OS files ────────────────────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# ─── Editor / IDE ────────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# ─── Local Claude settings ───────────────────────────────────────────────────
+.claude/settings.local.json
