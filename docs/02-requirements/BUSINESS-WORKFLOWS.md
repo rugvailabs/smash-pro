@@ -368,9 +368,10 @@
      (Workflow L inbound); the PO tracks ordered vs received quantities.
    - **Direct-shipment POs** (confirmed — OBD-19 Option C, Supplier Proof +
      Buyer Confirmation): the supplier **uploads delivery proof** (POD,
-     delivery photographs or signed receipt); the buyer then receives a
-     **delivery confirmation request through ProSmash** and confirms receipt on
-     the website; Super Admin can review both the proof and the buyer
+     delivery photographs or signed receipt); **only after** proof is uploaded
+     (Proof-First Sequence, OBD-19 Option A) does the buyer receive a
+     **delivery confirmation request through ProSmash**, and confirms receipt
+     on the website; Super Admin can review both the proof and the buyer
      confirmation. Both events are recorded against the PO and the buyer
      order. Buyer non-response, disputed or partial deliveries, confirmation
      deadlines, admin manual resolution, and POD validation/retention rules:

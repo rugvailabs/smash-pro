@@ -178,6 +178,11 @@ period? Is rejection ever final (blacklist)?
 6. The delivery confirmation workflow **records both** supplier proof
    submission and buyer confirmation.
 
+**DECIDED — Proof-First Sequence, Option A (2026-11-13):**
+- The buyer's delivery confirmation request is triggered **only after** the
+  supplier uploads delivery proof. No confirmation request is sent to the
+  buyer while proof is outstanding.
+
 **STILL `PENDING CONFIRMATION`:**
 (a) Supplier **eligibility evaluation criteria** and the approval procedure
 (what qualifies a supplier; review cadence; revocation grounds). (b) **Shipping
@@ -244,3 +249,4 @@ payment) is only enforceable once "confirmed" is operationally defined.
 | OBD-19 (partial) | Shipping Charge Management, Option D: admin controls direct-to-buyer shipping charges, set individually per order, considering supplier, product and buyer; suppliers cannot determine or change charges. Also confirmed: suppliers can view (not modify) their own eligibility status. Payer allocation, charge method, free/subsidized shipping, invoice presentation and multi-supplier orders remain open under OBD-19. | Owner | 2026-11-13 |
 | OBD-19 (partial) | Delivery Issue Management, Option B: ProSmash is the single customer-facing contact for direct-shipment delivery complaints (delayed/damaged/lost/missing); ProSmash coordinates investigation and resolution with supplier and courier; supplier/courier accountability managed internally; suppliers must not redirect buyers. Legal liability, financial recovery, compensation, replacement and refund policies remain open under OBD-19. | Owner | 2026-11-13 |
 | OBD-19 (partial) | Delivery Confirmation, Option C (Supplier Proof + Buyer Confirmation): supplier uploads delivery proof (POD / photographs / signed receipt) for direct-to-buyer shipments; buyer receives a confirmation request through ProSmash and confirms receipt on the website; admin reviews both; the workflow records proof submission and buyer confirmation. Buyer non-response, disputes/partial deliveries, deadlines, admin manual resolution, and POD validation/retention remain open under OBD-19. | Owner | 2026-11-13 |
+| OBD-19 (partial) | Proof-First Sequence, Option A: the buyer's delivery confirmation request is triggered only after the supplier uploads delivery proof; no request is sent while proof is outstanding. | Owner | 2026-11-13 |

@@ -382,9 +382,10 @@ order directly to ProSmash through the portal and track the complaint's status.
 ### BUY-011 — Delivery receipt confirmation _(Workflow N · Confirmed — OBD-19 Option C; edge cases PENDING CONFIRMATION)_
 For direct-shipment orders, the buyer shall receive a delivery confirmation
 request through ProSmash and be able to confirm receipt through the website.
-- **AC1:** The confirmation request reaches the buyer in-portal (and via
-  notification channels per PLT-002) once the supplier's delivery proof is
-  submitted.
+- **AC1:** The confirmation request is triggered **only after** the supplier's
+  delivery proof is uploaded (Proof-First Sequence — OBD-19 Option A); it
+  reaches the buyer in-portal and via notification channels per PLT-002. No
+  request is sent while proof is outstanding.
 - **AC2:** One-action receipt confirmation from the order detail; the
   confirmation is recorded with timestamp against the order.
 - **AC3:** Non-response handling, disputes, partial-delivery treatment and
