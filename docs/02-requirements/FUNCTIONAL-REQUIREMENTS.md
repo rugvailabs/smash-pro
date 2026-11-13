@@ -187,6 +187,32 @@ of decision. Suppliers have no ability to set or change charges.
   multi-supplier order handling follow OBD-19 — `PENDING CONFIRMATION`.
 - **AC4:** Shipping charge entries are audit-logged with actor and timestamp.
 
+### ADM-022 — Delivery issue management _(Workflows J, N · Confirmed — OBD-19 Option B; remedies PENDING CONFIRMATION)_
+Admin shall receive buyer delivery complaints (delayed, damaged, lost, missing)
+for direct-shipment and warehouse orders, log them against the order (and PO
+where applicable), and coordinate investigation and resolution with the
+relevant supplier and courier. Supplier and courier accountability is managed
+internally by ProSmash.
+- **AC1:** Every complaint is tracked with status from intake to closure,
+  linked to its order and (for direct shipments) its PO.
+- **AC2:** All buyer-facing communication on a complaint occurs between
+  ProSmash and the buyer — never supplier-to-buyer.
+- **AC3:** Internal supplier/courier coordination is recorded against the
+  complaint for audit.
+- **AC4:** Compensation, replacement, refund, legal liability and financial
+  recovery follow OBD-19 — `PENDING CONFIRMATION`.
+
+### ADM-023 — Delivery confirmation review _(Workflow N · Confirmed — OBD-19 Option C; edge cases PENDING CONFIRMATION)_
+For direct-to-buyer shipments, admin shall review the supplier's uploaded
+delivery proof and the buyer's receipt confirmation, with both events recorded
+against the PO and the buyer order.
+- **AC1:** The review view shows supplier proof (POD / photographs / signed
+  receipt) and the buyer confirmation side by side, with timestamps.
+- **AC2:** Both proof submission and buyer confirmation are immutably recorded.
+- **AC3:** Buyer non-response handling, disputed or partial deliveries,
+  confirmation deadlines, and admin manual resolution follow OBD-19 —
+  `PENDING CONFIRMATION`.
+
 ---
 
 ## 2. Supplier Portal (SUP)
@@ -248,12 +274,18 @@ ProSmash warehouse or direct-to-buyer (hybrid model, OBD-01). Direct-to-buyer
 appears only when admin has approved the supplier and enabled the product
 (OBD-19 Option C); suppliers cannot enable it themselves, can view their own
 eligibility status read-only, and never determine or change shipping charges
-(admin-set per order — OBD-19 Option D). Disclosed buyer details,
-shipping-charge economics and delivery responsibility remain
-`PENDING CONFIRMATION` — OBD-19.
+(admin-set per order — OBD-19 Option D). For direct shipments, suppliers must
+not interact with buyers on delivery complaints or redirect buyers to resolve
+them independently — all complaint handling runs through ProSmash (OBD-19
+Option B). Disclosed buyer details, shipping-charge economics, legal liability
+and financial recovery remain `PENDING CONFIRMATION` — OBD-19.
 - **AC1:** PO terms display exactly the awarded quotation version, including destination.
 - **AC2:** Dispatch updates (date, transport, documents, quantity) are visible
   to admin in real time; partial-shipment policy `PENDING CONFIRMATION`.
+- **AC3:** For direct-to-buyer POs, the supplier shall upload delivery proof —
+  POD, delivery photographs or signed receipts (OBD-19 Option C); proof
+  submission is recorded against the PO (validation and retention rules
+  `PENDING CONFIRMATION` — OBD-19).
 
 ### SUP-010 — Payment visibility _(Workflow N · Confirmed)_
 Suppliers shall see per-PO financials: invoiced, received, outstanding, and due dates.
@@ -336,6 +368,27 @@ Buyers shall maintain organization details, delivery addresses, and users
 - **AC1:** Multiple saved delivery addresses, selectable at checkout.
 - **AC2:** Sensitive business-detail edits route to admin re-review
   (`PENDING CONFIRMATION`, as supplier equivalent).
+
+### BUY-010 — Delivery issue reporting _(Workflow J · Confirmed — OBD-19 Option B; remedies PENDING CONFIRMATION)_
+Buyers shall report delivery issues (delayed, damaged, lost, missing) on an
+order directly to ProSmash through the portal and track the complaint's status.
+- **AC1:** A complaint can be raised from the order detail, with description
+  and supporting photos/documents.
+- **AC2:** The buyer sees complaint status updates and resolution outcomes;
+  the counterparty shown is always ProSmash, never a supplier or courier.
+- **AC3:** Compensation, replacement and refund outcomes follow OBD-19 —
+  `PENDING CONFIRMATION`.
+
+### BUY-011 — Delivery receipt confirmation _(Workflow N · Confirmed — OBD-19 Option C; edge cases PENDING CONFIRMATION)_
+For direct-shipment orders, the buyer shall receive a delivery confirmation
+request through ProSmash and be able to confirm receipt through the website.
+- **AC1:** The confirmation request reaches the buyer in-portal (and via
+  notification channels per PLT-002) once the supplier's delivery proof is
+  submitted.
+- **AC2:** One-action receipt confirmation from the order detail; the
+  confirmation is recorded with timestamp against the order.
+- **AC3:** Non-response handling, disputes, partial-delivery treatment and
+  confirmation deadlines follow OBD-19 — `PENDING CONFIRMATION`.
 
 ---
 

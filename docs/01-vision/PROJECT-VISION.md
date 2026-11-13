@@ -107,7 +107,8 @@ marketplace integrations, multi-warehouse, international markets, mobile apps.
 
 **For business buyers** — one verified counterparty, wholesale pricing, a curated
 catalog, the ability to request anything not listed, and dependable fulfilment
-managed by ProSmash (from its own stock or via vetted supplier direct shipment) —
+managed by ProSmash (from its own stock or via vetted supplier direct shipment),
+with ProSmash as the single point of contact for any delivery issue (OBD-19) —
 replacing fragmented dealer networks, opaque pricing and unreliable delivery.
 
 **For suppliers** — qualified institutional demand at volume, a fair structured

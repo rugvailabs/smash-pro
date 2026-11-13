@@ -34,6 +34,13 @@ per organization — also §5.
 - Determine the shipping charge for each direct-to-buyer order individually,
   considering supplier, product and buyer (OBD-19 Option D; payer and method
   🔶 OBD-19).
+- Act as the single customer-facing contact for delivery complaints (delayed,
+  damaged, lost, missing — OBD-19 Option B): receive buyer reports, coordinate
+  investigation and resolution with supplier and courier, and manage their
+  accountability internally.
+- Review direct-shipment delivery confirmations: supplier proof (POD /
+  photographs / signed receipts) and buyer receipt confirmation, both recorded
+  by the workflow (OBD-19 Option C).
 - Handle buyer requests for unlisted products and convert them into procurement
   requirements when warranted.
 - Configure platform settings and reference data.
@@ -45,6 +52,11 @@ per organization — also §5.
 - Receive procurement-requirement notifications; submit quotations and revisions.
 - Negotiate with Super Admin through on-platform messaging.
 - View award decisions; fulfil awarded purchase orders; update dispatch/fulfilment status.
+- Cooperate with ProSmash on direct-shipment delivery investigations; never
+  handle buyer delivery complaints directly or redirect buyers to resolve them
+  independently (OBD-19 Option B).
+- Upload delivery proof (POD, delivery photographs or signed receipts) for
+  every direct-to-buyer shipment (OBD-19 Option C).
 - View own payment status and history.
 
 ### 2.3 Business Buyer
@@ -52,6 +64,11 @@ per organization — also §5.
 - Browse and search the published catalog; view pricing (visibility rules: 🔶 §5).
 - Place orders; track order and delivery status; view order history and documents.
 - Submit requests for products not in the catalog and track their status.
+- Report delivery issues (delayed, damaged, lost, missing) to ProSmash only —
+  ProSmash is the single point of contact for resolution (OBD-19 Option B).
+- Confirm receipt of direct-shipment deliveries through the website when the
+  confirmation request arrives via ProSmash (OBD-19 Option C; non-response
+  handling 🔶 OBD-19).
 - Pay 100% of each order amount in advance — dispatch only after confirmed
   payment; no postpaid or credit facilities (OBD-08; methods 🔶 OBD-21).
 - Maintain organization profile, addresses and users (multi-user: 🔶 §5).
@@ -107,6 +124,8 @@ Hard boundaries that hold regardless of future permission refinements:
 | Record/track buyer payments | ✅ | ❌ | ✅ own |
 | Record/track supplier payments | ✅ | ✅ view own | ❌ |
 | Submit unlisted-product requests | ❌ (converts them) | ❌ | ✅ |
+| Delivery complaints: report / handle (OBD-19 Option B) | ✅ handle & resolve | ❌ (internal cooperation only) | ✅ report own orders |
+| Direct-shipment delivery confirmation (OBD-19 Option C) | ✅ review proof & confirmation | ✅ upload proof (own POs) | ✅ confirm receipt (own orders) |
 | Platform configuration | ✅ | ❌ | ❌ |
 
 ## 5. Permissions Requiring Confirmation — `PENDING CONFIRMATION`

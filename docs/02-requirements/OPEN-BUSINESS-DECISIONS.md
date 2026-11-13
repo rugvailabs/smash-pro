@@ -158,6 +158,26 @@ period? Is rejection ever final (blacklist)?
 - Suppliers can **view their own** direct-shipment eligibility status.
 - Suppliers **cannot modify** their eligibility settings.
 
+**DECIDED — Delivery Issue Management, Option B (2026-11-13):**
+1. ProSmash is the **single customer-facing contact** for direct-shipment
+   delivery complaints.
+2. Buyers report **delayed, damaged, lost or missing** shipments to ProSmash.
+3. ProSmash **coordinates investigation and resolution** with the relevant
+   supplier and courier.
+4. Supplier and courier **accountability is managed internally** by ProSmash.
+5. Suppliers must **not redirect buyers** to resolve delivery complaints
+   independently.
+
+**DECIDED — Delivery Confirmation, Option C: Supplier Proof + Buyer Confirmation (2026-11-13):**
+1. Supplier must **upload delivery proof** for direct-to-buyer shipments.
+2. Accepted proof types may include **Proof of Delivery (POD), delivery
+   photographs or signed receipts**.
+3. Buyer must receive a **delivery confirmation request through ProSmash**.
+4. Buyer must be able to **confirm receipt through the website**.
+5. Super Admin must be able to **review supplier proof and buyer confirmation**.
+6. The delivery confirmation workflow **records both** supplier proof
+   submission and buyer confirmation.
+
 **STILL `PENDING CONFIRMATION`:**
 (a) Supplier **eligibility evaluation criteria** and the approval procedure
 (what qualifies a supplier; review cadence; revocation grounds). (b) **Shipping
@@ -165,12 +185,16 @@ charge economics and mechanics** — whether charges are paid by ProSmash, buyer
 or supplier in different situations; whether fixed, percentage-based or
 manually entered; whether shipping can be free or subsidized; how charges
 appear in customer invoices; and handling when one order spans multiple
-suppliers. (c) **Delivery responsibility** and liability until buyer receipt.
-(d) Exactly what **buyer information** is disclosed to the supplier and under
-what confidentiality terms. (e) The **delivery confirmation** process (supplier
-claim, buyer acknowledgement, proof-of-delivery upload). (f) **GST documents
-and e-way bill** handling (ProSmash invoice to buyer, supplier delivery
-challan, e-way bill responsibility).
+suppliers. (c) **Legal liability and financial recovery** for delivery failures
+— who bears the loss between ProSmash, supplier and courier; compensation,
+replacement and refund policies for affected buyers. (d) Exactly what **buyer
+information** is disclosed to the supplier and under what confidentiality
+terms. (e) **Delivery confirmation edge cases** — what happens when the buyer
+does not respond to a confirmation request; disputed or partially delivered
+orders; confirmation deadlines; whether admin can manually resolve
+confirmation disputes; POD validation and evidence retention rules. (f) **GST
+documents and e-way bill** handling (ProSmash invoice to buyer, supplier
+delivery challan, e-way bill responsibility).
 **Why it matters:** Direct shipment pierces the supplier↔buyer anonymity
 boundary (roles doc §3) and changes GST document flows; only the eligibility
 mechanism is settled — the operational rules above remain undesignable.
@@ -218,3 +242,5 @@ payment) is only enforceable once "confirmed" is operationally defined.
 | OBD-08 | 100% Advance Payment: full payment before dispatch on every order; dispatch gated on confirmed payment; no postpaid/credit facilities; every order carries a payment status; admin has full payment-transaction visibility. Operational details split out to OBD-21. | Owner | 2026-11-13 |
 | OBD-19 (partial) | Direct Shipment Eligibility, Option C: admin approves suppliers for direct shipment AND separately enables individual products; both flags required for a direct shipment; suppliers cannot self-enable; admin retains control. Charges, liability, buyer-info disclosure, delivery confirmation, GST/e-way bill handling, and eligibility criteria remain open under OBD-19. | Owner | 2026-11-13 |
 | OBD-19 (partial) | Shipping Charge Management, Option D: admin controls direct-to-buyer shipping charges, set individually per order, considering supplier, product and buyer; suppliers cannot determine or change charges. Also confirmed: suppliers can view (not modify) their own eligibility status. Payer allocation, charge method, free/subsidized shipping, invoice presentation and multi-supplier orders remain open under OBD-19. | Owner | 2026-11-13 |
+| OBD-19 (partial) | Delivery Issue Management, Option B: ProSmash is the single customer-facing contact for direct-shipment delivery complaints (delayed/damaged/lost/missing); ProSmash coordinates investigation and resolution with supplier and courier; supplier/courier accountability managed internally; suppliers must not redirect buyers. Legal liability, financial recovery, compensation, replacement and refund policies remain open under OBD-19. | Owner | 2026-11-13 |
+| OBD-19 (partial) | Delivery Confirmation, Option C (Supplier Proof + Buyer Confirmation): supplier uploads delivery proof (POD / photographs / signed receipt) for direct-to-buyer shipments; buyer receives a confirmation request through ProSmash and confirms receipt on the website; admin reviews both; the workflow records proof submission and buyer confirmation. Buyer non-response, disputes/partial deliveries, deadlines, admin manual resolution, and POD validation/retention remain open under OBD-19. | Owner | 2026-11-13 |

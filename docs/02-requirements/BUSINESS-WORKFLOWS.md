@@ -245,7 +245,12 @@
    timeline.
 7. Buyer tracks status throughout: Placed → Confirmed → Processing → Dispatched →
    Delivered (statuses finalized in the data model phase).
-8. Cancellation/modification windows for buyers: P-08, `PENDING CONFIRMATION`.
+8. Delivery issues — delayed, damaged, lost or missing shipments — are reported
+   by the buyer **to ProSmash only**, regardless of fulfilment method; ProSmash
+   is the single customer-facing contact and coordinates resolution with the
+   supplier and courier internally (confirmed — OBD-19 Option B; compensation,
+   replacement and refund policies: `PENDING CONFIRMATION`).
+9. Cancellation/modification windows for buyers: P-08, `PENDING CONFIRMATION`.
 
 **Outcome:** a confirmed order ready for warehouse fulfilment.
 
@@ -279,8 +284,9 @@
 
 > Hybrid model (OBD-01): this workflow applies to **warehouse-fulfilled order
 > lines** only. Direct-shipment lines bypass the warehouse and are tracked under
-> Workflow N (supplier dispatches to the buyer); their delivery-status flow into
-> the buyer's order tracking is `PENDING CONFIRMATION` (OBD-19).
+> Workflow N (supplier dispatches to the buyer); delivery is confirmed via
+> supplier proof + buyer confirmation (OBD-19 Option C), with edge cases
+> `PENDING CONFIRMATION` (OBD-19).
 
 **Inbound (from Workflow N):**
 1. Against an open PO, record **goods receipt**: quantities received, condition,
@@ -360,13 +366,27 @@
 3. Receipt confirmation depends on destination:
    - **Warehouse POs:** admin records goods receipt at the warehouse
      (Workflow L inbound); the PO tracks ordered vs received quantities.
-   - **Direct-shipment POs:** delivery to the buyer is confirmed and recorded
-     against both the PO and the buyer order — confirmation mechanism,
-     buyer-information disclosure to the supplier, shipping-charge and
-     delivery-responsibility rules are all `PENDING CONFIRMATION` (OBD-19).
+   - **Direct-shipment POs** (confirmed — OBD-19 Option C, Supplier Proof +
+     Buyer Confirmation): the supplier **uploads delivery proof** (POD,
+     delivery photographs or signed receipt); the buyer then receives a
+     **delivery confirmation request through ProSmash** and confirms receipt on
+     the website; Super Admin can review both the proof and the buyer
+     confirmation. Both events are recorded against the PO and the buyer
+     order. Buyer non-response, disputed or partial deliveries, confirmation
+     deadlines, admin manual resolution, and POD validation/retention rules:
+     `PENDING CONFIRMATION` (OBD-19). Buyer-information disclosure to the
+     supplier also remains `PENDING CONFIRMATION` (OBD-19).
 4. Discrepancies (short delivery, damage, spec mismatch) are logged against the
    PO; resolution (replacement, debit note, PO amendment) is recorded —
    resolution policy: `PENDING CONFIRMATION`.
+   For **direct-shipment delivery complaints** (delayed, damaged, lost or
+   missing), ProSmash handles the buyer relationship exclusively (OBD-19
+   Option B): admin logs the complaint against the order and PO, coordinates
+   investigation and resolution with the supplier and courier, and manages
+   supplier/courier accountability internally. Suppliers must not redirect
+   buyers or resolve complaints with them directly. Legal liability, financial
+   recovery, compensation, replacement and refund policies:
+   `PENDING CONFIRMATION` (OBD-19).
 5. PO closes when fully received (or closed short with reason).
 
 **Payment tracking:**
