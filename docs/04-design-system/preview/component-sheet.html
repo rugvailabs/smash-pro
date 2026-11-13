@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PROSMASH — Component Sheet</title>
+<!-- Preview-only hosted fonts. Production self-hosts licensed files per brand/fonts/LICENSES.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============ COURT INK TOKENS ============ */
+:root{
+  --ink:#0D1B24; --ink2:#15293A;
+  --ember:#E8481F; --ember-deep:#B23312; --ember-press:#9A2C0F;
+  --paper:#FAF8F4; --chalk:#FFFFFF;
+  --n100:#F1EEE8; --n200:#E3DFD7; --n400:#A9A294; --n600:#6E675B; --n800:#3A362F; --n900:#1E1C18;
+  --ok:#1E7A46; --ok-t:#E6F2EB; --warn:#9A6A0B; --warn-t:#F8F0DC;
+  --bad:#B3261E; --bad-t:#F9E7E5; --info:#1F5F8B; --info-t:#E5EFF6;
+  --body:'Inter',system-ui,sans-serif; --disp:'Archivo',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace;
+  --r-sm:2px; --r-md:4px;
+  --sh-raised:0 1px 2px rgba(13,27,36,.10); --sh-overlay:0 8px 24px rgba(13,27,36,.16);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:16px}
+body{font-family:var(--body);background:var(--paper);color:var(--n800);line-height:1.5;-webkit-font-smoothing:antialiased}
+.num{font-variant-numeric:tabular-nums}
+a{color:inherit}
+
+/* ============ SHEET CHROME ============ */
+.masthead{background:var(--ink);color:var(--chalk);padding:56px 40px 48px;position:relative;overflow:hidden}
+.masthead .cut{position:absolute;top:0;right:-40px;height:100%;width:220px;background:var(--ember);transform:skewX(-16deg);opacity:.92}
+.mast-in{max-width:1200px;margin:0 auto;position:relative}
+.wordmark{font-family:var(--disp);font-weight:800;font-stretch:112%;letter-spacing:.02em;font-size:34px;color:var(--chalk)}
+.mast-sub{margin-top:10px;font-size:18px;font-weight:500;color:rgba(255,255,255,.85)}
+.mast-meta{margin-top:26px;font-family:var(--mono);font-size:12px;color:rgba(255,255,255,.55);display:flex;gap:28px;flex-wrap:wrap}
+.sheet{max-width:1200px;margin:0 auto;padding:0 40px 96px}
+.index{display:flex;flex-wrap:wrap;gap:6px 22px;padding:22px 0;border-bottom:1px solid var(--n200);font-family:var(--mono);font-size:12px;color:var(--n600)}
+.index b{color:var(--ink);font-weight:500}
+section.grp{padding:56px 0 8px;border-bottom:1px solid var(--n200)}
+.grp-head{display:flex;align-items:baseline;gap:18px;margin-bottom:8px}
+.grp-no{font-family:var(--mono);font-size:13px;color:var(--ember-deep)}
+.grp-title{font-family:var(--disp);font-weight:700;font-size:26px;color:var(--ink);letter-spacing:-.01em}
+.grp-note{font-size:15px;color:var(--n600);max-width:72ch;margin-bottom:26px}
+.stage{background:var(--chalk);border:1px solid var(--n200);padding:32px;margin-bottom:14px}
+.stage.paperbg{background:var(--paper)}
+.spec{font-family:var(--mono);font-size:12px;color:var(--n600);margin:-2px 0 40px;line-height:1.8}
+.spec em{font-style:normal;color:var(--ember-deep)}
+.row{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.col{display:flex;flex-direction:column;gap:16px}
+.lbl{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--n400);margin-bottom:10px}
+
+/* ============ 1 · NAVIGATION ============ */
+.pubnav{background:var(--ink);display:flex;align-items:center;gap:36px;height:64px;padding:0 28px}
+.pubnav .wm{font-family:var(--disp);font-weight:800;font-stretch:112%;font-size:19px;color:var(--chalk);letter-spacing:.02em}
+.pubnav nav{display:flex;gap:26px;flex:1}
+.pubnav nav a{color:rgba(255,255,255,.8);text-decoration:none;font-size:15px;font-weight:500;line-height:64px}
+.pubnav nav a.on{color:#fff;box-shadow:inset 0 -2px 0 var(--ember)}
+.pubnav .signin{color:#fff;font-size:14px;font-weight:500;text-decoration:none}
+.portalnav{background:var(--chalk);border-bottom:1px solid var(--n200);display:flex;align-items:center;height:56px;padding:0 24px;gap:14px}
+.portalnav .wm{font-family:var(--disp);font-weight:700;font-size:17px;color:var(--ink)}
+.portalnav .ptag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--n600);border-left:1px solid var(--n200);padding-left:14px;line-height:1}
+.portalnav .right{margin-left:auto;display:flex;align-items:center;gap:18px}
+.bell{position:relative;width:20px;height:20px;border:1.75px solid var(--n600);border-radius:3px 3px 50% 50%}
+.bell i{position:absolute;top:-7px;right:-9px;background:var(--ember-deep);color:#fff;font-style:normal;font-size:10px;font-weight:600;padding:1px 4px;border-radius:2px}
+.orgm{font-size:13px;font-weight:500;color:var(--ink)}
+.sidenav{width:232px;background:var(--paper);border-right:1px solid var(--n200);padding:14px 0}
+.sidenav .gt{font-family:var(--mono);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--n400);padding:14px 16px 6px}
+.sidenav a{display:block;font-size:14px;font-weight:500;color:var(--n800);text-decoration:none;padding:9px 16px;border-left:3px solid transparent}
+.sidenav a.on{color:var(--ink);background:var(--n100);border-left-color:var(--ember)}
+
+/* ============ 2 · BUTTONS ============ */
+.btn{font-family:var(--body);font-weight:600;font-size:14px;border:1px solid transparent;border-radius:var(--r-sm);padding:0 16px;height:44px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;background:none}
+.btn.h40{height:40px}.btn.h32{height:32px;font-size:13px;padding:0 10px}
+.btn-pri{background:var(--ember-deep);color:#fff}
+.btn-pri:hover{background:var(--ember-press)}
+.btn-sec{background:var(--chalk);border-color:var(--n400);color:var(--ink)}
+.btn-ter{color:var(--ink);text-decoration:underline;text-underline-offset:3px;padding:0 4px}
+.btn-des{background:var(--bad);color:#fff}
+.btn-dis{background:var(--n100);color:var(--n400);cursor:not-allowed}
+.btn.focus{outline:2px solid var(--ember-deep);outline-offset:2px}
+.btn .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.btn .spin,.skl{animation:none}}
+
+/* ============ 3 · SEARCH ============ */
+.search{position:relative;max-width:520px}
+.search input{width:100%;height:44px;border:1px solid var(--n400);border-radius:var(--r-sm);background:var(--chalk);padding:0 40px;font-size:16px;font-family:var(--body);color:var(--ink)}
+.search .ic{position:absolute;left:13px;top:13px;width:16px;height:16px;border:1.75px solid var(--n600);border-radius:50%}
+.search .ic::after{content:"";position:absolute;width:7px;height:1.75px;background:var(--n600);transform:rotate(45deg);top:14px;left:12px}
+.search kbd{position:absolute;right:12px;top:12px;font-family:var(--mono);font-size:11px;color:var(--n400);border:1px solid var(--n200);border-radius:2px;padding:2px 5px}
+.ac{border:1px solid var(--n200);border-top:none;background:var(--chalk);box-shadow:var(--sh-raised);max-width:520px}
+.ac .gh{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--n400);padding:10px 14px 4px}
+.ac .it{display:flex;justify-content:space-between;gap:12px;padding:9px 14px;font-size:14px;border-top:1px solid var(--n100)}
+.ac .it:hover,.ac .it.on{background:var(--n100)}
+.ac .sku{font-family:var(--mono);font-size:12px;color:var(--n600)}
+.ac b{font-weight:600}
+
+/* ============ 4 · PRODUCT CARD ============ */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pcard{background:var(--chalk);border:1px solid var(--n200);border-radius:var(--r-sm);padding:0;text-decoration:none;display:flex;flex-direction:column;overflow:hidden}
+.pcard:hover{border-color:var(--n400)}
+.pcard:hover .pname{text-decoration:underline;text-underline-offset:3px}
+.ph{aspect-ratio:4/3;width:100%;background:var(--n100) repeating-linear-gradient(106deg,transparent 0 9px,var(--n200) 9px 10px);display:flex;align-items:flex-end;padding:8px}
+.ph span{font-family:var(--mono);font-size:10px;color:var(--n600);background:var(--chalk);padding:2px 6px;border:1px solid var(--n200)}
+.pbody{display:flex;flex-direction:column;flex:1;padding:14px 16px 16px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--n600)}
+.pname{font-weight:600;font-size:16px;color:var(--ink);margin:5px 0 3px;line-height:1.3}
+.pmeta{font-size:13px;color:var(--n600)}
+.pricebox{margin-top:auto;padding-top:14px}
+.pbody .pricebox{border-top:1px solid var(--n100);margin-top:14px}
+.pbody .pricebox.grow{margin-top:auto}
+.plabel{font-family:var(--mono);font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--n600)}
+.plabel.yours{color:var(--ember-deep)}
+.pval{font-family:var(--disp);font-weight:700;font-size:19px;color:var(--ink);letter-spacing:-.01em}
+.pval small{font-family:var(--body);font-weight:400;font-size:12px;color:var(--n600);letter-spacing:0}
+.pcta{font-size:13px;color:var(--ember-deep);font-weight:500;margin-top:6px}
+.pstd{font-size:13px;color:var(--n600);margin-top:4px}
+/* pricing panel — §6 */
+.pstates{display:grid;grid-template-columns:repeat(3,1fr)}
+.pstate{padding:4px 28px}
+.pstate+.pstate{border-left:1px solid var(--n200)}
+.pstate:first-child{padding-left:0}
+@media (max-width:900px){.pstates{grid-template-columns:1fr}.pstate{padding:18px 0;border-left:none!important}.pstate+.pstate{border-top:1px solid var(--n200)}}
+/* detail composition — §7 */
+.detail{display:flex;gap:32px;flex-wrap:wrap}
+.detail .dg{flex:1 1 300px}
+.detail .di{flex:1 1 320px;min-width:280px}
+.qty{display:inline-flex;align-items:center;border:1px solid var(--n400);border-radius:var(--r-sm);height:44px}
+.qty button{width:40px;height:100%;border:none;background:none;font-size:17px;color:var(--ink);cursor:pointer}
+.qty span{min-width:48px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
+/* comparison matrix — §15 */
+.cmp{width:100%;border-collapse:collapse;background:var(--chalk)}
+.cmp th,.cmp td{padding:10px 14px;border-bottom:1px solid var(--n100);font-size:14px;text-align:left;white-space:nowrap}
+.cmp thead th{font-size:14px;font-weight:600;color:var(--ink);border-bottom:1px solid var(--n400)}
+.cmp thead th .v{margin-left:6px}
+.cmp tbody th{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--n600);font-weight:500}
+.cmp td{font-variant-numeric:tabular-nums;color:var(--ink)}
+.cmp td.best{font-weight:600}
+/* table toolbar — §9 */
+.ttool{display:flex;align-items:baseline;gap:14px;padding:14px 16px;border-bottom:1px solid var(--n200)}
+.ttool b{font-family:var(--disp);font-weight:600;font-size:16px;color:var(--ink)}
+.ttool .cnt{font-family:var(--mono);font-size:12px;color:var(--n600)}
+/* drawer demo */
+.drawer{background:var(--ink);min-height:300px;padding:8px 0}
+.drawer a{display:flex;justify-content:space-between;align-items:center;color:rgba(255,255,255,.85);text-decoration:none;font-family:var(--disp);font-weight:600;font-size:18px;padding:0 20px;height:52px}
+.drawer a.on{color:#fff;box-shadow:inset 3px 0 0 var(--ember)}
+.drawer a small{font-family:var(--mono);font-size:11px;color:rgba(255,255,255,.4);font-weight:400}
+.drawer .dsep{border-top:1px solid rgba(255,255,255,.12);margin:10px 20px}
+.drawer .dbtn{margin:12px 20px 8px}
+
+/* ============ 5 · CATEGORY STRIP ============ */
+.catstrip{display:flex;overflow-x:auto;border-top:1px solid var(--n200);border-bottom:1px solid var(--n200);background:var(--paper)}
+.cat{flex:0 0 auto;padding:16px 22px;border-right:1px solid var(--n200);text-decoration:none}
+.cat .cn{font-family:var(--disp);font-weight:600;font-size:15px;color:var(--ink);display:block}
+.cat .cc{font-family:var(--mono);font-size:11px;color:var(--n600)}
+.cat.on{box-shadow:inset 0 -2px 0 var(--ember)}
+.cat:hover .cn{text-decoration:underline;text-underline-offset:3px}
+
+/* ============ 7 · DETAIL / SPEC TABLE ============ */
+.spectab{width:100%;border-collapse:collapse}
+.spectab th{width:35%;text-align:left;font-weight:500;font-size:13px;color:var(--n600);padding:10px 12px 10px 0;border-bottom:1px solid var(--n100);vertical-align:top}
+.spectab td{font-size:14px;color:var(--ink);padding:10px 0;border-bottom:1px solid var(--n100)}
+
+/* ============ 8 · FORMS ============ */
+.field{max-width:520px;margin-bottom:18px}
+.field label{display:block;font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px}
+.field .help{font-size:12px;color:var(--n600);margin-top:5px}
+.field input,.field select,.field textarea{width:100%;height:44px;border:1px solid var(--n400);border-radius:var(--r-sm);background:var(--chalk);padding:0 12px;font-size:16px;font-family:var(--body);color:var(--ink)}
+.field textarea{height:88px;padding:10px 12px}
+.field input.mono{font-family:var(--mono);letter-spacing:.04em}
+.field.err input{border-color:var(--bad)}
+.field .emsg{display:flex;gap:6px;font-size:12px;color:var(--bad);margin-top:5px;font-weight:500}
+.field input.focus{outline:2px solid var(--ember-deep);outline-offset:2px}
+.upload{border:1px dashed var(--n400);border-radius:var(--r-sm);padding:22px;text-align:center;font-size:14px;color:var(--n600);max-width:520px}
+.upload b{color:var(--ember-deep);font-weight:600}
+.uprow{display:flex;align-items:center;gap:12px;max-width:520px;padding:10px 0;border-bottom:1px solid var(--n100);font-size:14px}
+.uprow .fn{flex:1;color:var(--ink)}
+.steps{display:flex;gap:0;max-width:640px;margin-bottom:26px}
+.step{flex:1;padding:10px 0 8px;border-top:3px solid var(--n200);font-size:13px;color:var(--n600)}
+.step .sn{font-family:var(--mono);font-size:11px;display:block;color:var(--n400)}
+.step.done{border-top-color:var(--ink)}.step.done .sn::after{content:" ✓"}
+.step.cur{border-top-color:var(--ember-deep);color:var(--ink);font-weight:600}.step.cur .sn{color:var(--ember-deep)}
+
+/* ============ 9 · TABLES ============ */
+.dtable{width:100%;border-collapse:collapse;background:var(--chalk)}
+.dtable thead th{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--n600);font-weight:500;text-align:left;padding:12px;border-bottom:1px solid var(--n400);white-space:nowrap}
+.dtable thead th.r{text-align:right}
+.dtable td{font-size:14px;padding:0 12px;height:40px;border-bottom:1px solid var(--n100);white-space:nowrap}
+.dtable td.r{text-align:right}
+.dtable tr:hover td{background:var(--n100)}
+.dtable .id{font-family:var(--mono);font-size:13px;color:var(--ink)}
+.dtable .sortable::after{content:" ↓";color:var(--ember-deep)}
+
+/* ============ 10 · FILTERS ============ */
+.fbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border:1px solid var(--n200);background:var(--chalk);padding:12px}
+.fbar select,.fbar input{height:40px;border:1px solid var(--n400);border-radius:var(--r-sm);padding:0 10px;font-size:14px;font-family:var(--body);background:var(--chalk);color:var(--ink)}
+.fbar .grow{flex:1;min-width:140px}
+.ftokens{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px}
+.ftok{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--n200);background:var(--chalk);border-radius:var(--r-sm);padding:5px 6px 5px 10px;font-size:13px;color:var(--ink)}
+.ftok button{border:none;background:var(--n100);width:24px;height:24px;border-radius:2px;cursor:pointer;color:var(--n600);font-size:13px;line-height:1}
+
+/* ============ 11 · CHIPS ============ */
+.chip{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px;border-radius:var(--r-sm);font-size:12px;font-weight:500}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.c-ok{background:var(--ok-t);color:var(--ok)}
+.c-warn{background:var(--warn-t);color:var(--warn)}
+.c-bad{background:var(--bad-t);color:var(--bad)}
+.c-info{background:var(--info-t);color:var(--info)}
+.c-neu{background:var(--n100);color:var(--n600)}
+
+/* ============ 12 · BREADCRUMB / PAGINATION ============ */
+.crumb{font-size:13px;color:var(--n600)}
+.crumb a{text-decoration:none;color:var(--n600)}
+.crumb a:hover{text-decoration:underline}
+.crumb b{color:var(--ink);font-weight:500}
+.pager{display:flex;align-items:center;gap:6px}
+.pager .sum{font-family:var(--mono);font-size:12px;color:var(--n600);margin-right:auto}
+.pager a{width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;font-size:14px;text-decoration:none;color:var(--ink);border-radius:var(--r-sm)}
+.pager a.on{background:var(--ink);color:var(--chalk)}
+.pager a:hover:not(.on){background:var(--n100)}
+
+/* ============ 13 · MODAL ============ */
+.scrim{background:rgba(13,27,36,.40);padding:48px 20px;display:flex;justify-content:center}
+.modal{background:var(--chalk);border-radius:var(--r-md);box-shadow:var(--sh-overlay);max-width:480px;width:100%;padding:28px}
+.modal h3{font-family:var(--disp);font-weight:600;font-size:21px;color:var(--ink);margin-bottom:10px;letter-spacing:-.01em}
+.modal p{font-size:15px;margin-bottom:16px}
+.modal .foot{display:flex;justify-content:flex-end;gap:14px;margin-top:22px}
+
+/* ============ 14 · STATES ============ */
+.empty{text-align:center;padding:48px 24px}
+.empty .ill{width:88px;height:66px;margin:0 auto 18px;border:1.75px solid var(--n400);border-radius:var(--r-sm);position:relative}
+.empty .ill::after{content:"";position:absolute;inset:auto -12px 12px auto;width:46px;height:1.75px;background:var(--ember-deep);transform:rotate(-16deg)}
+.empty .ill span{position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--n400);white-space:nowrap}
+.empty p{font-size:15px;color:var(--ink);margin:14px 0 16px}
+.skl{height:12px;background:var(--n100);border-radius:2px;animation:pulse 1.4s ease infinite;margin-bottom:10px}
+@keyframes pulse{50%{opacity:.55}}
+.banner{display:flex;gap:12px;align-items:flex-start;background:var(--bad-t);border-left:3px solid var(--bad);padding:14px 16px;font-size:14px;max-width:640px}
+.banner.info{background:var(--info-t);border-left-color:var(--info)}
+.banner b{color:var(--ink)}
+.toast{display:inline-flex;align-items:center;gap:10px;background:var(--chalk);border:1px solid var(--n200);box-shadow:var(--sh-raised);padding:12px 16px;font-size:13px;border-radius:var(--r-sm)}
+.toast .tick{width:16px;height:16px;border-radius:50%;background:var(--ok-t);color:var(--ok);font-size:11px;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+
+/* ============ 15 · QUOTATION ============ */
+.quote{border:1px solid var(--n200);background:var(--chalk);border-radius:var(--r-sm);max-width:640px}
+.quote .qh{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--n100)}
+.quote .qh b{font-size:15px;color:var(--ink)}
+.quote .v{font-family:var(--mono);font-size:12px;color:var(--n600);border:1px solid var(--n200);padding:1px 7px;border-radius:2px}
+.quote .qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:0;padding:16px 18px}
+.quote .qf .ql{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--n600)}
+.quote .qf .qv{font-size:15px;font-weight:600;color:var(--ink);margin-top:3px}
+.quote .qfoot{display:flex;align-items:center;gap:16px;padding:12px 18px;border-top:1px solid var(--n100);font-size:13px;color:var(--n600)}
+.vtl{max-width:640px;border-left:2px solid var(--n200);margin-left:8px;padding-left:20px}
+.vtl .ve{position:relative;padding:4px 0 16px;font-size:13px;color:var(--n600)}
+.vtl .ve::before{content:"";position:absolute;left:-25px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--n400)}
+.vtl .ve.cur::before{background:var(--ember-deep)}
+.vtl .ve b{color:var(--ink);font-weight:600}
+.vtl .vn{font-family:var(--mono);font-size:11px;color:var(--n400);margin-right:8px}
+
+/* ============ 16 · GST BREAKDOWN ============ */
+.gst{max-width:420px;background:var(--chalk);border:1px solid var(--n200);padding:20px}
+.gst .gr{display:flex;justify-content:space-between;font-size:14px;padding:7px 0}
+.gst .gr span:last-child{font-variant-numeric:tabular-nums}
+.gst .gr.note{font-size:12px;color:var(--n600);padding-top:0}
+.gst .tot{display:flex;justify-content:space-between;border-top:1px solid var(--n400);margin-top:10px;padding-top:14px;align-items:baseline}
+.gst .tot b{font-size:15px;color:var(--ink)}
+.gst .tot .amt{font-family:var(--disp);font-weight:700;font-size:21px;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ============ 17 · CHECKOUT ============ */
+.line{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--n100);max-width:640px}
+.line .th{width:56px;height:56px;flex:0 0 auto;background:var(--n100) repeating-linear-gradient(106deg,transparent 0 6px,var(--n200) 6px 7px)}
+.line .li{flex:1}
+.line .ln{font-size:14px;font-weight:600;color:var(--ink)}
+.line .ls{font-family:var(--mono);font-size:12px;color:var(--n600)}
+.line .lq{font-size:13px;color:var(--n600)}
+.line .lt{font-size:15px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+.pay{max-width:420px}
+.pay .pm{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--n200);padding:12px 14px;margin-bottom:8px;border-radius:var(--r-sm);font-size:14px}
+.pay .pm.on{border-color:var(--ember-deep);box-shadow:inset 0 0 0 1px var(--ember-deep)}
+.pay .pm .rad{width:16px;height:16px;border:1.75px solid var(--n400);border-radius:50%;margin-top:2px;flex:0 0 auto}
+.pay .pm.on .rad{border-color:var(--ember-deep);box-shadow:inset 0 0 0 3.5px var(--chalk);background:var(--ember-deep)}
+.pay .pm small{display:block;font-size:12px;color:var(--n600);margin-top:2px}
+
+/* ============ 18 · DASHBOARD ============ */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.tile{background:var(--chalk);border:1px solid var(--n200);border-radius:var(--r-sm);padding:16px;text-decoration:none;display:block}
+.tile:hover{border-color:var(--n400)}
+.tile .tl{font-family:var(--mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--n600)}
+.tile .tv{font-family:var(--disp);font-weight:700;font-size:26px;color:var(--ink);margin:6px 0 2px;font-variant-numeric:tabular-nums}
+.tile .tc{font-size:12px;color:var(--n600)}
+.tile .tc.w{color:var(--warn);font-weight:500}
+.queue{background:var(--chalk);border:1px solid var(--n200)}
+.qrow{display:flex;align-items:center;gap:16px;padding:0 16px;height:56px;border-bottom:1px solid var(--n100);font-size:14px}
+.qrow:last-child{border-bottom:none}
+.qrow .qn{font-weight:600;color:var(--ink)}
+.qrow .qid{font-family:var(--mono);font-size:12px;color:var(--n600)}
+.qrow .age{margin-left:auto;font-size:13px;color:var(--n600)}
+.qrow .age.w{color:var(--warn);font-weight:500}
+.qrow .chev{color:var(--n400)}
+
+/* ============ MOBILE FRAMES ============ */
+.phones{display:flex;gap:28px;flex-wrap:wrap;align-items:flex-start}
+.phone{width:360px;max-width:100%;border:1px solid var(--n200);background:var(--paper);flex:0 1 auto}
+.phone .pn-cap{font-family:var(--mono);font-size:11px;color:var(--n600);padding:8px 12px;border-bottom:1px solid var(--n200);background:var(--chalk)}
+.mobnav{background:var(--ink);display:flex;align-items:center;height:56px;padding:0 16px;gap:14px}
+.mobnav .wm{font-family:var(--disp);font-weight:800;font-stretch:112%;font-size:17px;color:var(--chalk);flex:1;letter-spacing:.02em}
+.burger{width:20px;height:14px;border-top:2px solid #fff;border-bottom:2px solid #fff;position:relative}
+.burger::after{content:"";position:absolute;top:4px;left:0;right:0;height:2px;background:#fff}
+.sglyph{width:16px;height:16px;border:1.75px solid rgba(255,255,255,.85);border-radius:50%;position:relative}
+.sglyph::after{content:"";position:absolute;width:7px;height:1.75px;background:rgba(255,255,255,.85);transform:rotate(45deg);top:14px;left:12px}
+.mcard-kv{background:var(--chalk);border-bottom:1px solid var(--n200);padding:14px 16px}
+.mcard-kv .kvr{display:flex;justify-content:space-between;gap:10px;padding:4px 0;font-size:13px}
+.mcard-kv .kvl{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--n600)}
+.mcard-kv .kvv{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ============ SHEET RESPONSIVE ============ */
+@media (max-width:1024px){ .pgrid{grid-template-columns:repeat(2,1fr)} .tiles{grid-template-columns:repeat(2,1fr)} .quote .qgrid{grid-template-columns:repeat(2,1fr);gap:14px} }
+@media (max-width:640px){
+  .masthead{padding:40px 20px} .masthead .cut{width:64px;right:-22px}
+  .mast-meta{max-width:calc(100% - 48px)}
+  .sheet{padding:0 20px 64px}
+  .pgrid,.tiles{grid-template-columns:1fr}
+  .stage{padding:18px}
+  .pubnav nav{display:none}
+  .grp-title{font-size:21px}
+}
+footer.colophon{max-width:1200px;margin:0 auto;padding:36px 40px 80px;font-family:var(--mono);font-size:11px;color:var(--n600);line-height:2}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="cut" aria-hidden="true"></div>
+  <div class="mast-in">
+    <div class="wordmark">PROSMASH</div>
+    <div class="mast-sub">Shared Component Library — design review sheet</div>
+    <div class="mast-meta">
+      <span>COURT INK · v0.1</span><span>2026-11-13</span><span>LIGHT MODE · EN · WCAG 2.2 AA</span><span>SPEC: COMPONENT-LIBRARY.md</span>
+    </div>
+  </div>
+</header>
+
+<div class="sheet">
+
+<div class="index">
+  <b>01</b> Navigation&nbsp; <b>02</b> Buttons&nbsp; <b>03</b> Search&nbsp; <b>04</b> Product cards&nbsp; <b>05</b> Categories&nbsp; <b>06</b> Pricing&nbsp; <b>07</b> Product detail&nbsp; <b>08</b> Forms&nbsp; <b>09</b> Tables&nbsp; <b>10</b> Filters&nbsp; <b>11</b> Status chips&nbsp; <b>12</b> Breadcrumb · Pagination&nbsp; <b>13</b> Modals&nbsp; <b>14</b> States&nbsp; <b>15</b> Quotations&nbsp; <b>16</b> GST breakdown&nbsp; <b>17</b> Checkout&nbsp; <b>18</b> Dashboard · Queues
+</div>
+
+<!-- ================= 01 NAVIGATION ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">01</span><h2 class="grp-title">Navigation</h2></div>
+  <p class="grp-note">Two header systems, never mixed: the expressive Ink band for the public site; the quiet Chalk band for every portal. Admin density lives below the header, not inside it.</p>
+
+  <div class="lbl">Public header — Ink · 64px</div>
+  <div class="stage" style="padding:0">
+    <div class="pubnav">
+      <span class="wm">PROSMASH</span>
+      <nav><a class="on" href="#">Categories</a><a href="#">How it works</a><a href="#">For suppliers</a></nav>
+      <a class="signin" href="#">Sign in</a>
+      <button class="btn btn-pri h40">Register</button>
+    </div>
+  </div>
+  <p class="spec">bg ink · active = 2px ember inset underline · register = the page's single primary</p>
+
+  <div class="lbl">Portal header — Chalk · 56px (buyer example) + side navigation (admin example)</div>
+  <div class="stage" style="padding:0">
+    <div class="portalnav">
+      <span class="wm">PROSMASH</span><span class="ptag">BUYER</span>
+      <div class="right"><span class="bell"><i>3</i></span><span class="orgm">St. Xavier's High School, Pune ▾</span></div>
+    </div>
+    <div style="display:flex">
+      <nav class="sidenav">
+        <div class="gt">Procurement</div>
+        <a href="#">Requirements</a><a class="on" href="#">Quotations</a><a href="#">Purchase orders</a>
+        <div class="gt">Finance</div>
+        <a href="#">Buyer payments</a><a href="#">Supplier payables</a>
+      </nav>
+      <div style="flex:1;background:var(--paper);min-height:180px;padding:20px;font-size:13px;color:var(--n400)">content area</div>
+    </div>
+  </div>
+  <p class="spec">sidenav 232px · active = 3px ember left bar + n100 fill · groups in mono caps · <em>multi-user org menu scope pending OBD-15</em></p>
+</section>
+
+<!-- ================= 02 BUTTONS ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">02</span><h2 class="grp-title">Buttons</h2></div>
+  <p class="grp-note">One primary per view. Ember Deep is the only action fill — Smash Ember never carries small white text (AA).</p>
+  <div class="stage">
+    <div class="row">
+      <button class="btn btn-pri">Place order</button>
+      <button class="btn btn-sec">Save draft</button>
+      <button class="btn btn-ter">View history</button>
+      <button class="btn btn-des">Reject application</button>
+      <button class="btn btn-dis" aria-disabled="true">Awaiting approval</button>
+    </div>
+    <div class="row" style="margin-top:22px">
+      <button class="btn btn-pri focus">Focused state</button>
+      <button class="btn btn-pri"><span class="spin" aria-hidden="true"></span>Submitting…</button>
+      <button class="btn btn-pri h40">Dense 40px</button>
+      <button class="btn btn-sec h32">Row action 32px</button>
+    </div>
+  </div>
+  <p class="spec">h44 comfortable / h40 dense / h32 table rows · radius 2px · focus = 2px ember-deep outline, 2px offset · loading keeps width, label → spinner + visually-hidden text</p>
+</section>
+
+<!-- ================= 03 SEARCH ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">03</span><h2 class="grp-title">Search &amp; autocomplete</h2></div>
+  <p class="grp-note">Grouped suggestions: products, categories and — in portals — reference IDs. No prices in public suggestions (OBD-03 keeps prices on pages).</p>
+  <div class="stage">
+    <div class="search">
+      <span class="ic" aria-hidden="true"></span>
+      <input type="search" value="shutt" aria-label="Search products" aria-expanded="true">
+      <kbd>/</kbd>
+    </div>
+    <div class="ac" role="listbox">
+      <div class="gh">Products</div>
+      <div class="it on"><span><b>Shutt</b>lecocks — Feather, Tournament Grade</span><span class="sku">SKU BD-1104</span></div>
+      <div class="it"><span><b>Shutt</b>lecocks — Nylon, Practice (tube of 6)</span><span class="sku">SKU BD-1087</span></div>
+      <div class="gh">Categories</div>
+      <div class="it"><span>Badminton</span><span class="sku">214 products</span></div>
+    </div>
+  </div>
+  <p class="spec">panel = chalk + raised shadow · match emphasis = weight 600, no highlight colour · arrows / enter / esc · admin adds order·PO·requirement ID group</p>
+</section>
+
+<!-- ================= 04 PRODUCT CARDS ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">04</span><h2 class="grp-title">Product cards</h2></div>
+  <p class="grp-note">Wholesale presentation: category, name, spec, price. No ratings, hearts, sale flashes. Image areas are labelled placeholder frames until real photography is acquired — never fake photos.</p>
+  <div class="stage paperbg">
+    <div class="pgrid">
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · cricket/eng-willow-bat-g2 · 4:3</span></div>
+        <div class="pbody">
+          <div class="eyebrow">Cricket</div>
+          <div class="pname">English Willow Bat — Grade 2, Short Handle</div>
+          <div class="pmeta">Stag Cricket Co. · 1,180–1,250 g</div>
+          <div class="pricebox grow">
+            <div class="plabel">Standard price</div>
+            <div class="pval num">₹4,850.00 <small>incl. GST</small></div>
+            <div class="pcta">Register to view your price →</div>
+          </div>
+        </div>
+      </a>
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · badminton/feather-tournament · 4:3</span></div>
+        <div class="pbody">
+          <div class="eyebrow">Badminton</div>
+          <div class="pname">Feather Shuttlecocks — Tournament, Tube of 12</div>
+          <div class="pmeta">Arrowplume · Speed 77</div>
+          <div class="pricebox grow">
+            <div class="plabel yours">Your price</div>
+            <div class="pval num">₹1,054.00 <small>incl. GST</small></div>
+            <div class="pstd num">Standard ₹1,240.00</div>
+          </div>
+        </div>
+      </a>
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · basketball/comp-size7 · 4:3</span></div>
+        <div class="pbody">
+          <div class="eyebrow">Basketball</div>
+          <div class="pname">Competition Basketball — Size 7, Indoor/Outdoor</div>
+          <div class="pmeta">Krida Equipment · FIBA-spec rubber</div>
+          <div class="pricebox grow">
+            <div class="plabel">Standard price</div>
+            <div class="pval num">₹1,980.00 <small>incl. GST</small></div>
+            <div class="pcta">Register to view your price →</div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+  <p class="spec">full-bleed 4:3 image, content padded · price blocks baseline-aligned via flexible body · "your price" label in ember-deep = the approved-buyer signal · centre card: standard price as quiet context, <em>no % badge (pending OBD-20)</em>, no strikethrough · grid 4/3/2/1-up by breakpoint</p>
+</section>
+
+<!-- ================= 05 CATEGORY NAV ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">05</span><h2 class="grp-title">Category navigation</h2></div>
+  <p class="grp-note">The 12 sports as a flat typographic strip — counts in mono, active carries the Ember rule. Photographic tiles wait for real imagery.</p>
+  <div class="stage" style="padding:0">
+    <div class="catstrip">
+      <a class="cat on" href="#"><span class="cn">Cricket</span><span class="cc">312 products</span></a>
+      <a class="cat" href="#"><span class="cn">Football</span><span class="cc">198</span></a>
+      <a class="cat" href="#"><span class="cn">Basketball</span><span class="cc">86</span></a>
+      <a class="cat" href="#"><span class="cn">Volleyball</span><span class="cc">64</span></a>
+      <a class="cat" href="#"><span class="cn">Badminton</span><span class="cc">214</span></a>
+      <a class="cat" href="#"><span class="cn">Tennis</span><span class="cc">121</span></a>
+      <a class="cat" href="#"><span class="cn">Athletics</span><span class="cc">153</span></a>
+      <a class="cat" href="#"><span class="cn">Gym &amp; Fitness</span><span class="cc">240</span></a>
+    </div>
+  </div>
+  <p class="spec">horizontal scroll on overflow (all 12 present in product) · active = 2px ember inset rule · archivo 600 names</p>
+</section>
+
+<!-- ================= 06 PRICING ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">06</span><h2 class="grp-title">Pricing display — three session states</h2></div>
+  <p class="grp-note">OBD-03: public standard price for everyone; discounted price only for approved, logged-in buyers. All amounts GST-inclusive (OBD-20), two decimals, tabular.</p>
+  <div class="stage">
+    <div class="pstates">
+      <div class="pstate">
+        <div class="lbl">1 · Anonymous</div>
+        <div class="plabel">Standard price</div>
+        <div class="pval num" style="font-size:26px">₹4,850.00 <small>incl. GST</small></div>
+        <div class="pcta">Institutional pricing — Register to view your price →</div>
+      </div>
+      <div class="pstate">
+        <div class="lbl">2 · Registered, pending approval</div>
+        <div class="plabel">Standard price</div>
+        <div class="pval num" style="font-size:26px">₹4,850.00 <small>incl. GST</small></div>
+        <div class="pstd">Your institutional pricing activates on approval</div>
+      </div>
+      <div class="pstate">
+        <div class="lbl">3 · Approved buyer</div>
+        <div class="plabel yours">Your price</div>
+        <div class="pval num" style="font-size:26px">₹4,122.50 <small>incl. GST</small></div>
+        <div class="pstd num">Standard ₹4,850.00</div>
+      </div>
+    </div>
+  </div>
+  <p class="spec">one component, session decides the state — hairline-divided here to read as one system · "your price" label in ember-deep is the only state marker · state 3: standard price = quiet context, <em>discount-% display pending OBD-20 — intentionally absent</em> · amounts illustrative, configured percentages are an owner decision</p>
+</section>
+
+<!-- ================= 07 PRODUCT DETAIL ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">07</span><h2 class="grp-title">Product detail information</h2></div>
+  <p class="grp-note">Specification table is first-class — hairline key-value rows, never hidden in tabs. Supplier identity appears nowhere (access boundary §3).</p>
+  <div class="stage">
+    <div class="crumb" style="margin-bottom:20px"><a href="#">Catalog</a> / <a href="#">Cricket</a> / <b>English Willow Bat — Grade 2</b></div>
+    <div class="detail">
+      <div class="dg">
+        <div class="ph" style="aspect-ratio:4/3"><span>IMG · hero · 4:3 · replaced by product photography</span></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div class="ph" style="width:64px;aspect-ratio:1"><span style="font-size:8px">1</span></div>
+          <div class="ph" style="width:64px;aspect-ratio:1"><span style="font-size:8px">2</span></div>
+          <div class="ph" style="width:64px;aspect-ratio:1"><span style="font-size:8px">3</span></div>
+        </div>
+      </div>
+      <div class="di">
+        <div class="eyebrow">Cricket · Bats</div>
+        <h3 style="font-family:var(--disp);font-weight:600;font-size:26px;color:var(--ink);letter-spacing:-.01em;line-height:1.15;margin:6px 0 4px">English Willow Bat — Grade 2, Short Handle</h3>
+        <div class="pmeta" style="margin-bottom:16px">Stag Cricket Co.</div>
+        <div class="plabel yours">Your price</div>
+        <div class="pval num" style="font-size:26px">₹4,122.50 <small>incl. GST</small></div>
+        <div class="pstd num" style="margin-bottom:6px">Standard ₹4,850.00</div>
+        <div style="margin:6px 0 18px"><span class="chip c-ok">In stock</span></div>
+        <div class="row" style="gap:12px">
+          <span class="qty"><button aria-label="Decrease">−</button><span class="num">24</span><button aria-label="Increase">+</button></span>
+          <button class="btn btn-pri">Add to order</button>
+        </div>
+      </div>
+    </div>
+    <table class="spectab" style="max-width:560px;margin-top:28px">
+      <tr><th>Willow grade</th><td>Grade 2 English willow, 8–10 grains</td></tr>
+      <tr><th>Weight range</th><td class="num">1,180 – 1,250 g</td></tr>
+      <tr><th>Handle</th><td>Short handle, 12-piece cane, octagonal</td></tr>
+      <tr><th>HSN</th><td><span style="font-family:var(--mono);font-size:13px">9506</span> <span style="color:var(--n600);font-size:12px">— classification pending tax confirmation</span></td></tr>
+    </table>
+  </div>
+  <p class="spec">approved-buyer composition shown — anonymous swaps price block to state 1 + register CTA · gallery 55 / info 45 at lg, stacked below · spec table never hidden in tabs · <em>availability chip provisional — P-06 pending</em> · HSN structure only, values await tax professional</p>
+</section>
+
+<!-- ================= 08 FORMS ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">08</span><h2 class="grp-title">Forms &amp; inputs</h2></div>
+  <p class="grp-note">Labels always visible, errors are text + icon, identity fields render in mono. Document slots carry per-document status (verification workflow ◇ proposed, OBD-02).</p>
+  <div class="stage">
+    <div class="steps">
+      <div class="step done"><span class="sn">01</span>Organization</div>
+      <div class="step cur"><span class="sn">02</span>Business details</div>
+      <div class="step"><span class="sn">03</span>Documents</div>
+      <div class="step"><span class="sn">04</span>Review</div>
+    </div>
+    <div class="field">
+      <label>Organization name (required)</label>
+      <input type="text" value="St. Xavier's High School, Pune">
+    </div>
+    <div class="field">
+      <label>GSTIN</label>
+      <input type="text" class="mono" value="27AABCS1429B1Z6">
+      <div class="help">15-character GST identification number</div>
+    </div>
+    <div class="field err">
+      <label>Contact phone (required)</label>
+      <input type="tel" value="98220 414">
+      <div class="emsg">⚠ Enter a 10-digit mobile number</div>
+    </div>
+    <div class="lbl" style="margin-top:26px">Document upload — per-document status</div>
+    <div class="upload">Drag your GST certificate here, or <b>browse files</b><br><span style="font-size:12px">PDF, JPG or PNG</span></div>
+    <div class="uprow"><span class="fn">gst-certificate.pdf</span><span class="chip c-ok">Verified</span></div>
+    <div class="uprow"><span class="fn">affiliation-letter.pdf</span><span class="chip c-warn">Submitted</span></div>
+    <div class="uprow"><span class="fn">pan-card.jpg</span><span class="chip c-bad">Rejected — re-upload</span></div>
+  </div>
+  <p class="spec">520px max measure · 16px input text (no mobile zoom) · GSTIN in plex mono · <em>document checklist follows the ◇ proposed OBD-02 workflow — flagged, not final</em></p>
+</section>
+
+<!-- ================= 09 TABLES ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">09</span><h2 class="grp-title">Tables &amp; data grids</h2></div>
+  <p class="grp-note">The admin workhorse: mono headers, tabular money right-aligned, mono IDs, chips for state. Below tablet, buyer tables become key-value cards (shown in §Mobile).</p>
+  <div class="stage" style="padding:0;overflow-x:auto">
+    <div class="ttool"><b>Orders</b><span class="cnt">312 total · filtered: payment pending</span><span style="margin-left:auto"><button class="btn btn-ter" style="height:auto;font-size:13px">Export</button></span></div>
+    <table class="dtable">
+      <thead><tr>
+        <th>Order</th><th>Buyer</th><th class="sortable">Placed</th><th>Payment</th><th>Status</th><th class="r">Amount</th><th></th>
+      </tr></thead>
+      <tbody>
+        <tr><td class="id">ORD-2026-01148</td><td>St. Xavier's High School, Pune</td><td>13 Nov 2026</td><td><span class="chip c-ok">Payment confirmed</span></td><td><span class="chip c-info">Processing</span></td><td class="r num">₹52,630.00</td><td><button class="btn btn-sec h32">Open</button></td></tr>
+        <tr><td class="id">ORD-2026-01147</td><td>Southpaw Badminton Academy</td><td>13 Nov 2026</td><td><span class="chip c-warn">Awaiting verification</span></td><td><span class="chip c-info">Placed</span></td><td class="r num">₹18,960.00</td><td><button class="btn btn-sec h32">Open</button></td></tr>
+        <tr><td class="id">ORD-2026-01146</td><td>Deccan Sports Retail</td><td>12 Nov 2026</td><td><span class="chip c-bad">Unpaid — 11h left</span></td><td><span class="chip c-info">Placed</span></td><td class="r num">₹1,04,820.00</td><td><button class="btn btn-sec h32">Open</button></td></tr>
+        <tr><td class="id">ORD-2026-01141</td><td>Model College, Nagpur</td><td>11 Nov 2026</td><td><span class="chip c-ok">Payment confirmed</span></td><td><span class="chip c-ok">Delivered</span></td><td class="r num">₹68,470.00</td><td><button class="btn btn-sec h32">Open</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="spec">dense mode 40px rows · sticky header + raised shadow on scroll (static here) · indian digit grouping ₹1,04,820.00 · timeout copy references the payment window, <em>default hours pending OBD-21 ◇</em></p>
+</section>
+
+<!-- ================= 10 FILTERS ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">10</span><h2 class="grp-title">Filters &amp; sorting</h2></div>
+  <p class="grp-note">Status first — it is the #1 operational filter. Applied filters become removable tokens; the whole bar collapses to a drawer below desktop.</p>
+  <div class="stage">
+    <div class="fbar">
+      <select><option>Status: All</option></select>
+      <select><option>Category: Badminton</option></select>
+      <input type="text" placeholder="From date" style="width:120px">
+      <input type="text" placeholder="Order / PO ID" class="grow">
+      <select style="margin-left:auto"><option>Sort: Newest</option></select>
+    </div>
+    <div class="ftokens">
+      <span class="ftok">Category: Badminton <button aria-label="Remove filter">×</button></span>
+      <span class="ftok">Payment: Awaiting verification <button aria-label="Remove filter">×</button></span>
+      <button class="btn btn-ter" style="height:auto">Clear all</button>
+    </div>
+  </div>
+  <p class="spec">40px controls in hairline bar · tokens: chalk chip + 24px × hit area · drawer with active-count badge below lg</p>
+</section>
+
+<!-- ================= 11 CHIPS ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">11</span><h2 class="grp-title">Status badges &amp; chips</h2></div>
+  <p class="grp-note">One vocabulary across all four portals: tint fill + deep foreground + word. Ember is never a status — ember means act, colour families mean state.</p>
+  <div class="stage">
+    <div class="lbl">Success family</div>
+    <div class="row"><span class="chip c-ok">Active</span><span class="chip c-ok">Approved</span><span class="chip c-ok">Payment confirmed</span><span class="chip c-ok">Delivered</span><span class="chip c-ok">Awarded</span><span class="chip c-ok">In stock</span></div>
+    <div class="lbl" style="margin-top:20px">Warning family</div>
+    <div class="row"><span class="chip c-warn">Pending approval</span><span class="chip c-warn">Awaiting verification</span><span class="chip c-warn">Revision requested</span><span class="chip c-warn">Low stock</span><span class="chip c-warn">Nearing timeout</span></div>
+    <div class="lbl" style="margin-top:20px">Danger family</div>
+    <div class="row"><span class="chip c-bad">Rejected</span><span class="chip c-bad">Cancelled</span><span class="chip c-bad">Suspended</span><span class="chip c-bad">Withdrawn</span><span class="chip c-bad">Out of stock</span></div>
+    <div class="lbl" style="margin-top:20px">Info + neutral families</div>
+    <div class="row"><span class="chip c-info">Placed</span><span class="chip c-info">Submitted</span><span class="chip c-info">Processing</span><span class="chip c-info">Dispatched</span><span class="chip c-neu">Draft</span><span class="chip c-neu">Closed</span></div>
+  </div>
+  <p class="spec">24px · radius 2px · dot + word, never colour alone · exact vocabularies finalize with the data model; families fixed now</p>
+</section>
+
+<!-- ================= 12 BREADCRUMB / PAGINATION ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">12</span><h2 class="grp-title">Breadcrumbs &amp; pagination</h2></div>
+  <div class="stage">
+    <div class="crumb" style="margin-bottom:26px"><a href="#">Catalog</a> / <a href="#">Cricket</a> / <a href="#">Bats</a> / <b>English Willow — Grade 2</b></div>
+    <div class="pager">
+      <span class="sum">1–25 of 312</span>
+      <a href="#">‹</a><a class="on" href="#">1</a><a href="#">2</a><a href="#">3</a><span style="color:var(--n400)">…</span><a href="#">13</a><a href="#">›</a>
+    </div>
+  </div>
+  <p class="spec">40px square hit areas · active = ink fill · summary in mono · mobile keeps summary + prev/next · no infinite scroll on operational tables</p>
+</section>
+
+<!-- ================= 13 MODAL ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">13</span><h2 class="grp-title">Modal &amp; confirmation dialogs</h2></div>
+  <p class="grp-note">Destructive confirmations restate the object and require the reason inline — the mandatory-reason rule from the approval workflows, built into the component.</p>
+  <div class="stage paperbg" style="padding:0">
+    <div class="scrim">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mt">
+        <h3 id="mt">Reject supplier application?</h3>
+        <p>Jalandhar Athletic Co. will be notified with your reason and may correct and reapply.</p>
+        <div class="field" style="max-width:none;margin:0">
+          <label>Reason (required)</label>
+          <textarea>GST certificate does not match the legal entity name.</textarea>
+        </div>
+        <div class="foot">
+          <button class="btn btn-ter">Cancel</button>
+          <button class="btn btn-des">Reject application</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="spec">480px · radius 4px (system max) · scrim = ink 40% · esc/scrim close disabled for destructive · focus trapped, returns to trigger · full-screen below sm</p>
+</section>
+
+<!-- ================= 14 STATES ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">14</span><h2 class="grp-title">Empty · loading · error · success</h2></div>
+  <div class="stage">
+    <div class="row" style="align-items:stretch;gap:40px">
+      <div style="flex:1;min-width:240px">
+        <div class="lbl">Empty</div>
+        <div class="empty" style="border:1px solid var(--n100)">
+          <div class="ill"><span>ILL · line-style, commissioned later</span></div>
+          <p>No quotations yet for this requirement.</p>
+          <button class="btn btn-sec h40">Invite matched suppliers</button>
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px">
+        <div class="lbl">Loading — skeleton mirrors true layout</div>
+        <div style="border:1px solid var(--n100);padding:18px">
+          <div class="skl" style="width:40%"></div>
+          <div class="skl" style="width:85%"></div>
+          <div class="skl" style="width:72%"></div>
+          <div class="skl" style="width:80%"></div>
+        </div>
+        <div class="lbl" style="margin-top:22px">Error + success</div>
+        <div class="banner"><b>Payment could not be verified.</b>&nbsp;The uploaded proof is unreadable — request a re-upload or retry. <a href="#" style="font-weight:600">Retry</a></div>
+        <div style="margin-top:12px"><span class="toast"><span class="tick">✓</span>Quotation v3 submitted to ProSmash</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="spec">empty = reason + one action, never bare "no data" · skeleton pulse ≤1.4s, honours reduced-motion · toast aria-live polite, 5s + close</p>
+</section>
+
+<!-- ================= 15 QUOTATION ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">15</span><h2 class="grp-title">Quotation &amp; supplier offer blocks</h2></div>
+  <p class="grp-note">Fixed field order so blocks align into the comparison matrix. Versions are explicit — revisions never silently overwrite (SUP-007).</p>
+  <div class="stage">
+    <div class="quote">
+      <div class="qh"><b>Meerut Sports Works</b><span class="v">v3</span><span class="chip c-info" style="margin-left:auto">Submitted</span></div>
+      <div class="qgrid">
+        <div class="qf"><div class="ql">Unit price</div><div class="qv num">₹3,980.00</div></div>
+        <div class="qf"><div class="ql">Quantity</div><div class="qv num">500</div></div>
+        <div class="qf"><div class="ql">Lead time</div><div class="qv num">21 days</div></div>
+        <div class="qf"><div class="ql">Valid till</div><div class="qv">15 Dec 2026</div></div>
+        <div class="qf"><div class="ql">Terms</div><div class="qv" style="font-size:13px">50% adv, bal. on delivery</div></div>
+      </div>
+      <div class="qfoot">
+        <span>⎙ 2 attachments</span><span style="font-family:var(--mono);font-size:12px">REQ-2026-0087</span>
+        <span style="margin-left:auto;display:flex;gap:10px"><button class="btn btn-sec h40">Request revision</button><button class="btn btn-pri h40">Negotiate</button></span>
+      </div>
+    </div>
+    <div class="lbl" style="margin-top:26px">Version timeline</div>
+    <div class="vtl">
+      <div class="ve cur"><span class="vn">v3</span><b>₹3,980.00</b> — lead time improved to 21 days · 13 Nov 2026</div>
+      <div class="ve"><span class="vn">v2</span>₹4,020.00 — validity extended · 11 Nov 2026</div>
+      <div class="ve"><span class="vn">v1</span>₹4,150.00 — initial submission · 09 Nov 2026</div>
+    </div>
+    <div class="lbl" style="margin-top:30px">Comparison matrix — REQ-2026-0087 · Workflow G (admin only)</div>
+    <div style="overflow-x:auto;border:1px solid var(--n200)">
+      <table class="cmp">
+        <thead><tr>
+          <th style="font-family:var(--mono);font-size:11px;font-weight:500;color:var(--n600)">LATEST VERSIONS</th>
+          <th>Meerut Sports Works <span class="v">v3</span></th>
+          <th>Jalandhar Athletic Co. <span class="v">v1</span></th>
+          <th>Krida Equipment <span class="v">v2</span></th>
+        </tr></thead>
+        <tbody>
+          <tr><th>Unit price</th><td class="best">₹3,980.00</td><td>₹4,060.00</td><td>₹4,240.00</td></tr>
+          <tr><th>Quantity</th><td>500</td><td>500</td><td class="best">650</td></tr>
+          <tr><th>Lead time</th><td>21 days</td><td class="best">14 days</td><td>30 days</td></tr>
+          <tr><th>Valid till</th><td>15 Dec 2026</td><td>30 Nov 2026</td><td>20 Dec 2026</td></tr>
+          <tr><th>On-time rate</th><td>96%</td><td>—  new supplier</td><td>91%</td></tr>
+          <tr><th></th><td><button class="btn btn-pri h40">Select &amp; issue PO</button></td><td><button class="btn btn-sec h40">Negotiate</button></td><td><button class="btn btn-sec h40">Negotiate</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <p class="spec">admin view shown; supplier variant swaps actions to revise / withdraw · matrix: shared field order with the blocks so columns scan; best-in-row = weight only, no medals — admin judges · performance figures (on-time rate) are <em>illustrative display only — no automatic ranking, scoring or eligibility decisions</em> · <em>split awards pending OBD-07</em> · "terms" = supplier-side payment terms (what ProSmash pays the supplier, workflow N) — entirely distinct from the buyer-side 100% advance rule (OBD-08) · allowed-terms policy pending · never visible to buyers</p>
+</section>
+
+<!-- ================= 16 GST BREAKDOWN ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">16</span><h2 class="grp-title">GST &amp; price breakdown</h2></div>
+  <p class="grp-note">One block, rendered identically at checkout, order detail and invoice preview. Discount-before-GST (OBD-20) is structurally visible: the subtotal is the discounted taxable value.</p>
+  <div class="stage">
+    <div class="gst">
+      <div class="gr"><span>Items subtotal <span style="color:var(--n600)">(after discount, ex-GST)</span></span><span class="num">₹46,250.00</span></div>
+      <div class="gr"><span>GST</span><span class="num">₹5,180.00</span></div>
+      <div class="gr note"><span>Rates per product HSN — pending tax confirmation</span><span></span></div>
+      <div class="gr"><span>Shipping <span style="color:var(--n600)">(direct-ship consignment)</span></span><span class="num">₹1,200.00</span></div>
+      <div class="tot"><b>Total payable (incl. GST)</b><span class="amt">₹52,630.00</span></div>
+    </div>
+  </div>
+  <p class="spec">420px · amounts right, tabular, 2dp · <em>GST rate labels + CGST/SGST-vs-IGST split pending OBD-20/OBD-11</em> · <em>shipping payer presentation pending OBD-19 ◇</em></p>
+</section>
+
+<!-- ================= 17 CHECKOUT ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">17</span><h2 class="grp-title">Order summary &amp; checkout</h2></div>
+  <p class="grp-note">The 100%-advance rule (OBD-08) is stated as fact up front, never apologised for. Offline methods disclose the verification path inline (OBD-21).</p>
+  <div class="stage">
+    <div class="row" style="gap:40px;align-items:flex-start">
+      <div style="flex:1;min-width:300px">
+        <div class="lbl">Order lines</div>
+        <div class="line">
+          <div class="th"></div>
+          <div class="li"><div class="ln">English Willow Bat — Grade 2</div><div class="ls">SKU CR-0417</div><div class="lq num">24 × ₹4,122.50</div></div>
+          <div class="lt num">₹98,940.00</div>
+        </div>
+        <div class="line">
+          <div class="th"></div>
+          <div class="li"><div class="ln">Feather Shuttlecocks — Tournament, ×12</div><div class="ls">SKU BD-1104</div><div class="lq num">30 × ₹1,054.00</div></div>
+          <div class="lt num">₹31,620.00</div>
+        </div>
+        <div class="banner info" style="margin-top:18px"><span><b>100% advance payment.</b> Orders dispatch after full payment is confirmed. No credit facilities are offered.</span></div>
+      </div>
+      <div style="flex:0 1 340px;min-width:280px;max-width:100%">
+        <div class="lbl">Payment method</div>
+        <div class="pay">
+          <div class="pm on"><span class="rad"></span><span><b>UPI</b><small>Verified automatically on payment</small></span></div>
+          <div class="pm"><span class="rad"></span><span><b>Card / Net Banking</b><small>Verified automatically via gateway</small></span></div>
+          <div class="pm"><span class="rad"></span><span><b>NEFT / RTGS or Cheque</b><small>Upload payment proof — dispatch after admin verification</small></span></div>
+        </div>
+        <button class="btn btn-pri" style="width:100%;margin-top:14px;justify-content:center">Pay ₹1,35,740.00</button>
+      </div>
+    </div>
+  </div>
+  <p class="spec">methods per OBD-21 · advance notice = info banner, fact-toned · pay amount tabular in the primary · no promo-code field (discounts are admin-assigned, OBD-20) · check: 98,940 + 31,620 + GST&amp;shipping per §16 pattern</p>
+</section>
+
+<!-- ================= 18 DASHBOARD ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">18</span><h2 class="grp-title">Dashboard metrics &amp; operational queues</h2></div>
+  <p class="grp-note">Every figure links to its filtered list (ADM-019). Tiles are composed per portal need — this admin set is not a template to clone.</p>
+  <div class="stage paperbg">
+    <div class="tiles">
+      <a class="tile" href="#"><div class="tl">Supplier approvals</div><div class="tv">7</div><div class="tc w">2 waiting &gt; 3 days</div></a>
+      <a class="tile" href="#"><div class="tl">Payment verifications</div><div class="tv">5</div><div class="tc">NEFT / cheque proofs</div></a>
+      <a class="tile" href="#"><div class="tl">Open requirements</div><div class="tv">4</div><div class="tc w">1 closes today</div></a>
+      <a class="tile" href="#"><div class="tl">Low stock</div><div class="tv">9</div><div class="tc">of 1,248 SKUs</div></a>
+    </div>
+    <div class="lbl" style="margin-top:26px">Queue — supplier applications</div>
+    <div class="queue">
+      <div class="qrow"><span><span class="qn">Jalandhar Athletic Co.</span> <span class="qid">SUP-2026-0231</span></span><span class="chip c-warn">Pending approval</span><span class="age w">4 days</span><span class="chev">›</span></div>
+      <div class="qrow"><span><span class="qn">Krida Equipment Pvt. Ltd.</span> <span class="qid">SUP-2026-0233</span></span><span class="chip c-warn">Pending approval</span><span class="age">1 day</span><span class="chev">›</span></div>
+      <div class="qrow"><span><span class="qn">Arrowplume Sports</span> <span class="qid">SUP-2026-0234</span></span><span class="chip c-info">Changes requested</span><span class="age">6 hours</span><span class="chev">›</span></div>
+    </div>
+  </div>
+  <p class="spec">tile: mono label → archivo 26px figure → context (warning colour only when true) · queue rows 56px, age &gt; SLA in warning · decision pane reuses §13 anatomy</p>
+</section>
+
+<!-- ================= MOBILE ================= -->
+<section class="grp">
+  <div class="grp-head"><span class="grp-no">+</span><h2 class="grp-title">Mobile behaviour — 360px frames</h2></div>
+  <p class="grp-note">Buyer surfaces are phone-first citizens: tables become key-value cards, the public header condenses to wordmark + search + menu.</p>
+  <div class="phones">
+    <div class="phone">
+      <div class="pn-cap">PUBLIC · catalog browse @360</div>
+      <div class="mobnav"><span class="wm">PROSMASH</span><span class="sglyph"></span><span class="burger"></span></div>
+      <div style="padding:14px">
+        <a class="pcard" href="#" style="display:flex;gap:12px;align-items:center">
+          <div class="ph" style="width:96px;aspect-ratio:1;margin:0;flex:0 0 auto"><span style="font-size:8px">IMG</span></div>
+          <div style="flex:1">
+            <div class="eyebrow">Cricket</div>
+            <div class="pname" style="font-size:14px">English Willow Bat — Grade 2</div>
+            <div class="plabel" style="margin-top:6px">Standard price</div>
+            <div class="pval num" style="font-size:16px">₹4,850.00</div>
+          </div>
+        </a>
+        <a class="pcard" href="#" style="display:flex;gap:12px;align-items:center;margin-top:10px">
+          <div class="ph" style="width:96px;aspect-ratio:1;margin:0;flex:0 0 auto"><span style="font-size:8px">IMG</span></div>
+          <div style="flex:1">
+            <div class="eyebrow">Badminton</div>
+            <div class="pname" style="font-size:14px">Feather Shuttlecocks — ×12</div>
+            <div class="plabel" style="margin-top:6px">Standard price</div>
+            <div class="pval num" style="font-size:16px">₹1,240.00</div>
+          </div>
+        </a>
+      </div>
+    </div>
+    <div class="phone">
+      <div class="pn-cap">BUYER · order list @360 — table → key-value cards</div>
+      <div class="portalnav" style="padding:0 16px"><span class="wm" style="font-size:15px">PROSMASH</span><span class="ptag">BUYER</span><div class="right"><span class="bell"><i>2</i></span></div></div>
+      <div class="mcard-kv">
+        <div class="kvr"><span class="id" style="font-family:var(--mono);font-size:13px;color:var(--ink)">ORD-2026-01148</span><span class="chip c-info">Processing</span></div>
+        <div class="kvr"><span class="kvl">Placed</span><span class="kvv">13 Nov 2026</span></div>
+        <div class="kvr"><span class="kvl">Payment</span><span class="chip c-ok">Payment confirmed</span></div>
+        <div class="kvr"><span class="kvl">Amount</span><span class="kvv" style="font-weight:600">₹52,630.00</span></div>
+      </div>
+      <div class="mcard-kv">
+        <div class="kvr"><span class="id" style="font-family:var(--mono);font-size:13px;color:var(--ink)">ORD-2026-01132</span><span class="chip c-ok">Delivered</span></div>
+        <div class="kvr"><span class="kvl">Placed</span><span class="kvv">02 Nov 2026</span></div>
+        <div class="kvr"><span class="kvl">Payment</span><span class="chip c-ok">Payment confirmed</span></div>
+        <div class="kvr"><span class="kvl">Amount</span><span class="kvv" style="font-weight:600">₹24,180.00</span></div>
+      </div>
+      <div style="padding:14px"><button class="btn btn-pri" style="width:100%;justify-content:center">Confirm delivery receipt</button></div>
+    </div>
+    <div class="phone">
+      <div class="pn-cap">PUBLIC · navigation drawer open @360</div>
+      <div class="mobnav"><span class="wm">PROSMASH</span><span style="color:#fff;font-size:22px;line-height:1">×</span></div>
+      <div class="drawer">
+        <a class="on" href="#">Categories <small>12 SPORTS</small></a>
+        <a href="#">How it works</a>
+        <a href="#">For suppliers</a>
+        <div class="dsep"></div>
+        <a href="#" style="font-size:15px;font-family:var(--body);font-weight:500">Sign in</a>
+        <div class="dbtn"><button class="btn btn-pri" style="width:100%;justify-content:center">Register your institution</button></div>
+      </div>
+    </div>
+  </div>
+  <p class="spec">44px+ touch targets throughout · drawer: full-height ink, 52px rows, archivo 18px, focus-trapped · card labels in mono 11px · delivery-receipt confirmation (BUY-011) surfaces as the primary where actionable</p>
+</section>
+
+</div>
+
+<footer class="colophon">
+PROSMASH · COURT INK COMPONENT SHEET v0.1 · PREVIEW ONLY — NOT PRODUCTION CODE<br>
+DEPENDENCIES FLAGGED INLINE: P-06 · OBD-20 (%-DISPLAY, GST RATES) · OBD-19 ◇ (SHIPPING PAYER) · OBD-21 ◇ (TIMEOUTS) · OBD-02 ◇ (VERIFICATION) · OBD-15<br>
+ALL PRODUCT DATA ILLUSTRATIVE · IMAGE AREAS ARE LABELLED PLACEHOLDERS — NO INVENTED PHOTOGRAPHY · FONTS HOSTED FOR PREVIEW, SELF-HOSTED IN PRODUCTION
+</footer>
+
+</body>
+</html>
