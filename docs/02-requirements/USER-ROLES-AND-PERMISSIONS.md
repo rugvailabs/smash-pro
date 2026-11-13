@@ -57,6 +57,8 @@ per organization — also §5.
   independently (OBD-19 Option B).
 - Upload delivery proof (POD, delivery photographs or signed receipts) for
   every direct-to-buyer shipment (OBD-19 Option C).
+- Propose purchase-cost changes for supplied items — effective only on Super
+  Admin acceptance; never affects customer-facing selling prices (OBD-20).
 - View own payment status and history.
 
 ### 2.3 Business Buyer
@@ -81,9 +83,11 @@ Hard boundaries that hold regardless of future permission refinements:
 2. **Suppliers never see buyers**, with one narrow exception. No buyer
    identities, order volumes, or demand data beyond what an admin chooses to
    include in a procurement requirement. Exception (hybrid model, OBD-01): a
-   supplier fulfilling a **direct-shipment PO** receives the minimum delivery
-   information required to ship — exactly which fields are disclosed, and under
-   what confidentiality terms, is 🔶 `PENDING CONFIRMATION` (OBD-19).
+   supplier fulfilling a **direct-shipment PO** receives **only** the Minimum
+   Delivery Information (confirmed — OBD-19): recipient name, phone, delivery
+   address, product, quantity, delivery instructions and PO reference —
+   nothing else about the buyer or order (confidentiality terms for this data:
+   🔶 `PENDING CONFIRMATION`, OBD-19).
 3. **Buyers never see suppliers.** No supplier identities, quotations, or
    procurement costs. Buyers transact with ProSmash only.
 4. **Suppliers never see competing quotations** or other suppliers' identities,
@@ -108,6 +112,8 @@ Hard boundaries that hold regardless of future permission refinements:
 | Manage categories & published catalog | ✅ | ❌ | ❌ |
 | Set base prices & buyer-category / individual discounts (OBD-05) | ✅ (mechanics 🔶 OBD-20) | ❌ | ❌ |
 | View purchase costs, selling prices & margins | ✅ only | ❌ | ❌ (own applicable price only) |
+| Propose / approve purchase-cost changes (OBD-20) | ✅ approve | ✅ propose (own items) | ❌ |
+| Verify offline payments & process refunds (OBD-21) | ✅ | ❌ | ✅ upload proof, receive refunds (own orders) |
 | Manage direct-shipment eligibility (supplier approval + per-product enablement, OBD-19) | ✅ | ❌ (view own status only — confirmed) | ❌ |
 | Set direct-to-buyer shipping charges per order (OBD-19 Option D) | ✅ | ❌ | ❌ (visibility on invoice 🔶 OBD-19) |
 | Create procurement requirements | ✅ | ❌ | ❌ |

@@ -4,9 +4,11 @@
 >
 > ID scheme: `ADM-xxx` Super Admin Portal · `SUP-xxx` Supplier Portal ·
 > `BUY-xxx` Business Buyer Portal · `PLT-xxx` cross-portal/platform.
-> Status values: **Confirmed** (follows approved business rules) or
-> **`PENDING CONFIRMATION`** (behaviour depends on an open decision — see
-> `OPEN-BUSINESS-DECISIONS.md` references like OBD-05).
+> Status values: **Confirmed** (follows approved business rules),
+> **◇ PROPOSED** (a recommended approach recorded in
+> `OPEN-BUSINESS-DECISIONS.md`, awaiting owner approval — never to be treated
+> as decided), or **`PENDING CONFIRMATION`** (behaviour depends on an open
+> decision — see `OPEN-BUSINESS-DECISIONS.md` references like OBD-05).
 > Workflow references (A–N) point to `BUSINESS-WORKFLOWS.md`.
 
 ---
@@ -50,15 +52,34 @@ specifications, images, and publication state (Draft/Published/Hidden).
 Admin shall set the **base selling price** per product, configure **default
 discount percentages per buyer category**, and assign **special discount
 percentages to individual buyers** that override their category default. The
-system computes each buyer's applicable selling price. Actual percentages,
-GST sequencing, rounding, stacking and validity rules follow OBD-20.
+system computes each buyer's applicable selling price with the discount applied
+**before GST**: GST is calculated on the discounted taxable value and added to
+reach the final payable amount, and buyer-facing prices are displayed
+GST-inclusive (confirmed — OBD-20; subject to tax-professional validation).
+Actual percentages, GST rates/HSN classification, storage and display
+precision, promotional discounts, rounding, CGST/SGST-vs-IGST, validity and
+approval authority follow OBD-20 — `PENDING CONFIRMATION`.
 - **AC1:** Base-price and discount changes are versioned with effective timestamps.
 - **AC2:** Orders capture the computed applicable price at placement time,
   immune to later changes.
-- **AC3:** An individual buyer discount, where set, takes precedence over the
-  category default (combination/stacking rules `PENDING CONFIRMATION` — OBD-20).
+- **AC3:** An individual buyer discount, where set, **completely replaces** the
+  category default; the system never adds the two together, and exactly one
+  applicable discount enters each buyer-and-product calculation — with none
+  assigned, the category default applies (confirmed — OBD-20 Individual
+  Override; promotional-discount interaction `PENDING CONFIRMATION`).
 - **AC4:** Purchase costs, base prices, discounts and margins are visible in the
   Super Admin Portal only.
+- **AC5:** Promotional discounts are supported but never combine with any
+  other discount; an individual discount takes priority over a promotional
+  one (confirmed — OBD-20; promo-vs-category precedence ◇ PROPOSED).
+- **AC6:** All monetary values use two-decimal precision (confirmed — OBD-20;
+  rounding method ◇ PROPOSED, accountant validation required).
+- **AC7:** Price and discount changes can be applied immediately or scheduled
+  for an effective date/time; existing confirmed orders always retain their
+  original captured prices (confirmed — OBD-20).
+- **AC8:** Only Super Admin can approve customer-facing selling-price changes;
+  supplier purchase-cost proposals (SUP-012) have no effect until admin
+  acceptance (confirmed — OBD-20).
 
 ### ADM-007 — Procurement requirement management _(Workflow C · Confirmed)_
 Admin shall create, edit, publish, amend, close and cancel procurement
@@ -120,23 +141,32 @@ status lifecycle through dispatch and delivery. Under the hybrid model (OBD-01),
 admin designates the fulfilment method per order line: warehouse stock, or
 supplier direct shipment where the supplier-and-product eligibility flags allow
 it (OBD-19 Option C, managed via ADM-020).
-- **AC1:** Confirmation reserves stock for warehouse-fulfilled lines;
-  cancellation releases it. Direct-shipment lines reserve no warehouse stock.
+- **AC1:** Available warehouse stock for warehouse-fulfillable lines is
+  reserved **at order placement** (confirmed — OBD-21); cancellation —
+  including automatic cancellation on payment timeout — releases the
+  reservation. Direct-shipment lines reserve no warehouse stock.
 - **AC2:** Status changes notify the buyer and are audit-logged.
 - **AC3:** Insufficient stock surfaces a direct "create procurement requirement" path (Workflow C).
 - **AC4:** No order (warehouse or direct-shipment) can transition to Dispatched
   until its payment status is Confirmed at 100% of the order amount (OBD-08).
 
-### ADM-016 — Buyer payment management _(Workflow M · Confirmed — OBD-08; operations PENDING CONFIRMATION — OBD-21)_
+### ADM-016 — Buyer payment management _(Workflow M · Confirmed — OBD-08/OBD-21; details PROPOSED/PENDING)_
 Admin shall see the full-amount payment obligation per order (100% advance
-policy), record/reconcile payments, view every customer payment transaction,
-and view outstanding unpaid orders per buyer.
+policy), verify offline payments, reconcile all payments, view every customer
+payment transaction, and view outstanding unpaid orders per buyer.
 - **AC1:** Recorded payments update order payment state immediately; every
   order has a payment status at all times.
 - **AC2:** The dispatch gate (ADM-015 AC4) is enforced by the system, not by
   operator discipline; overrides, if any exist, are `PENDING CONFIRMATION` (OBD-21).
 - **AC3:** Admin can view the complete transaction history per order and per
-  buyer (reconciliation rules `PENDING CONFIRMATION` — OBD-21).
+  buyer (reconciliation detail ◇ PROPOSED — OBD-21).
+- **AC4:** Online payments (UPI/cards/Net Banking) are verified automatically
+  via the gateway; NEFT/RTGS and cheque payments present the buyer's uploaded
+  proof for admin verification, and count as confirmed only on admin approval
+  (confirmed — OBD-21).
+- **AC5:** Unpaid orders auto-cancel at the configurable payment timeout,
+  releasing stock reservations; admin can see orders approaching timeout
+  (default timeout values ◇ PROPOSED — OBD-21).
 
 ### ADM-017 — Supplier payment tracking _(Workflow N · Confirmed)_
 Admin shall track payables per PO (due, paid, outstanding) and record payments made.
@@ -200,7 +230,18 @@ internally by ProSmash.
 - **AC3:** Internal supplier/courier coordination is recorded against the
   complaint for audit.
 - **AC4:** Compensation, replacement, refund, legal liability and financial
-  recovery follow OBD-19 — `PENDING CONFIRMATION`.
+  recovery follow OBD-19 — ◇ PROPOSED / `PENDING CONFIRMATION` (legal
+  validation required).
+
+### ADM-024 — Refund management _(Workflow M · Confirmed — OBD-21; specifics PROPOSED/PENDING)_
+Admin shall process refunds under Super-Admin-configurable refund rules.
+- **AC1:** The original payment method is the default refund destination;
+  bank transfer is selectable only as an admin-approved exception, with the
+  approval recorded (confirmed — OBD-21).
+- **AC2:** Every refund links to its order and payment transaction(s) and is
+  audit-logged with actor, amount, destination and reason.
+- **AC3:** Refund triggers and timelines follow OBD-19/OBD-21 — ◇ PROPOSED /
+  `PENDING CONFIRMATION`.
 
 ### ADM-023 — Delivery confirmation review _(Workflow N · Confirmed — OBD-19 Option C; edge cases PENDING CONFIRMATION)_
 For direct-to-buyer shipments, admin shall review the supplier's uploaded
@@ -277,8 +318,11 @@ eligibility status read-only, and never determine or change shipping charges
 (admin-set per order — OBD-19 Option D). For direct shipments, suppliers must
 not interact with buyers on delivery complaints or redirect buyers to resolve
 them independently — all complaint handling runs through ProSmash (OBD-19
-Option B). Disclosed buyer details, shipping-charge economics, legal liability
-and financial recovery remain `PENDING CONFIRMATION` — OBD-19.
+Option B). A direct-to-buyer PO discloses **only** the minimum delivery
+information: recipient name, phone, delivery address, product, quantity,
+delivery instructions and PO reference (confirmed — OBD-19). Shipping-charge
+economics, legal liability and financial recovery remain ◇ PROPOSED /
+`PENDING CONFIRMATION` — OBD-19.
 - **AC1:** PO terms display exactly the awarded quotation version, including destination.
 - **AC2:** Dispatch updates (date, transport, documents, quantity) are visible
   to admin in real time; partial-shipment policy `PENDING CONFIRMATION`.
@@ -296,6 +340,16 @@ Suppliers shall see per-PO financials: invoiced, received, outstanding, and due 
 Suppliers shall be informed of requirement outcomes; whether non-winners see
 "not selected" vs. "requirement closed" is undecided.
 - **AC1:** Winners see the PO immediately on award.
+
+### SUP-012 — Purchase-cost change proposals _(Workflow B · Confirmed — OBD-20)_
+Suppliers shall be able to propose purchase-cost changes for items they
+supply; proposals take effect only on Super Admin acceptance.
+- **AC1:** A proposal carries the item, current cost context, proposed cost
+  and effective-date request, and is visible to admin for decision.
+- **AC2:** Until accepted, nothing changes anywhere; rejection is recorded
+  with a reason visible to the supplier.
+- **AC3:** Acceptance never alters customer-facing selling prices — those
+  change only through admin price management (ADM-006).
 
 ---
 
@@ -326,8 +380,9 @@ buyer's effective discount (category default or individual override).
 - **AC2:** Buyers never see base-vs-discount breakdowns, other buyers' prices,
   purchase costs or margins (whether their own discount % is shown:
   `PENDING CONFIRMATION` — OBD-20).
-- **AC3:** GST-inclusive vs exclusive display per OBD-20/OBD-11 —
-  `PENDING CONFIRMATION`.
+- **AC3:** Displayed prices are **GST-inclusive** (confirmed — OBD-20 Customer
+  Price Display); product-wise GST rates/HSN and display precision
+  `PENDING CONFIRMATION` (OBD-20/OBD-11).
 - **AC4:** Availability indicator per P-06 — `PENDING CONFIRMATION`.
 
 ### BUY-005 — Order placement _(Workflow J · Confirmed)_
@@ -335,7 +390,11 @@ Buyers shall build a multi-line order, set quantities, choose a delivery
 address, review GST-itemized totals, and submit.
 - **AC1:** Order confirmation shows an order number and captured prices.
 - **AC2:** Minimum-quantity enforcement `PENDING CONFIRMATION` (OBD-09).
-- **AC3:** Tax itemization follows the confirmed tax handling (OBD-11).
+- **AC3:** Order totals are computed discount-before-GST — GST on the
+  discounted taxable value (OBD-20 Option A) — and the **GST breakdown is
+  shown separately at checkout** (confirmed — OBD-20 Customer Price Display);
+  rates/HSN, CGST/SGST-vs-IGST and itemization specifics follow OBD-11/OBD-20
+  — `PENDING CONFIRMATION`.
 
 ### BUY-006 — Order tracking and history _(Workflows J, L · Confirmed)_
 Buyers shall track each order's status through delivery and browse full order
@@ -351,16 +410,23 @@ specs, quantity, needed-by, references) and track their status.
 - **AC2:** Resolution (available / sourcing / declined) notifies the buyer with any admin note.
 - **AC3:** When a sourced product is published, the requester is notified it is orderable.
 
-### BUY-008 — Payments and invoices _(Workflow M · Confirmed — OBD-08; operations PENDING CONFIRMATION — OBD-21)_
-Buyers shall pay **100% of the order amount in advance** via supported methods
-(method set `PENDING CONFIRMATION` — OBD-21), see each order's payment status,
-and download GST-compliant invoices and receipts.
+### BUY-008 — Payments and invoices _(Workflow M · Confirmed — OBD-08/OBD-21; details PROPOSED/PENDING)_
+Buyers shall pay **100% of the order amount in advance** via **UPI,
+credit/debit cards, Net Banking, NEFT/RTGS or cheque** (confirmed — OBD-21),
+see each order's payment status, and download GST-compliant invoices and
+receipts showing the applicable GST breakdown (confirmed — OBD-20; invoice and
+credit-note compliance details `PENDING CONFIRMATION` — OBD-11/OBD-20).
 - **AC1:** Payment status updates promptly after payment/recording and is
   visible on every order.
 - **AC2:** The portal makes clear that dispatch occurs only after full payment
   is confirmed; no credit or postpaid option is offered or implied.
-- **AC3:** Failed-payment retry and refund behaviour follow OBD-21 —
-  `PENDING CONFIRMATION`.
+- **AC3:** Online payments confirm automatically via the gateway; for
+  NEFT/RTGS and cheque payments the buyer uploads payment proof and the
+  status shows "awaiting admin verification" until approved (confirmed — OBD-21).
+- **AC4:** Failed payments can be retried until the configurable timeout, after
+  which the order auto-cancels with clear notice to the buyer; refunds default
+  to the original payment method (confirmed — OBD-21; timeout defaults and
+  refund specifics ◇ PROPOSED).
 
 ### BUY-009 — Organization profile _(Confirmed)_
 Buyers shall maintain organization details, delivery addresses, and users

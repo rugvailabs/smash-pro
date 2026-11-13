@@ -18,15 +18,21 @@ Three application surfaces: **Super Admin**, **Supplier Portal**, **Business Buy
      from suppliers on behalf of the platform.
 - **Suppliers can self-register, but require Super Admin approval** before becoming active.
 
-## Unconfirmed Business Policies — `PENDING CONFIRMATION`
-The following are owner decisions. Do **not** finalize, implement, or invent rules for them.
-Wherever they appear in documents or designs, mark them `PENDING CONFIRMATION`:
+## Business Decisions — Single Source of Truth
+`docs/02-requirements/OPEN-BUSINESS-DECISIONS.md` is the authoritative register
+of business decisions (OBD-01…OBD-21), with a resolution log of everything the
+owner has approved. Many decisions are now CONFIRMED there (hybrid fulfilment,
+pricing model and mechanics, 100% advance payment, payment methods,
+direct-shipment governance). Rules:
 
-- GST / business verification flow and requirements
-- MOQ (minimum order quantity) rules
-- Pricing formulas and tiered/negotiated pricing logic
-- Supplier commission / platform fee model
-- Any other commercial policy not listed under Confirmed Business Rules
+- Treat only register entries marked DECIDED as approved; ◇ PROPOSED items are
+  recommendations awaiting owner approval — never implement them as decided.
+- Do **not** finalize, implement, or invent rules for items still open there
+  (notably: GST rates/HSN and tax documents, business verification
+  requirements, MOQ rules, supplier commission model). Mark them
+  `PENDING CONFIRMATION`.
+- GST/tax/legal items additionally require professional validation before
+  implementation, regardless of documentation status.
 
 ## Current Stage
 Initialization & planning. **No technology stack has been selected.**

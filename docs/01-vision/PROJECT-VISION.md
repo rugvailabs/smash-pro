@@ -22,9 +22,12 @@ Fulfilment then varies by product and supplier:
 
 In both paths, **ProSmash manages the buyer relationship and the order process
 end to end** — buyers get one professional counterparty, ProSmash, instead of
-negotiating with dozens of unverified traders. Operational details of direct
-shipment (shipping charges, delivery responsibility, buyer-information
-disclosure, documentation) are `PENDING CONFIRMATION` — see OBD-19 in
+negotiating with dozens of unverified traders. Direct-shipment governance is
+largely decided (OBD-19: dual admin approval of supplier and product,
+admin-set per-order shipping charges, minimum delivery-information disclosure,
+ProSmash-only complaint handling, proof-first delivery confirmation); remaining
+operational details (liability, charge economics, GST documentation) are
+◇ PROPOSED / `PENDING CONFIRMATION` — see OBD-19 in
 `../02-requirements/OPEN-BUSINESS-DECISIONS.md`.
 
 ## 2. Business Objectives

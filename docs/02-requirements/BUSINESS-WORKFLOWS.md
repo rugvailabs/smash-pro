@@ -61,6 +61,10 @@
    (contact phone, product specs) apply immediately. Exact sensitive-field list:
    `PENDING CONFIRMATION`.
 5. Category changes update which procurement requirements the supplier is notified about.
+6. Suppliers may **propose purchase-cost changes** for items they supply;
+   proposals take effect only on **Super Admin acceptance** and never alter
+   customer-facing selling prices, which only admin controls (confirmed —
+   OBD-20 Price Change Authority).
 
 **Outcome:** an up-to-date supplier profile and supply catalog usable for sourcing decisions.
 
@@ -74,8 +78,8 @@
    (drives routing), product specifications (structured fields + free text +
    attachments), required quantity, required-by date, delivery destination —
    ProSmash warehouse, or direct-to-buyer delivery for direct-shipment
-   procurement (destination detail disclosed to suppliers: `PENDING
-   CONFIRMATION`, OBD-19) — and quotation deadline.
+   procurement (full delivery details are disclosed only at PO stage, limited
+   to the Minimum Delivery Information set — OBD-19) — and quotation deadline.
 2. Requirement may reference its origin (stock plan, buyer order, buyer request)
    for internal traceability — origin details are never exposed to suppliers.
 3. Requirement is saved as **Draft**; admin can edit freely.
@@ -202,8 +206,20 @@
    buyer's **applicable selling price**, computed by the system from the
    admin-set base selling price and the buyer's effective discount — their
    buyer-category default, or an individual override assigned by admin
-   (confirmed model, OBD-05; percentages, GST sequencing, rounding, stacking
-   and validity rules: `PENDING CONFIRMATION`, OBD-20).
+   (confirmed model, OBD-05). Exactly **one** discount applies per calculation:
+   an individual discount, where assigned, **completely replaces** the category
+   default — the two are never added together (confirmed — OBD-20 Individual
+   Override). The applicable discount applies **before GST**: GST is calculated
+   on the discounted taxable value and added to reach the final payable amount
+   (confirmed — OBD-20 Option A). Displayed prices are **GST-inclusive**
+   (confirmed — OBD-20 Customer Price Display), with the GST breakdown shown
+   separately at checkout. **Promotional discounts** are supported but never
+   combine with other discounts, and an individual discount takes priority
+   over a promotional one (confirmed — OBD-20). Monetary values use
+   two-decimal precision; price changes are immediate or scheduled, and
+   confirmed orders retain their original prices (confirmed — OBD-20).
+   Percentages, GST rates/HSN classification, rounding method and
+   promo-vs-category precedence: ◇ PROPOSED / `PENDING CONFIRMATION`, OBD-20.
 3. Availability is shown as an indicator derived from warehouse stock
    (presentation: P-06, `PENDING CONFIRMATION`).
 4. Buyers see **only** ProSmash as the seller — no supplier identity or
@@ -222,17 +238,23 @@
 1. Buyer builds an order (cart) from catalog items with quantities
    (minimum-quantity rules: `PENDING CONFIRMATION`).
 2. Buyer confirms delivery address, reviews totals — line prices are the
-   buyer's applicable selling prices per OBD-05, taxes itemized per Indian GST
-   invoicing norms (exact tax handling and discount-vs-GST sequencing
-   `PENDING CONFIRMATION`, OBD-11/OBD-20) — and submits the order.
-3. Order enters **Placed** state; buyer receives confirmation with order number.
+   buyer's applicable selling prices per OBD-05, GST-inclusive as displayed,
+   computed discount-before-GST: GST on the discounted taxable value, added to
+   reach the payable amount (confirmed — OBD-20). **GST details are shown
+   separately at checkout** (confirmed — OBD-20 Customer Price Display); GST
+   rates/HSN, CGST/SGST-vs-IGST determination and invoice specifics
+   `PENDING CONFIRMATION` (OBD-11/OBD-20) — and submits the order.
+3. Order enters **Placed** state; **available warehouse stock for its
+   warehouse-fulfillable lines is reserved at placement** (confirmed —
+   OBD-21); buyer receives confirmation with order number.
 4. Payment policy (confirmed, OBD-08): **100% advance payment** — the full
    order amount must be paid and confirmed **before dispatch**; no postpaid or
    credit facilities. Workflow M governs collection; accepted methods and
    failed-payment handling are `PENDING CONFIRMATION` (OBD-21).
 5. Super Admin reviews the order and determines the **fulfilment method per
    order line** under the hybrid model (OBD-01): from ProSmash warehouse stock
-   (reserving stock, Workflow L) and/or supplier direct shipment — selectable
+   (already reserved at placement, Workflow L) and/or supplier direct
+   shipment — selectable
    only for lines where both the supplier is direct-shipment approved and the
    product is direct-shipment enabled (OBD-19 Option C). For direct-shipment
    lines, admin determines the applicable **shipping charge per order**,
@@ -296,8 +318,9 @@
 3. Quality check policy before stock becomes sellable: `PENDING CONFIRMATION`.
 
 **Outbound (from Workflow J):**
-4. Order confirmation **reserves** stock against the order (on-hand vs reserved
-   vs available tracked separately).
+4. Available stock is **reserved at order placement** (confirmed — OBD-21),
+   with on-hand vs reserved vs available tracked separately; the reservation
+   is **released** if the order is cancelled on payment timeout or by admin.
 5. Warehouse picks and packs; order moves to **Processing**, then **Dispatched**
    with transport details (carrier handling and integrations: out of scope phase 1,
    recorded manually; `PENDING CONFIRMATION`).
@@ -321,24 +344,36 @@
 1. Payment policy (confirmed — **OBD-08**): **100% advance payment** on every
    order. The full order amount must be paid before dispatch; ProSmash offers no
    postpaid or institutional credit facilities.
-2. System generates the **payment obligation** (full order amount) against each
-   order; every order carries a **payment status** at all times (e.g. Unpaid →
-   Payment Confirmed; exact status set finalized in the data model phase).
-   GST-compliant invoice timing and format: `PENDING CONFIRMATION` (OBD-11/OBD-21).
-3. Buyer pays via supported methods — online payment gateway and/or bank
-   transfer/NEFT/cheque recorded manually (method set and gateway choice:
-   `PENDING CONFIRMATION`, OBD-21; gateway selection is also a technology
-   decision for the architecture phase).
-4. Super Admin records/reconciles received payments against orders with full
-   visibility into every payment transaction (reconciliation and
-   over/under-payment rules: `PENDING CONFIRMATION`, OBD-21).
+2. System generates the **payment obligation** (full order amount, GST
+   included) against each order; every order carries a **payment status** at
+   all times (e.g. Unpaid → Payment Confirmed; exact status set finalized in
+   the data model phase). Customer invoices show the applicable **GST
+   breakdown** (confirmed — OBD-20 Customer Price Display); invoice timing,
+   format and credit-note compliance: `PENDING CONFIRMATION` (OBD-11/OBD-20/OBD-21).
+3. Buyer pays via the supported methods (confirmed — OBD-21): **UPI,
+   credit/debit cards, Net Banking, NEFT/RTGS, or cheque**. Verification
+   splits by method:
+   - **Online payments** (UPI / cards / Net Banking) are **automatically
+     verified through the payment gateway** (gateway selection:
+     `PENDING CONFIRMATION`, OBD-21 — an architecture-phase decision).
+   - **NEFT/RTGS and cheque payments** require the buyer to **upload payment
+     proof**, and count as confirmed only after **Super Admin verification**.
+4. **Failed payments** may be retried; a **configurable timeout** cancels the
+   unpaid order and releases its stock reservation (timeout default values:
+   ◇ PROPOSED, OBD-21). Super Admin reconciles received payments against
+   orders with full transaction visibility (reconciliation detail: ◇ PROPOSED,
+   OBD-21).
 5. **Dispatch gate (confirmed):** no order — warehouse-fulfilled or supplier
    direct-shipment — is dispatched until payment of 100% of the order amount is
-   successfully confirmed. What constitutes "confirmed" for manually recorded
-   methods: `PENDING CONFIRMATION` (OBD-21).
+   successfully confirmed. "Confirmed" means gateway auto-verification for
+   online payments, and Super Admin verification of uploaded proof for
+   NEFT/RTGS and cheque payments (confirmed — OBD-21, step 3 above).
 6. Buyer sees payment status, history and downloadable invoices/receipts in the portal.
-7. Failed/abandoned payments, retry windows, how long unpaid orders hold stock
-   reservations, and refunds: `PENDING CONFIRMATION` (OBD-21).
+7. **Refunds** (confirmed — OBD-21): refund rules are configurable by Super
+   Admin; the **original payment method is the default refund destination**,
+   with bank transfer available as an **admin-approved exception**. Refund
+   triggers and timelines beyond this: ◇ PROPOSED / `PENDING CONFIRMATION`
+   (OBD-19/OBD-21).
 
 **Outcome:** every rupee owed by buyers is tracked to an order and reconciled.
 
@@ -375,8 +410,10 @@
      confirmation. Both events are recorded against the PO and the buyer
      order. Buyer non-response, disputed or partial deliveries, confirmation
      deadlines, admin manual resolution, and POD validation/retention rules:
-     `PENDING CONFIRMATION` (OBD-19). Buyer-information disclosure to the
-     supplier also remains `PENDING CONFIRMATION` (OBD-19).
+     ◇ PROPOSED / `PENDING CONFIRMATION` (OBD-19). The supplier receives only
+     the **minimum delivery information** (confirmed — OBD-19): recipient
+     name, phone, delivery address, product, quantity, delivery instructions
+     and PO reference — nothing else about the buyer or order.
 4. Discrepancies (short delivery, damage, spec mismatch) are logged against the
    PO; resolution (replacement, debit note, PO amendment) is recorded —
    resolution policy: `PENDING CONFIRMATION`.

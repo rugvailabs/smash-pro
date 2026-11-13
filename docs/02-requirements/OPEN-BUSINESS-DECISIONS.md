@@ -18,17 +18,51 @@
 4. Fulfilment method may **vary by product and by supplier**. Not all suppliers
    are eligible for direct shipping; eligibility rules are undecided.
 
-Operational details of direct shipment (eligibility, shipping charges, delivery
-responsibility, buyer-information disclosure to suppliers, delivery
-confirmation, documentation) remain open — see **OBD-19**.
+Direct-shipment operational rules are governed by **OBD-19** (eligibility
+mechanism, shipping-charge control, information disclosure and delivery
+confirmation now decided there; liability, charge economics and GST
+documentation still open).
 **Affects:** All documents (propagated 2026-11-13).
 
-### OBD-02 — Business verification requirements (suppliers and buyers)
+### OBD-02 — Business verification requirements ◇ PROPOSED (awaiting owner approval)
 **Question:** What exactly is required to approve a supplier and a buyer?
 GSTIN mandatory for all, or exemptions (e.g. unregistered schools)? Which
-documents (GST certificate, PAN, shop & establishment, dealership letters)?
-Any third-party GSTIN validation, or manual document review only?
-**Affects:** Workflows A, H · SUP-001, BUY-001, PLT-005.
+documents? Any third-party GSTIN validation, or manual document review only?
+
+**PROPOSED verification workflows (2026-11-13 — recommendations only, NOT
+approved decisions; require owner sign-off and professional validation):**
+
+1. **Buyer registration & verification.** Buyer selects organization type at
+   registration. Retailers and companies: GSTIN mandatory, with GST
+   certificate upload. Schools/colleges/trusts without GST registration: PAN
+   plus institutional registration/affiliation certificate as the alternative
+   path (⚠ GST-exemption documentation requires tax-professional validation).
+   System performs format validation of GSTIN/PAN; admin performs manual
+   document review before approval.
+2. **Supplier registration & verification.** GSTIN and PAN mandatory for all
+   supplier types; bank account details captured for payables; distributors/
+   dealers additionally upload brand authorization or dealership letters;
+   manufacturers may add factory/Udyam registration. Same format validation +
+   manual admin review.
+3. **Admin approval & rejection.** Checklist-based review in the approval
+   queue; decisions are Approve / Request changes (field-level remarks the
+   applicant sees) / Reject (reason recorded). Rejected applicants may
+   correct and reapply; repeated fraudulent submissions can be blacklisted
+   (ties to OBD-18).
+4. **Document management & verification status.** Each uploaded document
+   carries its own status (Submitted → Verified / Rejected / Expired), with
+   expiry dates tracked where applicable, re-upload on rejection or expiry,
+   and an immutable audit trail of who verified what and when.
+5. **Re-verification & suspension.** Re-verification is triggered by
+   sensitive-field changes (legal name, GSTIN, bank details) and by a
+   periodic review cycle (cadence: owner decision). Failed re-verification or
+   confirmed fraud leads to suspension; suspended accounts retain read-only
+   access to their own history (aligned with the P-10 proposal).
+
+**Requires professional validation:** GSTIN verification method (manual vs
+API), acceptable GST-exemption evidence for institutions, and any KYC/AML
+obligations applying to supplier payouts.
+**Affects:** Workflows A, H · SUP-001/002, BUY-001/002, PLT-005.
 
 ### OBD-03 — Pre-approval and public catalog visibility
 **Question:** What do unapproved/anonymous visitors see — full catalog with
@@ -54,8 +88,10 @@ items, or is price only ever given via quotations?
 6. Buyers see **only their own applicable selling prices** — never base-vs-
    discount breakdowns of other buyers, costs, or margins.
 
-Calculation mechanics (actual percentages, GST sequencing, rounding, stacking,
-price validity, and how "buyer category" is defined) remain open — see **OBD-20**.
+Calculation mechanics are governed by **OBD-20** (GST sequencing, display,
+precedence, precision, validity and authority now decided there; actual
+percentages, GST rates/HSN and the "buyer category" definition still
+open/proposed).
 **Affects:** Workflows I, J · ADM-006, BUY-004 · roles doc §3/§4 (propagated 2026-11-13).
 
 ### OBD-06 — Requirement routing beyond category match
@@ -78,8 +114,10 @@ requirement? (b) Are non-winning suppliers told "not selected" or merely
 4. **Every order carries a payment status** at all times.
 5. Super Admin has **full visibility into customer payment transactions**.
 
-Payment operations (gateway selection, accepted methods, refunds, failed
-payments, GST sequencing, reconciliation) remain open — see **OBD-21**.
+Payment operations are governed by **OBD-21** (methods, verification paths,
+retries/timeout, reservation release and refund policy now decided there;
+gateway selection, timeout defaults, reconciliation and invoice timing still
+open/proposed).
 **Affects:** Workflows J, M, N · ADM-015/016, BUY-008 · roles doc §2.3 (propagated 2026-11-13).
 
 ### OBD-09 — Minimum order rules
@@ -183,60 +221,162 @@ period? Is rejection ever final (blacklist)?
   supplier uploads delivery proof. No confirmation request is sent to the
   buyer while proof is outstanding.
 
-**STILL `PENDING CONFIRMATION`:**
-(a) Supplier **eligibility evaluation criteria** and the approval procedure
-(what qualifies a supplier; review cadence; revocation grounds). (b) **Shipping
-charge economics and mechanics** — whether charges are paid by ProSmash, buyer
-or supplier in different situations; whether fixed, percentage-based or
-manually entered; whether shipping can be free or subsidized; how charges
-appear in customer invoices; and handling when one order spans multiple
-suppliers. (c) **Legal liability and financial recovery** for delivery failures
-— who bears the loss between ProSmash, supplier and courier; compensation,
-replacement and refund policies for affected buyers. (d) Exactly what **buyer
-information** is disclosed to the supplier and under what confidentiality
-terms. (e) **Delivery confirmation edge cases** — what happens when the buyer
-does not respond to a confirmation request; disputed or partially delivered
-orders; confirmation deadlines; whether admin can manually resolve
-confirmation disputes; POD validation and evidence retention rules. (f) **GST
-documents and e-way bill** handling (ProSmash invoice to buyer, supplier
-delivery challan, e-way bill responsibility).
-**Why it matters:** Direct shipment pierces the supplier↔buyer anonymity
-boundary (roles doc §3) and changes GST document flows; only the eligibility
-mechanism is settled — the operational rules above remain undesignable.
-**Affects:** Workflows C, G, J, L, N · ADM-005/012/015/020, SUP-009, BUY-006 · roles doc §3.
+**DECIDED — Minimum Delivery Information Disclosure (2026-11-13):**
+For a direct-shipment PO, the supplier receives **only**: recipient name,
+phone number, delivery address, product, quantity, delivery instructions, and
+the PO reference. No other buyer information (organization financials, buyer
+pricing, email, order context, or other order lines) is ever disclosed.
 
-### OBD-20 — Pricing calculation mechanics `PENDING CONFIRMATION`
-**Question:** For the confirmed pricing model (OBD-05): (a) What are the actual
-default discount percentages per buyer category? (b) Is "buyer category" the
-registration organization type (school / academy / college / retailer / other),
-or a separate admin-managed classification? (c) Are discounts applied **before
-or after GST**, and are displayed prices GST-inclusive or exclusive? (d)
-**Rounding** rules for calculated prices (decimal places, round to rupee?). (e)
-**Stacking** rules — can a category discount and an individual override ever
-combine, or does the override fully replace the default? Do promotional
-discounts stack? (f) **Price validity** — do base prices and discounts carry
-effective/expiry dates, and what happens to in-flight carts/orders when they
-change? (g) Who (if anyone beyond Super Admin) approves price or discount changes?
+**STILL OPEN — with PROPOSED approaches (recommendations only, NOT approved):**
+
+(a) **Eligibility evaluation criteria.** ◇ PROPOSED: at launch, admin judgment
+based on supplier type, document completeness and packaging/dispatch
+capability; once history exists, score on on-time-in-full rate, dispute rate
+and document compliance, reviewed quarterly; revocation on repeated failures
+or fraud.
+(b) **Shipping charge economics.** ◇ PROPOSED: buyer pays, shown as a separate
+line at checkout and on the invoice; admin enters the charge manually per
+order at launch (no formula); admin may set ₹0 (free/subsidized) at
+discretion; multi-supplier orders carry one charge per consignment, summed on
+the order.
+(c) **Legal liability and financial recovery.** ◇ PROPOSED: for direct
+shipments the supplier bears delivery risk until buyer confirmation; recovery
+via debit note against supplier payables; buyer remedy order is replacement
+first, refund second. ⚠ Requires **legal validation** before adoption.
+(d) **Delivery confirmation edge cases.** ◇ PROPOSED: if the buyer does not
+respond, auto-confirm after a configurable window (suggestion: 7 days) with
+reminder notifications before expiry; a complaint (ADM-022/BUY-010) freezes
+auto-confirmation; partial deliveries are recorded quantity-wise against the
+PO; admin may manually resolve any confirmation with a recorded reason.
+(e) **POD validation and evidence retention.** ◇ PROPOSED: manual admin visual
+check at launch; evidence retained for the statutory records period
+(⚠ confirm duration with accountant — Indian tax record-keeping norms).
+(f) **GST documents and e-way bill handling.** `PENDING CONFIRMATION` — the
+bill-to/ship-to document model (supplier invoices ProSmash; ProSmash invoices
+buyer; goods move supplier→buyer) and e-way bill responsibility **must be
+designed with a tax professional**; no proposal is made here.
+
+**Why it matters:** Direct shipment pierces the supplier↔buyer anonymity
+boundary (roles doc §3) and changes GST document flows.
+**Affects:** Workflows C, G, J, L, N · ADM-005/012/015/020-023, SUP-009, BUY-006/010/011 · roles doc §3.
+
+### OBD-20 — Pricing calculation mechanics ◐ PARTIALLY DECIDED (2026-11-13)
+
+**DECIDED — Discount Calculation, Option A: Before GST (2026-11-13):**
+1. The applicable buyer discount is applied to the product price **before GST**.
+2. GST is calculated **on the discounted taxable value**.
+3. GST is then added to determine the **final customer payable amount**.
+
+> Note: this records business direction only — it is **not a substitute for
+> validation by an accountant or tax professional** before implementation.
+
+**DECIDED — Individual Discount Precedence, Option A: Individual Override (2026-11-13):**
+1. Every buyer can receive a **default discount based on their buyer category**.
+2. Super Admin can assign a **special discount to an individual buyer**.
+3. An assigned individual discount **completely replaces** the buyer-category
+   discount.
+4. The system must **never add** the category discount and individual discount
+   together.
+5. If no individual discount exists, the **category discount applies**.
+6. Exactly **one applicable discount** is used in each buyer-and-product
+   pricing calculation.
+
+_Example: category discount 20%, individual discount 30% → final applicable
+discount is 30%, not 50%._
+
+**DECIDED — Customer Price Display, Option A: GST-Inclusive Pricing (2026-11-13):**
+1. Product prices displayed to buyers **include applicable GST**.
+2. Buyers see **GST details separately at checkout**.
+3. Customer invoices show the **applicable GST breakdown**.
+4. The buyer's applicable discount is applied **before GST** (consistent with
+   Discount Calculation Option A above).
+5. GST is calculated **on the discounted taxable value**.
+6. The **final customer payable amount includes GST**.
+
+**DECIDED — Promotional Discounts (2026-11-13):**
+1. Promotional discounts are **supported**.
+2. A promotional discount **cannot be combined** with any other discount —
+   the single-applicable-discount rule holds.
+3. An **individual customer discount takes priority** over a promotional
+   discount.
+   (Precedence between a promotional discount and the buyer-category default
+   when no individual discount exists: ◇ PROPOSED — apply whichever is more
+   favourable to the buyer, never both; awaiting owner confirmation.)
+
+**DECIDED — Monetary Precision (2026-11-13):**
+- All monetary values use **two-decimal precision**.
+  (Rounding method — e.g. half-up, applied per line vs on totals: ◇ PROPOSED —
+  round half-up at line level, sum lines for totals; ⚠ validate with
+  accountant for GST-invoice arithmetic.)
+
+**DECIDED — Price Validity & Change Management (2026-11-13):**
+1. Price changes can be **immediate or scheduled** (effective date/time).
+2. **Existing confirmed orders retain their original prices** — price and
+   discount changes never reprice captured orders.
+
+**DECIDED — Price Change Authority (2026-11-13):**
+1. **Suppliers may propose purchase-cost changes**; proposals have no effect
+   until accepted by Super Admin.
+2. **Only Super Admin approves customer-facing selling-price changes** (base
+   prices and all discount configurations).
+
+**STILL OPEN — with PROPOSED approaches where sensible:**
+
+(a) Actual default **discount percentages** per buyer category —
+`PENDING CONFIRMATION`; a pure commercial decision for the owner (the system
+only needs them to be admin-configurable).
+(b) **"Buyer category" definition** — ◇ PROPOSED: equal to the registration
+organization type (school / academy / college / retailer / other) at launch,
+avoiding a second classification to administer; awaiting owner confirmation.
+(c) **Product-wise GST rates and HSN classification** —
+`PENDING CONFIRMATION`; never to be invented by the team; ⚠ requires
+tax-professional input (with OBD-11).
+(d) **Rounding method detail** — ◇ PROPOSED under Monetary Precision above;
+⚠ accountant validation.
+(e) **Promotional-vs-category precedence** (no individual discount present) —
+◇ PROPOSED under Promotional Discounts above.
+(f) **CGST/SGST versus IGST determination** (place-of-supply logic) —
+`PENDING CONFIRMATION`; ⚠ tax professional.
+(g) **Invoice and credit-note compliance details** — `PENDING CONFIRMATION`
+(with OBD-11); ⚠ tax professional.
+(h) **Tax-professional validation** of the entire pricing/GST treatment before
+implementation — standing requirement.
 **Why it matters:** These rules define every price a buyer sees and every
 margin figure admin sees; order capture (BUY-005) and invoices (OBD-11) depend
 on them.
 **Affects:** Workflows I, J, M · ADM-006, BUY-004, BUY-005/008.
 
-### OBD-21 — Payment operations details `PENDING CONFIRMATION`
-**Question:** For the confirmed 100%-advance policy (OBD-08): (a) **Payment
-gateway** selection (also a technology decision for the architecture phase).
-(b) Accepted **payment methods** — gateway/UPI/net-banking only, or also bank
-transfer (NEFT/RTGS) and cheque recorded manually, and does manual recording
-delay the "payment confirmed" gate? (c) **Failed/abandoned payment** handling —
-retry windows, how long an unpaid order holds its stock reservation before
-auto-cancellation. (d) **Refunds** — triggers (cancellation, short supply,
-returns), method, timelines, and who approves. (e) **GST sequencing** on
-payment amounts and invoice/receipt timing relative to payment (with OBD-11,
-OBD-20). (f) **Reconciliation** rules — matching gateway settlements and bank
-credits to orders, handling over/under-payment.
-**Why it matters:** The advance-payment gate (no dispatch before confirmed
-payment) is only enforceable once "confirmed" is operationally defined.
-**Affects:** Workflows J, M · ADM-016, BUY-008 · architecture phase.
+### OBD-21 — Payment operations ◐ PARTIALLY DECIDED (2026-11-13)
+
+**DECIDED — Payment Methods & Operations (2026-11-13):**
+1. Supported methods: **UPI, credit/debit cards, Net Banking, NEFT/RTGS and
+   cheques**.
+2. Online payments (UPI/cards/Net Banking) are **automatically verified
+   through the payment gateway**.
+3. **NEFT/RTGS and cheque payments require buyer proof upload and Super Admin
+   verification** before the payment counts as confirmed.
+4. **Failed payments allow retries** before a **configurable timeout** cancels
+   the order.
+5. **Available warehouse stock is reserved when the order is placed.**
+6. The reservation is **released after payment timeout and cancellation**.
+7. **Refund rules are configurable by Super Admin.**
+8. The **original payment method is the default refund destination**; bank
+   transfer can be used as an **admin-approved exception**.
+
+**STILL OPEN — with PROPOSED approaches:**
+(a) **Payment gateway selection** — `PENDING CONFIRMATION`; a technology
+decision for the architecture phase (shortlist Indian gateways supporting UPI
++ cards + net banking and B2B flows).
+(b) **Timeout values** — configurable by decision; ◇ PROPOSED defaults:
+72 hours for online-payment orders, 5 business days where the buyer has
+declared an NEFT/RTGS/cheque payment in progress; awaiting owner confirmation.
+(c) **Reconciliation** — ◇ PROPOSED: daily automatic matching of gateway
+settlements to orders; manual admin matching for bank credits/cheques;
+over/under-payments flagged for admin action, with excess refunded via the
+refund rules. ⚠ Accountant validation for the reconciliation ledger treatment.
+(d) **Invoice/receipt timing relative to payment** — `PENDING CONFIRMATION`
+(with OBD-11/OBD-20); ⚠ tax professional.
+**Affects:** Workflows J, L, M · ADM-015/016/024, BUY-008 · architecture phase.
 
 ## Resolution Log
 
@@ -250,3 +390,9 @@ payment) is only enforceable once "confirmed" is operationally defined.
 | OBD-19 (partial) | Delivery Issue Management, Option B: ProSmash is the single customer-facing contact for direct-shipment delivery complaints (delayed/damaged/lost/missing); ProSmash coordinates investigation and resolution with supplier and courier; supplier/courier accountability managed internally; suppliers must not redirect buyers. Legal liability, financial recovery, compensation, replacement and refund policies remain open under OBD-19. | Owner | 2026-11-13 |
 | OBD-19 (partial) | Delivery Confirmation, Option C (Supplier Proof + Buyer Confirmation): supplier uploads delivery proof (POD / photographs / signed receipt) for direct-to-buyer shipments; buyer receives a confirmation request through ProSmash and confirms receipt on the website; admin reviews both; the workflow records proof submission and buyer confirmation. Buyer non-response, disputes/partial deliveries, deadlines, admin manual resolution, and POD validation/retention remain open under OBD-19. | Owner | 2026-11-13 |
 | OBD-19 (partial) | Proof-First Sequence, Option A: the buyer's delivery confirmation request is triggered only after the supplier uploads delivery proof; no request is sent while proof is outstanding. | Owner | 2026-11-13 |
+| OBD-20 (partial) | Discount Calculation, Option A (Before GST): buyer discount applies to the product price before GST; GST is calculated on the discounted taxable value; GST is added to reach the final payable amount. Percentages, GST rates/classification, inclusive-vs-exclusive display, stacking/override precedence, rounding, price validity and approval authority remain open under OBD-20. Subject to tax-professional validation. | Owner | 2026-11-13 |
+| OBD-20 (partial) | Individual Discount Precedence, Option A (Individual Override): an assigned individual discount completely replaces the buyer-category discount; the two are never added; with no individual discount the category discount applies; exactly one discount per buyer-and-product calculation (e.g. 20% category + 30% individual → 30%, not 50%). Percentages, promotional discounts, rounding, validity and approval authority remain open under OBD-20. | Owner | 2026-11-13 |
+| OBD-20 (partial) | Customer Price Display, Option A (GST-Inclusive Pricing): displayed buyer prices include applicable GST; GST shown separately at checkout; invoices carry the GST breakdown; discount applied before GST on the discounted taxable value; final payable includes GST. GST rates/HSN, storage/display precision, rounding, CGST/SGST-vs-IGST, invoice/credit-note compliance, and tax-professional validation remain open under OBD-20. | Owner | 2026-11-13 |
+| OBD-19 (partial) | Minimum Delivery Information Disclosure: direct-shipment suppliers receive only recipient name, phone, delivery address, product, quantity, delivery instructions and PO reference — nothing else about the buyer or order. | Owner | 2026-11-13 |
+| OBD-20 (partial) | Promotional discounts supported, never combinable with other discounts, individual discount takes priority over promotional; two-decimal monetary precision; price changes immediate or scheduled; existing confirmed orders retain original prices; suppliers may propose purchase-cost changes; only Super Admin approves customer-facing selling-price changes. Percentages, GST rates/HSN, CGST/SGST-vs-IGST, invoice compliance, rounding method and promo-vs-category precedence remain open/proposed. | Owner | 2026-11-13 |
+| OBD-21 (partial) | Payment Methods & Operations: UPI, cards, Net Banking, NEFT/RTGS, cheques; online payments auto-verified via gateway; NEFT/RTGS/cheque need buyer proof + admin verification; failed payments retry until configurable timeout cancels the order; available stock reserved at order placement and released on timeout cancellation; refund rules admin-configurable; original payment method is the default refund destination, bank transfer as approved exception. Gateway choice, timeout defaults, reconciliation and invoice timing remain open/proposed. | Owner | 2026-11-13 |
