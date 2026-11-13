@@ -269,6 +269,7 @@ Blocking or shaping design, from the decisions register:
 | D9 | Brand identity (logo, palette, typefaces) — `brand/` is empty | Everything visual; blocks high-fidelity design, not structure |
 | D10 | OBD-07 non-winner messaging ("not selected" vs "closed") | S5 quotation status copy |
 | D11 | Confirmation timeout defaults (OBD-19/21 ◇) | B10 prompt copy, admin timeout views |
+| D12 | Public product enquiry — `PENDING business-requirements approval`, NOT an approved functional requirement. The public-page enquiry form is a PROTOTYPE CONCEPT only: no intake, lead storage, notifications or admin handling queue exist or are specified, and none may be built until the owner approves a requirement (new FR + ADM queue) through the business-requirements process. Related note: brand/maker display on public pages (an approved attribute, Workflow I) is withheld until real, authorized brand names exist. | Public product detail, homepage CTA band, future ADM lead queue |
 
 **Recommended design order:** design tokens + shared components (§5) → buyer
 portal (revenue-facing, simplest) → supplier portal → admin portal (largest,

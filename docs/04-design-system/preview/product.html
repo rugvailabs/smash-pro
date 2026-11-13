@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Willow Bat — Grade 2 · PROSMASH</title>
+<!-- Preview-only hosted fonts. Production self-hosts licensed files per brand/fonts/LICENSES.md -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="public.css">
+<!-- Business-rule notes:
+     · NO availability/stock indicator on the public page — public stock
+       display has never been decided (P-06 is itself pending).
+     · NO brand/maker names on public preview pages — demo brand names were
+       supplier-identifying; brand display (an approved public attribute,
+       Workflow I) returns when real, authorized brands exist.
+     · Enquiry panel is a PROTOTYPE CONCEPT — intake/admin handling is not a
+       platform requirement yet (recorded as D12 in UI-PREPARATION-PLAN §8).
+     · All products, prices and counts are illustrative preview data. -->
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="pubnav">
+  <div class="in">
+    <a class="wm" href="home.html">PROSMASH</a>
+    <nav>
+      <a class="on" href="catalog.html">Categories</a>
+      <a href="home.html#how">How it works</a>
+      <a href="home.html#supply">For suppliers</a>
+    </nav>
+    <span class="sglyph" role="img" aria-label="Search"></span>
+    <a class="signin" href="#">Sign in</a>
+    <a class="btn btn-pri h40" href="#">Register</a>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<div class="pagehead">
+  <div class="in">
+    <div class="crumb"><a href="home.html">Home</a> / <a href="catalog.html">Cricket</a> / <a href="catalog.html">Bats</a> / <b>English Willow — Grade 2</b></div>
+  </div>
+</div>
+
+<main class="wrap" style="padding:40px 40px 80px">
+
+  <!-- ============ DETAIL ============ -->
+  <div class="detail">
+    <div class="gallery">
+      <div class="ph"><span>IMG · hero · 4:3 · replaced by product photography (see ASSET-ACQUISITION-PLAN)</span></div>
+      <div class="thumbs">
+        <div class="ph on"><span style="font-size:8px">1</span></div>
+        <div class="ph"><span style="font-size:8px">2</span></div>
+        <div class="ph"><span style="font-size:8px">3</span></div>
+        <div class="ph"><span style="font-size:8px">4</span></div>
+      </div>
+    </div>
+
+    <div class="dinfo">
+      <span class="eyebrow">Cricket · Bats</span>
+      <h1>English Willow Bat — Grade 2, Short Handle</h1>
+      <div class="brand">Match grade · senior school &amp; academy cricket</div>
+
+      <div class="dprice">
+        <div class="plabel">Standard price</div>
+        <div class="pval num">₹4,850.00 <small>incl. GST</small></div>
+        <p class="convert">Institutional pricing —
+          <a href="#">Register to view your price</a> or
+          <a href="#">sign in</a>.</p>
+      </div>
+
+      <div class="dactions">
+        <a class="btn btn-pri" href="#">Register to order</a>
+        <a class="btn btn-sec" href="#enquiry">Product enquiry</a>
+      </div>
+      <p class="dnote">Approved institutions order online with 100% advance
+      payment — dispatch follows confirmed payment.</p>
+
+      <div class="spec-label">Specifications</div>
+      <table class="spectab" aria-label="Key specifications">
+        <tr><th>Willow grade</th><td>Grade 2 English willow, 8–10 grains</td></tr>
+        <tr><th>Weight range</th><td class="num">1,180 – 1,250 g</td></tr>
+        <tr><th>Handle</th><td>Short handle, 12-piece cane, octagonal</td></tr>
+        <tr><th>Edge / spine</th><td class="num">38–40 mm edge · 63 mm spine</td></tr>
+        <tr><th>Finish</th><td>Natural, light linseed preparation</td></tr>
+        <tr><th>Supplied</th><td>With full-length bat cover; knocking-in recommended</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ DESCRIPTION ============ -->
+  <div class="dsection">
+    <h3>About this product</h3>
+    <p>A match-grade English willow bat built for institutional squads —
+    consistent weight range across units, straight grains, and a traditional
+    short-handle profile suited to senior school and academy cricket.</p>
+  </div>
+
+  <!-- ============ PRICE TIERS EXPLAINER (OBD-03) ============ -->
+  <div class="tierexp" aria-label="How pricing works">
+    <div class="tier">
+      <div class="tl">Browsing now</div>
+      <b>Standard price — public</b>
+      <span>Every visitor sees the standard listed price, GST-inclusive.</span>
+    </div>
+    <div class="tier">
+      <div class="tl">Registered, under review</div>
+      <b>Standard price while we review</b>
+      <span>Your institutional pricing activates when your account is approved.</span>
+    </div>
+    <div class="tier">
+      <div class="tl ember">Approved institution</div>
+      <b>Your price, on every product</b>
+      <span>Sign in to see your institutional price and order online.</span>
+    </div>
+  </div>
+
+  <!-- ============ ENQUIRY ============ -->
+  <div class="enqpanel" id="enquiry">
+    <span class="proto-note">PROTOTYPE CONCEPT — enquiry intake is not yet a
+    platform requirement · pending business-requirements review (D12)</span>
+    <h3>Enquire about this product</h3>
+    <p class="sub">For quantity planning, specifications or anything else.</p>
+    <form class="enqgrid" onsubmit="return false">
+      <div class="field"><label for="eq-name">Your name (required)</label><input id="eq-name" type="text"></div>
+      <div class="field"><label for="eq-org">Institution / business (required)</label><input id="eq-org" type="text"></div>
+      <div class="field"><label for="eq-phone">Phone (required)</label><input id="eq-phone" type="tel"></div>
+      <div class="field"><label for="eq-mail">Email</label><input id="eq-mail" type="email"></div>
+      <div class="field full"><label for="eq-msg">Your requirement</label><textarea id="eq-msg" placeholder="e.g. 24 bats for our senior squad, needed before 10 January"></textarea></div>
+      <div class="field full" style="display:flex;gap:16px;align-items:center">
+        <button class="btn btn-pri" type="submit">Send enquiry</button>
+        <span class="dnote">Or <a href="#" style="color:var(--ember-deep);font-weight:600;text-decoration:none">register your institution</a> to order directly.</span>
+      </div>
+    </form>
+  </div>
+
+  <!-- ============ RELATED ============ -->
+  <div class="dsection">
+    <h3>Often procured together</h3>
+    <div class="pgrid" style="margin-top:20px">
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · cricket/leather-match-ball-x6 · 4:3</span></div>
+        <div class="pbody">
+          <span class="eyebrow">Balls</span>
+          <div class="pname">Leather Match Ball — 4-Piece Red, Box of 6</div>
+          <div class="pmeta">156 g · alum-tanned leather</div>
+          <div class="pricebox">
+            <div class="plabel">Standard price</div>
+            <div class="pval num">₹2,940.00 <small>incl. GST</small></div>
+          </div>
+        </div>
+      </a>
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · cricket/batting-pads-youth · 4:3</span></div>
+        <div class="pbody">
+          <span class="eyebrow">Protection</span>
+          <div class="pname">Batting Pads — Youth, Ambidextrous Pair</div>
+          <div class="pmeta">Cane-reinforced · 2 sizes</div>
+          <div class="pricebox">
+            <div class="plabel">Standard price</div>
+            <div class="pval num">₹1,320.00 <small>incl. GST</small></div>
+          </div>
+        </div>
+      </a>
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · cricket/batting-gloves-match · 4:3</span></div>
+        <div class="pbody">
+          <span class="eyebrow">Protection</span>
+          <div class="pname">Batting Gloves — Match Grade, Right Hand</div>
+          <div class="pmeta">Sheep leather palm</div>
+          <div class="pricebox">
+            <div class="plabel">Standard price</div>
+            <div class="pval num">₹980.00 <small>incl. GST</small></div>
+          </div>
+        </div>
+      </a>
+      <a class="pcard" href="#">
+        <div class="ph"><span>IMG · cricket/helmet-steel-grille · 4:3</span></div>
+        <div class="pbody">
+          <span class="eyebrow">Protection</span>
+          <div class="pname">Cricket Helmet — Steel Grille, Size M</div>
+          <div class="pmeta">Adjustable · steel grille</div>
+          <div class="pricebox">
+            <div class="plabel">Standard price</div>
+            <div class="pval num">₹1,760.00 <small>incl. GST</small></div>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="in">
+    <div>
+      <span class="wm">PROSMASH</span>
+      <p class="tag">India's managed B2B platform for sports equipment —
+      built for schools, academies, colleges and retailers.</p>
+    </div>
+    <div>
+      <h5>Catalogue</h5>
+      <ul>
+        <li><a href="catalog.html">Cricket</a></li>
+        <li><a href="#">Football</a></li>
+        <li><a href="#">Badminton</a></li>
+        <li><a href="#">Gym &amp; Fitness</a></li>
+        <li><a href="catalog.html">All 12 categories</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Platform</h5>
+      <ul>
+        <li><a href="home.html#how">How it works</a></li>
+        <li><a href="#">Register as a buyer</a></li>
+        <li><a href="#">Sign in</a></li>
+        <li><a href="#enquiry">Product enquiry</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>For suppliers</h5>
+      <ul>
+        <li><a href="home.html#supply">Why supply to ProSmash</a></li>
+        <li><a href="#">Register as a supplier</a></li>
+        <li><a href="#">Supplier sign in</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="legal">
+    <div class="in2">
+      <span>© 2026 PROSMASH</span><span>B2B SPORTS COMMERCE · INDIA</span><span>TERMS</span><span>PRIVACY</span>
+      <span style="margin-left:auto">PREVIEW · COURT INK v0.1 · ALL PRODUCTS, PRICES &amp; COUNTS ILLUSTRATIVE</span>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
