@@ -47,7 +47,14 @@ ProSmash must look like a serious commercial trade platform, not a template.
 - Prefer: strong typographic hierarchy, disciplined spacing, restrained color
   anchored by the brand palette, real product photography over illustration
   in commerce contexts.
-- Design decisions live in `docs/04-design-system/` and must be followed once ratified.
+- The **approved design source of truth** (owner-approved 2026-11-13, "Court
+  Ink" direction) lives in `docs/04-design-system/` and must be followed:
+  BRAND-FOUNDATION.md (positioning/voice), VISUAL-IDENTITY.md
+  (colour/type/logo/imagery), DESIGN-STANDARDS.md (tokens/accessibility/
+  components), PORTAL-PRINCIPLES.md (per-surface rules),
+  UI-PREPARATION-PLAN.md (screens/journeys). Phase 1: light mode only,
+  English only. Logo is concept-only until artwork is approved; fonts are not
+  acquired yet (record licenses in `brand/fonts/LICENSES.md` at acquisition).
 
 ## B2B Context — Always Design For
 - Wholesale quantities and institutional purchasing patterns — never retail patterns.
