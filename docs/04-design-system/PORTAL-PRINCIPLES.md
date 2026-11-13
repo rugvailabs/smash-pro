@@ -42,8 +42,10 @@ feel like the serious counterparty the committee can approve.
   procurement process drawn plainly. No testimonial-carousel clichés.
 - Two clear journeys above the fold: "Buy for your institution" / "Supply to
   ProSmash" — the registration funnels are the site's only conversions.
-- Catalog visibility follows OBD-03 (open) — design both gated and ungated
-  variants structurally; do not presume.
+- The catalog is public with standard listed prices (confirmed — OBD-03);
+  every public product page carries the conversion block: register/sign in to
+  see your discounted price. Discounts, supplier and commercial data never
+  appear publicly.
 - Fully responsive, mobile-first; page weight discipline (images do the
   talking, so they must be optimized at build).
 
@@ -53,9 +55,11 @@ feel like the serious counterparty the committee can approve.
 
 - Comfortable density; Paper canvas, Chalk product surfaces; photography
   appears only as product imagery — the catalog is the hero.
-- Price display per OBD-20: GST-inclusive applicable price prominent, the
-  GST-breakdown component at checkout; no strikethrough-discount retail
-  theatrics — this is wholesale, the number is the number.
+- Price display per OBD-20/OBD-03: the buyer's GST-inclusive discounted price
+  prominent, the GST-breakdown component at checkout. The public standard
+  listed price may appear as quiet context (it is public anyway), but no
+  retail strikethrough theatrics — whether the discount % is shown explicitly
+  is pending OBD-20; this is wholesale, the number is the number.
 - State clarity is the trust feature: order status, payment status
   (including "awaiting admin verification" for offline payments) and
   delivery-confirmation prompts always one glance away.

@@ -17,9 +17,10 @@
 | Supplier | Manufacturers, wholesalers, distributors, dealers | Work-focused: requirements in, quotations out, POs, payments |
 | Business Buyer | Schools, academies, colleges, retailers, institutions | Professional commerce: catalog, ordering, orders, payments |
 
-Plus a small **public surface** (pre-login): landing page, buyer/supplier
-registration entries, sign-in. Its catalog visibility depends on OBD-03
-(`PENDING CONFIRMATION`) — see §8.
+Plus a **public surface** (pre-login): landing page, the **full public
+catalog with standard listed prices** (confirmed — OBD-03: discounts and
+discounted prices require login; no supplier/commercial data), buyer/supplier
+registration entries, and sign-in.
 
 Portals are fully isolated (PLT-001): separate navigation, no shared session
 or cross-portal links.
@@ -90,9 +91,11 @@ pending OBD-03).
 
 ## 3. Screen Inventory
 
-### Public (4)
-1. Landing page · 2. Buyer registration (multi-step, documents) ·
-3. Supplier registration (multi-step, documents) · 4. Sign-in / recovery
+### Public (6)
+1. Landing page · 2. Public catalog browse/listing (categories, search,
+standard listed prices — OBD-03/PLT-006) · 3. Public product detail (standard
+price + register/sign-in CTA) · 4. Buyer registration (multi-step, documents) ·
+5. Supplier registration (multi-step, documents) · 6. Sign-in / recovery
 
 ### Super Admin (26)
 | # | Screen | Requirement(s) |
@@ -158,7 +161,9 @@ pending OBD-03).
 | B13 | Payments & invoices | BUY-008 |
 | B14 | Organization profile (addresses, documents) | BUY-009 |
 
-**Total: 56 screens** (4 public + 26 admin + 12 supplier + 14 buyer).
+**Total: 58 screens** (6 public + 26 admin + 12 supplier + 14 buyer).
+Buyer-portal catalog screens (B3–B5) share structure with the public catalog
+screens, adding the logged-in discounted price per OBD-03.
 
 ## 4. Primary User Journeys
 
@@ -170,9 +175,11 @@ pending OBD-03).
    dispatches → goods receipt → stock live. Longest cross-portal journey;
    every artifact (requirement, quote version, message, PO) must interlink.
 3. **Buyer onboarding** (Workflow H): mirror of journey 1 for institutions.
-4. **Browse-to-paid-order** (I→J→M): browse → product → cart → checkout with
-   GST breakdown → pay (online auto-confirm, or proof upload + admin verify) →
-   order confirmed. Payment-pending and timeout states need first-class UI.
+4. **Browse-to-paid-order** (I→J→M): public browse at standard listed prices
+   → approved buyer signs in for the discounted price (OBD-03) → cart → checkout with GST
+   breakdown → pay (online auto-confirm, or proof upload + admin verify) →
+   order confirmed. Payment-pending and timeout states need first-class UI;
+   the public→signed-in price transition is a key conversion moment.
 5. **Direct-shipment delivery** (J→N): admin routes line to supplier →
    supplier dispatches with minimum delivery info → uploads proof → buyer gets
    confirmation request → confirms → admin reviews. Three-portal handshake.
@@ -251,7 +258,7 @@ Blocking or shaping design, from the decisions register:
 
 | # | Dependency | Affects |
 |---|---|---|
-| D1 | OBD-03 public catalog visibility (prices to anonymous visitors?) | Landing page, public catalog, registration funnel |
+| D1 | ✅ RESOLVED — OBD-03: public catalog with standard listed prices; discounted prices for approved, logged-in buyers only (pending accounts see standard prices). Public homepage and catalog design fully unblocked. | Landing page, public catalog, registration funnel |
 | D2 | P-06 stock display to buyers (exact / banded / none) | B4/B5 availability UI |
 | D3 | OBD-09 MOQ / minimum order value | Cart & checkout validation UI |
 | D4 | OBD-15 multi-user organizations | Profile screens, approval flows, header account UI |

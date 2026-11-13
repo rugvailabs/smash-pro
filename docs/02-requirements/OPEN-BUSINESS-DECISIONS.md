@@ -64,11 +64,36 @@ API), acceptable GST-exemption evidence for institutions, and any KYC/AML
 obligations applying to supplier payouts.
 **Affects:** Workflows A, H · SUP-001/002, BUY-001/002, PLT-005.
 
-### OBD-03 — Pre-approval and public catalog visibility
-**Question:** What do unapproved/anonymous visitors see — full catalog with
-prices, catalog without prices, or a login wall? (Roles doc P-03.)
-**Why it matters:** Drives the public site design and buyer acquisition funnel.
-**Affects:** Workflow H · BUY-002 · homepage/landing design.
+### OBD-03 — Public catalog visibility ✅ DECIDED (2026-11-13)
+**Decision: CONFIRMED — Public product catalogue with login-based discounts.**
+1. Anonymous visitors can **browse the complete public product catalogue**.
+2. Visitors see product names, images, descriptions, specifications and the
+   **standard listed selling price** — the OBD-05 admin-controlled base
+   selling price, displayed GST-inclusive per OBD-20.
+3. Public visitors **never see** buyer-category discounts, individual customer
+   discounts or discounted prices.
+4. **Buyers must log in** to see their applicable discounts and discounted
+   prices.
+5. OBD-05 pricing rules apply unchanged (base price; category default
+   discounts; individual override).
+6. OBD-20 GST-inclusive display and tax-calculation decisions apply unchanged
+   to both the public standard price and logged-in discounted prices.
+7. Public pages expose **no supplier purchase costs, margins or confidential
+   commercial information** (access boundaries unchanged).
+8. Existing buyer eligibility and verification requirements are preserved;
+   ordering and transactions still require an **approved** buyer account.
+
+**Clarification DECIDED (2026-11-13):** discount visibility is
+**approval-gated** — anonymous visitors and registered-but-not-yet-approved
+buyers both see standard listed prices only; **approved and logged-in buyers**
+see their applicable discounted prices. Ordering remains approval-gated.
+OBD-05 and OBD-20 pricing rules apply unmodified.
+
+Resolves roles-doc **P-03**; by making the catalog public it also effectively
+resolves **P-05** (suppliers, like anyone, can view the public catalog with
+standard prices only — discounts and margins remain invisible to them).
+**Affects:** Workflows H, I · BUY-002/003/004, PLT-006 · UI plan (public
+screens, dependency D1) · homepage design (propagated 2026-11-13).
 
 ### OBD-04 — Supplier supply-catalog pricing
 **Question:** Should suppliers record indicative prices on their supply-catalog
@@ -396,3 +421,4 @@ refund rules. ⚠ Accountant validation for the reconciliation ledger treatment.
 | OBD-19 (partial) | Minimum Delivery Information Disclosure: direct-shipment suppliers receive only recipient name, phone, delivery address, product, quantity, delivery instructions and PO reference — nothing else about the buyer or order. | Owner | 2026-11-13 |
 | OBD-20 (partial) | Promotional discounts supported, never combinable with other discounts, individual discount takes priority over promotional; two-decimal monetary precision; price changes immediate or scheduled; existing confirmed orders retain original prices; suppliers may propose purchase-cost changes; only Super Admin approves customer-facing selling-price changes. Percentages, GST rates/HSN, CGST/SGST-vs-IGST, invoice compliance, rounding method and promo-vs-category precedence remain open/proposed. | Owner | 2026-11-13 |
 | OBD-21 (partial) | Payment Methods & Operations: UPI, cards, Net Banking, NEFT/RTGS, cheques; online payments auto-verified via gateway; NEFT/RTGS/cheque need buyer proof + admin verification; failed payments retry until configurable timeout cancels the order; available stock reserved at order placement and released on timeout cancellation; refund rules admin-configurable; original payment method is the default refund destination, bank transfer as approved exception. Gateway choice, timeout defaults, reconciliation and invoice timing remain open/proposed. | Owner | 2026-11-13 |
+| OBD-03 | Public product catalogue with login-based discounts: anonymous visitors browse the full catalog with names, images, descriptions, specs and the standard listed selling price (OBD-05 base price, GST-inclusive per OBD-20); discounts and discounted prices require login; no supplier costs, margins or confidential commercial data on public pages; OBD-05/OBD-20 rules unchanged; existing approval/verification gates preserved (transactions still require approval). Clarified same day: discount visibility is approval-gated — pending accounts see standard prices; approved logged-in buyers see discounted prices. | Owner | 2026-11-13 |

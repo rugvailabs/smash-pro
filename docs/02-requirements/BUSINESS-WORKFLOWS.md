@@ -185,8 +185,10 @@
 1. Buyer submits: organization name and type (school / academy / college /
    retailer / other), contact person, address(es), and business details
    (GST/registration documents — verification requirements `PENDING CONFIRMATION`).
-2. Account is created in **Pending Approval**; buyer can log in to see status only
-   (catalog visibility pre-approval: P-03, `PENDING CONFIRMATION`).
+2. Account is created in **Pending Approval**; buyer can log in to see status,
+   and browses the public catalog at **standard listed prices** like any
+   visitor — discounted prices appear only after approval (confirmed —
+   OBD-03). Ordering requires approval.
 3. Super Admin reviews in the buyer approval queue → Approve / Request changes / Reject,
    mirroring Workflow A semantics, with reasons recorded.
 4. On approval, the buyer gains catalog, pricing and ordering access and receives
@@ -198,15 +200,22 @@
 
 ## I. Customer Product Browsing and Pricing
 
-**Actors:** Buyer · **Trigger:** approved buyer enters the catalog.
+**Actors:** Anonymous visitor / Buyer · **Trigger:** anyone enters the catalog
+(public per OBD-03); transactions require an approved buyer.
 
-1. Buyer browses the **admin-curated catalog** by sport category (the twelve
-   launch categories), with search and filters (brand, price range, specifications).
-2. Product detail shows images, specifications, brand/manufacturer, and the
-   buyer's **applicable selling price**, computed by the system from the
-   admin-set base selling price and the buyer's effective discount — their
+1. The **admin-curated catalog is public** (confirmed — OBD-03): anyone can
+   browse by sport category (the twelve launch categories) with search and
+   filters (brand, price range, specifications), seeing product names, images,
+   descriptions, specifications and the **standard listed selling price** —
+   the admin-set base selling price, GST-inclusive. Public pages never show
+   discounts, discounted prices, supplier identities, purchase costs or
+   margins.
+2. For an **approved, logged-in buyer**, product detail additionally shows
+   the buyer's **applicable discounted selling price**, computed by the system
+   from the base selling price and the buyer's effective discount — their
    buyer-category default, or an individual override assigned by admin
-   (confirmed model, OBD-05). Exactly **one** discount applies per calculation:
+   (confirmed model, OBD-05). Registered-but-unapproved accounts see standard
+   listed prices only (confirmed — OBD-03). Exactly **one** discount applies per calculation:
    an individual discount, where assigned, **completely replaces** the category
    default — the two are never added together (confirmed — OBD-20 Individual
    Override). The applicable discount applies **before GST**: GST is calculated

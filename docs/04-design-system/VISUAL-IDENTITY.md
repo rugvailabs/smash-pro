@@ -102,6 +102,12 @@ different ceilings per surface.
 
 ## 4. Logo Direction (concept only — no artwork yet)
 
+> **Interim identity (owner decision, 2026-11-13):** logo artwork is
+> postponed. Until it exists, the brand mark is **"PROSMASH" set in bold
+> Archivo** (Ink on Paper, or Chalk on Ink) with standard letterforms — no
+> custom cut, no monogram. All designs use this text identity and must swap
+> cleanly for the final mark later.
+
 **A customized wordmark: "PROSMASH" set in a modified heavy grotesque, with
 one engineered gesture — the smash cut.**
 

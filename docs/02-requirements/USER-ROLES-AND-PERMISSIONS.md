@@ -63,7 +63,9 @@ per organization — also §5.
 
 ### 2.3 Business Buyer
 - Register the organization and submit business details for approval.
-- Browse and search the published catalog; view pricing (visibility rules: 🔶 §5).
+- Browse and search the catalog (public per OBD-03); after approval, log in
+  to see applicable discounted prices — pending accounts see standard listed
+  prices only.
 - Place orders; track order and delivery status; view order history and documents.
 - Submit requests for products not in the catalog and track their status.
 - Report delivery issues (delayed, damaged, lost, missing) to ProSmash only —
@@ -94,10 +96,12 @@ Hard boundaries that hold regardless of future permission refinements:
    pricing, or negotiation threads.
 5. **Pre-approval lockout** — unapproved suppliers and buyers can complete
    registration and view their application status only; no transactional features.
-6. **Pricing separation** (reinforced by OBD-05) — procurement (supplier-side)
-   pricing, base selling prices, discount configurations and profit margins are
-   visible to Super Admin only. A buyer sees only their own applicable selling
-   price; suppliers see neither buyer-facing prices nor margins.
+6. **Pricing separation** (reinforced by OBD-05/OBD-03) — procurement
+   (supplier-side) pricing, discount configurations and profit margins are
+   visible to Super Admin only. The **standard listed selling price is
+   public** (OBD-03); beyond it, a buyer sees only their own discounted
+   price, and suppliers see nothing beyond the public standard price —
+   never discounts, buyer-specific prices or margins.
 7. **Messaging is scoped** — negotiation messaging exists only between Super Admin
    and one supplier in the context of one requirement/quotation. No
    supplier-to-supplier or buyer-to-supplier channels.
@@ -124,7 +128,8 @@ Hard boundaries that hold regardless of future permission refinements:
 | Select winning quotation / issue PO | ✅ | ❌ | ❌ |
 | Update supplier fulfilment status | ✅ | ✅ own POs | ❌ |
 | Manage warehouse inventory | ✅ | ❌ | ❌ |
-| Browse published catalog & pricing | ✅ | ❌ (🔶 §5) | ✅ approved only |
+| Browse public catalog with standard listed prices (OBD-03) | ✅ | ✅ (public, like anyone) | ✅ (public, like anyone) |
+| View own discounted prices | ✅ (all buyers' pricing) | ❌ | ✅ approved & logged in only (OBD-03) |
 | Place buyer orders | ❌ (🔶 on-behalf-of, §5) | ❌ | ✅ |
 | Manage buyer orders & fulfilment | ✅ | ❌ | ✅ view own |
 | Record/track buyer payments | ✅ | ❌ | ✅ own |
@@ -140,9 +145,9 @@ Hard boundaries that hold regardless of future permission refinements:
 |---|---|
 | P-01 | Internal admin sub-roles: does phase 1 need separated procurement / warehouse / finance / support roles, or is a single Super Admin role acceptable at launch? |
 | P-02 | Multi-user organizations: can a buyer or supplier organization have multiple logins with internal roles (e.g. buyer "requester" vs "approver")? |
-| P-03 | Pricing visibility: do unapproved/anonymous visitors see the catalog without prices, with prices, or nothing at all? |
+| P-03 | ✅ RESOLVED by OBD-03: the catalog is public with standard listed prices; discounted prices are approval-gated — pending accounts see standard prices, approved logged-in buyers see their discounted prices. |
 | P-04 | Can Super Admin place or edit orders on behalf of a buyer (phone/offline orders)? |
-| P-05 | Can suppliers see the public buyer-facing catalog, or is it hidden from them entirely? |
+| P-05 | ✅ Effectively resolved by OBD-03: the catalog is public, so suppliers (like anyone) can view it with standard listed prices only — discounts, buyer prices and margins stay invisible to them. |
 | P-06 | Stock visibility to buyers: exact quantity, banded indicator ("in stock / low"), or none? |
 | P-07 | Can suppliers edit a submitted quotation freely before admin review, or only via formal revision after an admin request? |
 | P-08 | Buyer self-service cancellation/modification of orders: allowed until which fulfilment stage? |

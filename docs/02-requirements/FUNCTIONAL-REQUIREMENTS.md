@@ -363,23 +363,33 @@ with document upload.
 
 ### BUY-002 — Application status visibility _(Workflow H · Confirmed)_
 Pending/rejected buyers shall see status and requested changes, and resubmit.
-- **AC1:** Pre-approval catalog/pricing access follows P-03 — `PENDING CONFIRMATION` (OBD-03).
+- **AC1:** Pending accounts browse the public catalog at standard listed
+  prices like any visitor; discounted prices appear only after approval
+  (confirmed — OBD-03). Ordering remains approval-gated.
 
-### BUY-003 — Catalog browsing and search _(Workflow I · Confirmed)_
-Approved buyers shall browse by the 12 sport categories, with search and
-filtering (brand, price, specifications).
+### BUY-003 — Catalog browsing and search _(Workflow I · Confirmed — OBD-03)_
+The catalog shall be publicly browsable by the 12 sport categories, with
+search and filtering (brand, price, specifications), for anonymous visitors
+and buyers alike; the buyer portal presents the same catalog to logged-in
+buyers.
 - **AC1:** Only Published products appear.
 - **AC2:** Search covers name, brand, category and key specifications.
-- **AC3:** No supplier identity or procurement data is ever exposed.
+- **AC3:** No supplier identity, procurement cost, margin or discount data is
+  ever exposed on public pages or to any role beyond its permissions.
 
-### BUY-004 — Product detail and pricing _(Workflow I · Confirmed — OBD-05; display mechanics PENDING CONFIRMATION — OBD-20)_
-Product pages shall show images, specifications, brand and the buyer's
-**applicable selling price** — the system-computed result of base price and the
-buyer's effective discount (category default or individual override).
+### BUY-004 — Product detail and pricing _(Workflow I · Confirmed — OBD-03/OBD-05; display mechanics PENDING CONFIRMATION — OBD-20)_
+Product pages shall show images, specifications and brand to everyone, with
+pricing tiered by session (OBD-03): anonymous visitors and
+registered-but-unapproved buyers see the **standard listed selling price**
+(base price, GST-inclusive); **approved, logged-in buyers** additionally see
+their **applicable discounted selling price** — the system-computed result of
+base price and the buyer's effective discount (category default or individual
+override).
 - **AC1:** Displayed price is the price captured if ordered now.
-- **AC2:** Buyers never see base-vs-discount breakdowns, other buyers' prices,
-  purchase costs or margins (whether their own discount % is shown:
-  `PENDING CONFIRMATION` — OBD-20).
+- **AC2:** Buyers never see other buyers' prices or discounts, purchase costs
+  or margins. The standard listed price is public (OBD-03), so a logged-in
+  buyer can see standard vs. their own discounted price; whether their
+  discount % is displayed explicitly is `PENDING CONFIRMATION` — OBD-20.
 - **AC3:** Displayed prices are **GST-inclusive** (confirmed — OBD-20 Customer
   Price Display); product-wise GST rates/HSN and display precision
   `PENDING CONFIRMATION` (OBD-20/OBD-11).
@@ -491,3 +501,15 @@ Registration, invoicing and tax displays shall follow Indian business norms
 (GSTIN capture, GST-itemized invoices); exact verification and tax rules await
 owner confirmation.
 - **AC1:** Once confirmed, rules apply uniformly across portals and documents.
+
+### PLT-006 — Public catalog surface _(Workflow I · Confirmed — OBD-03)_
+The platform shall serve the complete published catalog to anonymous visitors:
+category browsing, search, product listings and product detail with names,
+images, descriptions, specifications and standard listed selling prices
+(GST-inclusive).
+- **AC1:** No discount, discounted price, buyer-specific data, supplier
+  identity, purchase cost or margin is ever present on public pages.
+- **AC2:** Public product and category pages are crawlable/indexable
+  (SEO-friendly URLs and metadata; specifics in the architecture phase).
+- **AC3:** Public pages present registration and sign-in as the path to
+  discounted pricing and ordering.
