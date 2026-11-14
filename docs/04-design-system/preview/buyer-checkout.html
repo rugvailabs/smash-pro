@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout · PROSMASH Buyer</title>
+<!-- B7. OBD-08 (100% advance), OBD-20 (GST breakdown; rates per HSN pending — amounts
+     unlabelled), OBD-21 (methods + verification paths), OBD-19 ◇ (shipping payer
+     presentation pending — shown as a plain line). All data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Checkout</h1>
+      <p class="sub">Review delivery, taxes and payment — then pay 100% in advance.</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="sect">1 · Delivery address</div>
+      <label class="addr on">
+        <span class="rad"></span>
+        <span><b>Sports Department — Main Campus</b>
+        <small>St. Xavier's High School, 24 Residency Road, Pune 411001 ·
+        Attn: Head of Sports · 98220 41400</small></span>
+      </label>
+      <label class="addr">
+        <span class="rad"></span>
+        <span><b>Junior Wing Store</b>
+        <small>St. Xavier's Junior Wing, 7 Lane C, Koregaon Park, Pune 411001</small></span>
+      </label>
+      <a class="btn btn-ter" href="buyer-profile.html" style="font-size:13px">+ Add a new address</a>
+
+      <div class="sect">2 · Order lines</div>
+      <div class="panel">
+        <div class="line">
+          <div class="th"></div>
+          <div class="li">
+            <div class="ln">English Willow Bat — Grade 2, Short Handle</div>
+            <div class="ls">SKU CR-0417 · <span class="num">24 × ₹4,122.50</span></div>
+          </div>
+          <div class="lt num">₹98,940.00</div>
+        </div>
+        <div class="line">
+          <div class="th"></div>
+          <div class="li">
+            <div class="ln">Feather Shuttlecocks — Tournament, Tube of 12</div>
+            <div class="ls">SKU BD-1104 · <span class="num">30 × ₹1,054.00</span></div>
+          </div>
+          <div class="lt num">₹31,620.00</div>
+        </div>
+      </div>
+
+      <div class="sect">3 · Payment method</div>
+      <div class="pay">
+        <label class="pm on"><span class="rad"></span><span><b>UPI</b><small>Verified automatically on payment</small></span></label>
+        <label class="pm"><span class="rad"></span><span><b>Card / Net Banking</b><small>Verified automatically via gateway</small></span></label>
+        <label class="pm"><span class="rad"></span><span><b>NEFT / RTGS or Cheque</b><small>Upload payment proof — dispatch after admin verification</small></span></label>
+      </div>
+    </div>
+
+    <div class="sticky">
+      <div class="gst">
+        <div class="gr"><span>Items subtotal <span style="color:var(--n600)">(ex-GST)</span></span><span class="num">₹1,16,630.00</span></div>
+        <div class="gr"><span>GST</span><span class="num">₹13,930.00</span></div>
+        <div class="gr note"><span>Rates per product HSN — pending tax confirmation</span><span></span></div>
+        <div class="gr"><span>Shipping</span><span class="num">₹1,200.00</span></div>
+        <div class="tot"><b>Total payable (incl. GST)</b><span class="amt">₹1,31,760.00</span></div>
+      </div>
+      <a class="btn btn-pri" href="buyer-payment.html" style="width:100%;margin-top:14px">Pay ₹1,31,760.00</a>
+      <div class="banner" style="margin-top:14px">
+        <span><b>100% advance payment.</b> Dispatch follows confirmed payment.
+        No credit facilities are offered.</span>
+      </div>
+      <p class="note-flag" style="margin-top:10px">amounts illustrative ·
+      shipping payer presentation pending OBD-19 ◇ · GST rate labels pending
+      OBD-20/OBD-11</p>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

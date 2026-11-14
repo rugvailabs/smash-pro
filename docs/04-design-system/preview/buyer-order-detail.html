@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ORD-2026-01144 · PROSMASH Buyer</title>
+<!-- B9 detail + B10 confirmation + B11 entry. Direct-shipment order: confirmation request
+     appears only after supplier proof upload (OBD-19 Option A, proof-first). Buyer sees
+     NO supplier identity (access boundary §3 — the shipment is presented as ProSmash's).
+     Non-response/dispute handling pending OBD-19 ◇. Statuses per Workflow J step 7
+     (finalized in data-model phase). Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a class="on" href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="crumb"><a href="buyer-orders.html">Orders</a> / <b>ORD-2026-01144</b></div>
+  <div class="pagehead">
+    <div>
+      <h1><span class="id" style="font-size:22px">ORD-2026-01144</span></h1>
+      <p class="sub">Placed 10 Nov 2026 · 1 line · <span class="chip c-ok" style="vertical-align:middle">Payment confirmed</span></p>
+    </div>
+    <div class="actions"><a class="btn btn-sec h40" href="#report">Report a delivery issue</a></div>
+  </div>
+
+  <!-- delivery confirmation request — BUY-011, proof-first -->
+  <div class="banner warn" style="margin-bottom:22px">
+    <span><b>Delivery proof received — please confirm receipt.</b> This
+    shipment was marked delivered on 13 Nov 2026 and delivery proof is on
+    record. Confirm that your institution received it in order.
+    <a class="btn btn-pri h40" href="#" style="margin-left:14px;vertical-align:middle">Confirm delivery receipt</a></span>
+  </div>
+
+  <div class="sect">Order progress</div>
+  <div class="rail">
+    <div class="rstep done">Placed<span class="rd">10 Nov</span></div>
+    <div class="rstep done">Confirmed<span class="rd">10 Nov</span></div>
+    <div class="rstep done">Processing<span class="rd">11 Nov</span></div>
+    <div class="rstep done">Dispatched<span class="rd">12 Nov</span></div>
+    <div class="rstep cur">Delivered — confirm receipt<span class="rd">13 Nov</span></div>
+  </div>
+
+  <div class="cols" style="margin-top:30px">
+    <div>
+      <div class="sect">Lines</div>
+      <div class="panel">
+        <div class="line">
+          <div class="th"></div>
+          <div class="li">
+            <div class="ln">Volleyball — Match, Size 5</div>
+            <div class="ls">SKU VB-0231 · <span class="num">12 × ₹1,915.00</span> incl. GST</div>
+          </div>
+          <div class="lt num">₹22,980.00</div>
+        </div>
+      </div>
+
+      <div class="sect">Delivery</div>
+      <div class="panel">
+        <div style="padding:14px 16px">
+          <div class="kv"><span class="k">Ship to</span><span class="v">Sports Department — Main Campus, Pune 411001</span></div>
+          <div class="kv"><span class="k">Dispatched</span><span class="v">12 Nov 2026 · transport ref <span class="id">LR-88412</span></span></div>
+          <div class="kv"><span class="k">Delivered</span><span class="v">13 Nov 2026 · proof on record</span></div>
+          <div class="kv"><span class="k">Receipt</span><span class="v"><span class="chip c-warn">Awaiting your confirmation</span></span></div>
+        </div>
+      </div>
+      <p class="note-flag" style="margin-top:8px">confirmation request sent only
+      after delivery proof upload (OBD-19 proof-first) · non-response &amp;
+      dispute handling pending OBD-19 ◇</p>
+
+      <div class="sect" id="report">Something wrong?</div>
+      <div class="panel" style="padding:16px">
+        <p style="font-size:14px;margin-bottom:12px">Delayed, damaged, lost or
+        missing items? Report it to ProSmash — we are your single point of
+        contact and will coordinate the resolution.</p>
+        <a class="btn btn-sec h40" href="#">Report a delivery issue</a>
+      </div>
+    </div>
+
+    <div class="sticky">
+      <div class="gst">
+        <div class="gr"><span>Items subtotal <span style="color:var(--n600)">(ex-GST)</span></span><span class="num">₹20,518.00</span></div>
+        <div class="gr"><span>GST</span><span class="num">₹2,462.00</span></div>
+        <div class="gr"><span>Shipping</span><span class="num">₹1,200.00</span></div>
+        <div class="tot"><b>Total paid (incl. GST)</b><span class="amt">₹24,180.00</span></div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="phead"><b>Payment</b></div>
+        <div style="padding:12px 16px">
+          <div class="kv"><span class="k">Method</span><span class="v">UPI</span></div>
+          <div class="kv"><span class="k">Reference</span><span class="v id">TXN-UPI-884120</span></div>
+          <div class="kv"><span class="k">Confirmed</span><span class="v">10 Nov 2026, 09:18</span></div>
+          <div class="kv"><span class="k">Status</span><span class="v"><span class="chip c-ok">Payment confirmed</span></span></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:14px">
+        <div class="phead"><b>Documents</b><span class="note-flag" style="margin-left:auto">prototype — not functional</span></div>
+        <div class="docrow"><span class="fn">Tax invoice — ORD-2026-01144</span><span class="fm">PDF</span><a class="btn btn-ter" href="#" style="font-size:13px" aria-disabled="true">Download (prototype)</a></div>
+        <div class="docrow"><span class="fn">Payment receipt</span><span class="fm">PDF</span><a class="btn btn-ter" href="#" style="font-size:13px" aria-disabled="true">Download (prototype)</a></div>
+      </div>
+      <p class="note-flag" style="margin-top:8px">amounts illustrative ·
+      invoice generation/download is a design reference only — timing &amp;
+      format pending OBD-11 approval; no production workflow implemented</p>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

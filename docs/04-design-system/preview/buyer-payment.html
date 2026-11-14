@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payment · PROSMASH Buyer</title>
+<!-- B8. OBD-21 confirmed: online auto-verified; NEFT/RTGS/cheque = proof upload + admin
+     verification; retries until a configurable payment window closes (default values
+     PENDING ◇ — copy never states hours). Three states demonstrated. Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a class="on" href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">0</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="crumb"><a href="buyer-orders.html">Orders</a> / <b>Payment · ORD-2026-01153</b></div>
+  <div class="pagehead">
+    <div>
+      <h1>Payment — <span class="id" style="font-size:20px">ORD-2026-01153</span></h1>
+      <p class="sub">Total payable <b class="num" style="color:var(--ink)">₹1,31,760.00</b> incl. GST · NEFT selected</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="sect">Current state — NEFT proof under verification</div>
+      <div class="banner warn">
+        <span><b>Payment proof uploaded, awaiting admin verification.</b>
+        Your order is reserved and will move to processing once the payment is
+        verified. Offline payments count as confirmed only after review.</span>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <div class="docrow">
+          <span class="fn">neft-utr-receipt-14nov.pdf</span>
+          <span class="fm">uploaded 14 Nov 2026, 10:42</span>
+          <span class="chip c-warn">Awaiting verification</span>
+        </div>
+        <div style="padding:14px 16px;border-top:1px solid var(--n100)">
+          <div class="kv"><span class="k">Method</span><span class="v">NEFT</span></div>
+          <div class="kv"><span class="k">UTR reference</span><span class="v id">N2026111412345678</span></div>
+          <div class="kv"><span class="k">Amount declared</span><span class="v num">₹1,31,760.00</span></div>
+        </div>
+      </div>
+
+      <div class="sect" style="margin-top:34px">Other payment states (design reference)</div>
+      <div class="banner ok">
+        <span><b>Payment confirmed.</b> UPI payment verified automatically via
+        the gateway — your order has moved to processing.
+        <span class="id" style="margin-left:6px">TXN-UPI-884120</span></span>
+      </div>
+      <div class="banner bad" style="margin-top:12px">
+        <span><b>Payment failed.</b> The gateway did not confirm this attempt.
+        You can retry within the payment window; if it closes, the order is
+        cancelled automatically and reserved stock is released.</span>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:12px">
+        <a class="btn btn-pri h40" href="#">Retry payment</a>
+        <a class="btn btn-sec h40" href="#">Switch method</a>
+      </div>
+      <p class="note-flag" style="margin-top:10px">amounts illustrative ·
+      payment-window defaults pending OBD-21 ◇ — copy never states a duration</p>
+    </div>
+
+    <div class="sticky">
+      <div class="gst">
+        <div class="gr"><span>Items subtotal <span style="color:var(--n600)">(ex-GST)</span></span><span class="num">₹1,16,630.00</span></div>
+        <div class="gr"><span>GST</span><span class="num">₹13,930.00</span></div>
+        <div class="gr"><span>Shipping</span><span class="num">₹1,200.00</span></div>
+        <div class="tot"><b>Total payable</b><span class="amt">₹1,31,760.00</span></div>
+      </div>
+      <div class="panel" style="margin-top:14px">
+        <div class="phead"><b>Order status</b></div>
+        <div style="padding:12px 16px">
+          <div class="kv"><span class="k">Order</span><span class="v id">ORD-2026-01153</span></div>
+          <div class="kv"><span class="k">Placed</span><span class="v">14 Nov 2026</span></div>
+          <div class="kv"><span class="k">Status</span><span class="v"><span class="chip c-info">Placed</span></span></div>
+          <div class="kv"><span class="k">Payment</span><span class="v"><span class="chip c-warn">Awaiting verification</span></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

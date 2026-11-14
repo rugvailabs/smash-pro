@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Requests · PROSMASH Buyer</title>
+<!-- B12 · BUY-007 (Workflow K) remains an approved requirement in the business docs,
+     but per owner direction this SCREEN is a VISUAL PROTOTYPE: submission and
+     attachment upload are non-functional preview interactions; no live request/
+     enquiry workflow exists or is implied. D12 (public enquiry) remains pending
+     business-requirements approval. Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a href="buyer-orders.html">Orders</a>
+      <a class="on" href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Product requests</h1>
+      <p class="sub">Not in the catalogue? Request it — our team reviews every
+      request for sourcing.</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="sect">My requests</div>
+      <div class="panel">
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Pole vault landing mat — 5×4 m competition</div>
+            <div class="s"><span class="id">REQ-2026-0121</span> · Athletics · qty 1 · needed by 20 Jan 2027 · submitted 08 Nov 2026</div>
+          </div>
+          <span class="chip c-info">In sourcing review</span>
+        </div>
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Table tennis robot trainer</div>
+            <div class="s"><span class="id">REQ-2026-0104</span> · Indoor Games · qty 2 · submitted 21 Oct 2026</div>
+          </div>
+          <span class="chip c-ok">Now available in catalogue</span>
+          <a class="btn btn-sec h32" href="buyer-catalog.html">View product</a>
+        </div>
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Custom embroidered team blazers</div>
+            <div class="s"><span class="id">REQ-2026-0097</span> · Sportswear · qty 40 · submitted 12 Oct 2026</div>
+          </div>
+          <span class="chip c-bad">Declined</span>
+        </div>
+      </div>
+      <p class="note-flag" style="margin-top:8px">declined requests carry an
+      admin reason (shown in detail view) · requests may be merged with similar
+      institutional demand for sourcing</p>
+    </div>
+
+    <div>
+      <div class="sect">New request</div>
+      <div class="panel" style="padding:20px">
+        <p class="note-flag" style="margin-bottom:14px">visual prototype —
+        submission &amp; upload are non-functional preview interactions ·
+        request/enquiry workflow pending business-requirements review (D12)</p>
+        <div class="field">
+          <label for="rq-name">Product (required)</label>
+          <input id="rq-name" type="text" placeholder="e.g. High-jump landing mat, 4×3 m">
+        </div>
+        <div class="fgrid">
+          <div class="field">
+            <label for="rq-cat">Category (required)</label>
+            <select id="rq-cat"><option>Athletics</option></select>
+          </div>
+          <div class="field">
+            <label for="rq-qty">Quantity (required)</label>
+            <input id="rq-qty" type="number" placeholder="1">
+          </div>
+        </div>
+        <div class="field">
+          <label for="rq-date">Needed by</label>
+          <input id="rq-date" type="text" placeholder="DD MMM YYYY">
+        </div>
+        <div class="field">
+          <label for="rq-spec">Specifications</label>
+          <textarea id="rq-spec" placeholder="Dimensions, grade, standards, brand preferences…"></textarea>
+        </div>
+        <div class="field">
+          <label>Reference images or links</label>
+          <div class="upload">Drag files here, or <b>browse</b>
+          <span class="note-flag" style="display:block;margin-top:6px">non-functional prototype</span></div>
+        </div>
+        <button class="btn btn-pri" style="width:100%" aria-disabled="true">Submit request (prototype)</button>
+        <p class="help" style="margin-top:10px">Design intent: requests go to
+        the ProSmash team for sourcing review and may be declined with a
+        reason. This preview does not send anything.</p>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

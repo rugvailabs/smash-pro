@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile · PROSMASH Buyer</title>
+<!-- B14 · BUY-009. Sensitive-field edits route to admin re-review (exact field list
+     PENDING). Multi-user organizations PENDING OBD-15 — section shown as a flagged
+     placeholder, no roles invented. Document states are neutral illustrative
+     prototype data — OBD-02 verification workflow is ◇ proposed, not established.
+     Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a class="on" href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Institution profile</h1>
+      <p class="sub">St. Xavier's High School, Pune · <span class="chip c-ok" style="vertical-align:middle">Active</span></p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="sect">Business details</div>
+      <div class="panel" style="padding:16px 20px">
+        <div class="kv"><span class="k">Legal name</span><span class="v">St. Xavier's High School Education Society</span></div>
+        <div class="kv"><span class="k">Organization type</span><span class="v">School</span></div>
+        <div class="kv"><span class="k">GSTIN</span><span class="v id">27AABCS1429B1Z6</span></div>
+        <div class="kv"><span class="k">Contact</span><span class="v">Head of Sports · 98220 41400</span></div>
+        <div class="kv"><span class="k">Email</span><span class="v">sports@stxaviers-pune.example</span></div>
+        <div style="padding-top:14px"><a class="btn btn-sec h40" href="#">Edit business details</a></div>
+      </div>
+      <p class="note-flag" style="margin-top:8px">edits to legal name / GSTIN
+      route to ProSmash re-review before taking effect · exact sensitive-field
+      list pending</p>
+
+      <div class="sect">Documents</div>
+      <div class="panel">
+        <div class="docrow"><span class="fn">gst-certificate.pdf</span><span class="chip c-neu">On file</span></div>
+        <div class="docrow"><span class="fn">affiliation-letter.pdf</span><span class="chip c-neu">On file</span></div>
+      </div>
+      <p class="note-flag" style="margin-top:8px">prototype data — document
+      states are illustrative; the verification workflow is ◇ proposed
+      (OBD-02) and not yet an established platform capability</p>
+    </div>
+
+    <div>
+      <div class="sect">Delivery addresses</div>
+      <div class="panel">
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Sports Department — Main Campus <span class="chip c-neu" style="margin-left:6px">Default</span></div>
+            <div class="s">24 Residency Road, Pune 411001 · Attn: Head of Sports</div>
+          </div>
+          <a class="btn btn-ter" href="#" style="font-size:13px">Edit</a>
+        </div>
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Junior Wing Store</div>
+            <div class="s">7 Lane C, Koregaon Park, Pune 411001</div>
+          </div>
+          <a class="btn btn-ter" href="#" style="font-size:13px">Edit</a>
+        </div>
+        <div style="padding:12px 16px;border-top:1px solid var(--n100)">
+          <a class="btn btn-sec h40" href="#">+ Add address</a>
+        </div>
+      </div>
+
+      <div class="sect">Users</div>
+      <div class="panel" style="padding:16px 20px">
+        <div class="kv"><span class="k">Signed in as</span><span class="v">sports@stxaviers-pune.example</span></div>
+        <p style="font-size:13px;color:var(--n600);margin-top:10px">Additional
+        users and roles for your institution are under consideration.</p>
+      </div>
+      <p class="note-flag" style="margin-top:8px">multi-user organizations
+      pending OBD-15 — no roles designed until decided</p>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

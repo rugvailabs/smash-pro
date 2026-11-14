@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · PROSMASH Buyer</title>
+<!-- Preview-only hosted fonts. All data illustrative. Logged-in org: St. Xavier's High School, Pune (approved buyer). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a class="on" href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Good morning, St. Xavier's</h1>
+      <p class="sub">Here's where your procurement stands today.</p>
+      <p class="note-flag" style="margin-top:4px">illustrative preview data —
+      metrics &amp; amounts are sample values</p>
+    </div>
+    <div class="actions"><a class="btn btn-pri" href="buyer-catalog.html">Browse catalogue</a></div>
+  </div>
+
+  <div class="tiles">
+    <a class="tile" href="buyer-orders.html"><div class="tl">Active orders</div><div class="tv">3</div><div class="tc">2 in fulfilment</div></a>
+    <a class="tile" href="buyer-payment.html"><div class="tl">Payment actions</div><div class="tv">1</div><div class="tc w">NEFT proof awaiting verification</div></a>
+    <a class="tile" href="buyer-order-detail.html"><div class="tl">Delivery confirmations</div><div class="tv">1</div><div class="tc w">Direct shipment delivered — confirm receipt</div></a>
+    <a class="tile" href="buyer-requests.html"><div class="tl">Product requests</div><div class="tv">1</div><div class="tc">In sourcing review</div></a>
+  </div>
+
+  <div class="cols" style="margin-top:26px">
+    <div>
+      <div class="panel">
+        <div class="phead"><b>Needs your action</b><span class="cnt">2 items</span></div>
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Confirm delivery receipt — <span class="id">ORD-2026-01144</span></div>
+            <div class="s">Direct shipment · delivery proof uploaded 13 Nov 2026</div>
+          </div>
+          <span class="chip c-warn">Awaiting your confirmation</span>
+          <a class="btn btn-pri h40" href="buyer-order-detail.html">Review &amp; confirm</a>
+        </div>
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Payment under verification — <span class="id">ORD-2026-01153</span></div>
+            <div class="s">NEFT proof uploaded 14 Nov 2026 · ₹1,31,760.00</div>
+          </div>
+          <span class="chip c-warn">Awaiting verification</span>
+          <a class="btn btn-sec h40" href="buyer-payment.html">View payment</a>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:20px">
+        <div class="phead"><b>Recent orders</b><a class="btn-ter more" href="buyer-orders.html">All orders →</a></div>
+        <div class="arow">
+          <span class="id">ORD-2026-01153</span>
+          <div class="grow"><div class="s">14 Nov 2026 · 2 lines</div></div>
+          <span class="chip c-warn">Awaiting verification</span>
+          <span class="num" style="font-weight:600;color:var(--ink)">₹1,31,760.00</span>
+        </div>
+        <div class="arow">
+          <span class="id">ORD-2026-01148</span>
+          <div class="grow"><div class="s">13 Nov 2026 · 3 lines</div></div>
+          <span class="chip c-info">Processing</span>
+          <span class="num" style="font-weight:600;color:var(--ink)">₹52,630.00</span>
+        </div>
+        <div class="arow">
+          <span class="id">ORD-2026-01144</span>
+          <div class="grow"><div class="s">10 Nov 2026 · 1 line · direct shipment</div></div>
+          <span class="chip c-ok">Delivered</span>
+          <span class="num" style="font-weight:600;color:var(--ink)">₹24,180.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="gst" style="padding:0">
+        <div class="phead" style="display:flex;gap:14px;padding:14px 16px;border-bottom:1px solid var(--n200)"><b style="font-family:var(--disp);font-weight:600;font-size:16px;color:var(--ink)">Your account</b></div>
+        <div style="padding:16px 20px">
+          <div class="kv"><span class="k">Status</span><span class="v"><span class="chip c-ok">Active</span></span></div>
+          <div class="kv"><span class="k">Buyer category</span><span class="v">School</span></div>
+          <div class="kv"><span class="k">Institutional pricing</span><span class="v"><span class="chip c-ok">Enabled</span></span></div>
+          <div class="kv"><span class="k">GSTIN</span><span class="v id">27AABCS1429B1Z6</span></div>
+        </div>
+      </div>
+      <div class="banner" style="margin-top:16px">
+        <span><b>100% advance payment.</b> Orders dispatch after full payment is
+        confirmed — your institutional prices already include GST.</span>
+      </div>
+      <div class="panel" style="margin-top:16px">
+        <div class="phead"><b>Requests</b><a class="btn-ter more" href="buyer-requests.html">View →</a></div>
+        <div class="arow">
+          <div class="grow">
+            <div class="t">Pole vault landing mat — 5×4 m</div>
+            <div class="s"><span class="id">REQ-2026-0121</span> · submitted 08 Nov 2026</div>
+          </div>
+          <span class="chip c-info">In sourcing review</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Orders · PROSMASH Buyer</title>
+<!-- B9 list. Desktop table + mobile key-value cards (library §9). Cancellation windows
+     pending (P-08/OBD-17) — no cancel actions shown. Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a class="on" href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Orders</h1>
+      <p class="sub">Every order, payment and delivery — on record.</p>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <select aria-label="Status"><option>Status: All</option></select>
+    <select aria-label="Payment"><option>Payment: All</option></select>
+    <input type="text" placeholder="Order ID" aria-label="Order ID" style="width:160px" class="mono">
+    <select aria-label="Sort" style="margin-left:auto"><option>Sort: Newest</option></select>
+    <span class="rescount">5 orders · preview data</span>
+  </div>
+
+  <!-- desktop table -->
+  <div class="tframe">
+    <table class="dtable">
+      <thead><tr>
+        <th>Order</th><th>Placed</th><th>Lines</th><th>Payment</th><th>Status</th><th class="r">Amount</th><th></th>
+      </tr></thead>
+      <tbody>
+        <tr>
+          <td class="id">ORD-2026-01153</td><td>14 Nov 2026</td><td>2</td>
+          <td><span class="chip c-warn">Awaiting verification</span></td>
+          <td><span class="chip c-info">Placed</span></td>
+          <td class="r num">₹1,31,760.00</td>
+          <td><a class="btn btn-sec h32" href="buyer-payment.html">Open</a></td>
+        </tr>
+        <tr>
+          <td class="id">ORD-2026-01148</td><td>13 Nov 2026</td><td>3</td>
+          <td><span class="chip c-ok">Payment confirmed</span></td>
+          <td><span class="chip c-info">Processing</span></td>
+          <td class="r num">₹52,630.00</td>
+          <td><a class="btn btn-sec h32" href="buyer-order-detail.html">Open</a></td>
+        </tr>
+        <tr>
+          <td class="id">ORD-2026-01144</td><td>10 Nov 2026</td><td>1</td>
+          <td><span class="chip c-ok">Payment confirmed</span></td>
+          <td><span class="chip c-warn">Confirm receipt</span></td>
+          <td class="r num">₹24,180.00</td>
+          <td><a class="btn btn-pri h32" href="buyer-order-detail.html">Confirm</a></td>
+        </tr>
+        <tr>
+          <td class="id">ORD-2026-01132</td><td>02 Nov 2026</td><td>4</td>
+          <td><span class="chip c-ok">Payment confirmed</span></td>
+          <td><span class="chip c-ok">Delivered</span></td>
+          <td class="r num">₹68,470.00</td>
+          <td><a class="btn btn-sec h32" href="buyer-order-detail.html">Open</a></td>
+        </tr>
+        <tr>
+          <td class="id">ORD-2026-01118</td><td>18 Oct 2026</td><td>2</td>
+          <td><span class="chip c-bad">Cancelled — unpaid</span></td>
+          <td><span class="chip c-bad">Cancelled</span></td>
+          <td class="r num">₹9,860.00</td>
+          <td><a class="btn btn-sec h32" href="#">Open</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- mobile cards -->
+  <div class="mlist tframe">
+    <div class="mcard">
+      <div class="kvr"><span class="id">ORD-2026-01153</span><span class="chip c-info">Placed</span></div>
+      <div class="kvr"><span class="kvl">Payment</span><span class="chip c-warn">Awaiting verification</span></div>
+      <div class="kvr"><span class="kvl">Amount</span><span class="kvv" style="font-weight:600">₹1,31,760.00</span></div>
+    </div>
+    <div class="mcard">
+      <div class="kvr"><span class="id">ORD-2026-01148</span><span class="chip c-info">Processing</span></div>
+      <div class="kvr"><span class="kvl">Payment</span><span class="chip c-ok">Payment confirmed</span></div>
+      <div class="kvr"><span class="kvl">Amount</span><span class="kvv" style="font-weight:600">₹52,630.00</span></div>
+    </div>
+    <div class="mcard">
+      <div class="kvr"><span class="id">ORD-2026-01144</span><span class="chip c-warn">Confirm receipt</span></div>
+      <div class="kvr"><span class="kvl">Amount</span><span class="kvv" style="font-weight:600">₹24,180.00</span></div>
+      <a class="btn btn-pri h40" href="buyer-order-detail.html" style="width:100%;margin-top:8px">Confirm delivery receipt</a>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>

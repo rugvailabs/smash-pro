@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cart · PROSMASH Buyer</title>
+<!-- B6. Prices = buyer's applicable prices, GST-inclusive. MOQ rules pending (OBD-09) —
+     no minimums shown. All data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="buyer.css">
+</head>
+<body>
+
+<header class="pnav">
+  <div class="in">
+    <a class="wm" href="buyer-dashboard.html">PROSMASH</a><span class="ptag">BUYER</span>
+    <nav>
+      <a href="buyer-dashboard.html">Dashboard</a>
+      <a href="buyer-catalog.html">Catalogue</a>
+      <a href="buyer-orders.html">Orders</a>
+      <a href="buyer-requests.html">Requests</a>
+      <a href="buyer-profile.html">Profile</a>
+    </nav>
+    <div class="right">
+      <a class="cartlink" href="buyer-cart.html">Cart <span class="ct">2</span></a>
+      <span class="bell"><i>3</i></span>
+      <span class="orgm">St. Xavier's High School, Pune ▾</span>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="pagehead">
+    <div>
+      <h1>Your order</h1>
+      <p class="sub">2 lines · prices are your institutional prices, GST-inclusive</p>
+      <p class="note-flag" style="margin-top:4px">amounts are illustrative sample data</p>
+    </div>
+  </div>
+
+  <div class="cols">
+    <div class="panel">
+      <div class="line">
+        <div class="th"></div>
+        <div class="li">
+          <div class="ln">English Willow Bat — Grade 2, Short Handle</div>
+          <div class="ls">SKU CR-0417</div>
+          <div class="lu num">₹4,122.50 / unit · incl. GST</div>
+        </div>
+        <span class="qty"><button aria-label="Decrease">−</button><span class="num">24</span><button aria-label="Increase">+</button></span>
+        <div class="lt num">₹98,940.00</div>
+        <button class="btn btn-ter" aria-label="Remove line" style="font-size:13px">Remove</button>
+      </div>
+      <div class="line">
+        <div class="th"></div>
+        <div class="li">
+          <div class="ln">Feather Shuttlecocks — Tournament, Tube of 12</div>
+          <div class="ls">SKU BD-1104</div>
+          <div class="lu num">₹1,054.00 / unit · incl. GST</div>
+        </div>
+        <span class="qty"><button aria-label="Decrease">−</button><span class="num">30</span><button aria-label="Increase">+</button></span>
+        <div class="lt num">₹31,620.00</div>
+        <button class="btn btn-ter" aria-label="Remove line" style="font-size:13px">Remove</button>
+      </div>
+    </div>
+
+    <div class="sticky">
+      <div class="gst">
+        <div class="gr"><span>Items (2 lines, incl. GST)</span><span class="num">₹1,30,560.00</span></div>
+        <div class="gr note"><span>Full GST breakdown and any shipping charge are shown at checkout</span><span></span></div>
+        <div class="tot"><b>Order value so far</b><span class="amt">₹1,30,560.00</span></div>
+      </div>
+      <a class="btn btn-pri" href="buyer-checkout.html" style="width:100%;margin-top:14px">Proceed to checkout</a>
+      <a class="btn btn-sec" href="buyer-catalog.html" style="width:100%;margin-top:10px">Continue browsing</a>
+      <div class="banner" style="margin-top:16px">
+        <span><b>100% advance payment.</b> Your order dispatches after full
+        payment is confirmed.</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
