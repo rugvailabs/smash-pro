@@ -126,3 +126,114 @@ export interface Institution {
   addresses: Address[];
   documents: { file: string; state: string }[];
 }
+
+/* ---------- Phase D: supplier workspace (sample data shapes) ---------- */
+
+export type ReqStatus = "open" | "quoted-revision" | "awarded" | "closed";
+
+export interface SupplierRequirement {
+  id: string;
+  title: string;
+  category: string;
+  qty: string;
+  destination: string;
+  published?: string;
+  closes: string;
+  closesToday?: boolean;
+  status: ReqStatus;
+  statusLabel: string;
+  /** Spec key-values (requirement detail). */
+  spec?: [string, string][];
+  requiredBy?: string;
+  attachments?: { file: string; meta: string }[];
+  /** Linked PO when awarded. */
+  poId?: string;
+}
+
+export interface QuoteVersion {
+  v: string;
+  unit: number;
+  summary: string;
+  date: string;
+  current?: boolean;
+}
+
+export interface NegotiationMsg {
+  from: "prosmash" | "you" | "system";
+  meta: string;
+  text: string;
+}
+
+export interface SupplierQuote {
+  reqId: string;
+  title: string;
+  category: string;
+  qty: string;
+  closes: string;
+  statusLabel: string;
+  unit: number;
+  quantity: string;
+  lead: string;
+  validTill: string;
+  terms: string;
+  attachments: number;
+  versions: QuoteVersion[];
+  thread: NegotiationMsg[];
+}
+
+export type PoFulfilment = "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";
+
+export interface SupplierPO {
+  id: string;
+  destination: "warehouse" | "direct";
+  issued: string;
+  lineName: string;
+  lineQty: number;
+  unit: number;
+  value: number;
+  fulfilment: PoFulfilment;
+  fulfilmentLabel: string;
+  dispatchBy?: string;
+  acknowledgedAt?: string;
+  dispatchedQty?: string;
+  receivedQty?: string;
+  awardedFrom?: { reqId: string; version: string };
+  terms?: { unit: number; qty: number; lead: string; validTill: string; payment: string };
+  paymentTerms: string;
+  received: number;
+  outstanding: number;
+  payStatusLabel: string;
+  /** Direct POs only — Minimum Delivery Information (OBD-19, the full set). */
+  minDeliveryInfo?: [string, string][];
+  shipment?: { dispatched: string; lr: string; qtyShipped: string };
+}
+
+export interface SupplyItem {
+  name: string;
+  category: string;
+  capacity: string;
+  lead: string;
+  cost: number;
+  proposal?: string;
+}
+
+export interface CostProposal {
+  title: string;
+  detail: string;
+  statusLabel: string;
+  accepted?: boolean;
+}
+
+export interface SupplierProfile {
+  name: string;
+  legalName: string;
+  type: string;
+  gstin: string;
+  contact: string;
+  email: string;
+  worksAddress: string;
+  categories: string[];
+  documents: { file: string; state: string }[];
+  directApproved: boolean;
+  directEnabled: [string, string][];
+}

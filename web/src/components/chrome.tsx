@@ -147,11 +147,11 @@ export function SiteHeader() {
           )}
           {role === "supplier" && (
             <>
-              {tab("#", "Supplier Workspace", "/supplier")}
+              {tab("/supplier", "Supplier Workspace", "/supplier")}
               <span className="flex-1" />
-              <a href="#" title="Supplier screens arrive in Phase D" className="flex h-[46px] items-center whitespace-nowrap px-3.5 text-sm font-medium text-n600 hover:text-ink">
+              <Link href="/supplier/profile" className="flex h-[46px] items-center whitespace-nowrap px-3.5 text-sm font-medium text-n600 hover:text-ink">
                 Eligibility &amp; profile
-              </a>
+              </Link>
             </>
           )}
         </div>
@@ -213,7 +213,7 @@ export function SiteFooter() {
               <li><a className={item} href="#">Register as a supplier</a></li>
             )}
             {role === "supplier" && (
-              <li><a className={item} href="#" title="Supplier screens arrive in Phase D">Supplier Workspace</a></li>
+              <li><Link className={item} href="/supplier">Supplier Workspace</Link></li>
             )}
           </ul>
         </div>

@@ -148,9 +148,9 @@ export default async function HomePage() {
               </a>
             </RoleGate>
             <RoleGate show={["supplier"]}>
-              <a href="#" title="Supplier workspace arrives in Phase D" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
+              <Link href="/supplier" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
                 Open your workspace
-              </a>
+              </Link>
             </RoleGate>
           </div>
         </div>
