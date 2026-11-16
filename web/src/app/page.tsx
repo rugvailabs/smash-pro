@@ -54,10 +54,7 @@ export default async function HomePage() {
           <span className="font-mono text-[11px] uppercase tracking-[.08em] text-white/55">
             India&rsquo;s B2B sports commerce platform
           </span>
-          <h1
-            className="my-4 max-w-[17ch] font-display text-[32px] font-bold leading-[1.08] tracking-[-.02em] text-chalk md:text-[52px] min-[1440px]:text-[60px]"
-            style={{ fontStretch: "112%" }}
-          >
+          <h1 className="stretch-xp my-4 max-w-[17ch] font-display text-[32px] font-bold leading-[1.08] tracking-[-.02em] text-chalk md:text-[52px] min-[1440px]:text-[60px]">
             Procurement at <em className="not-italic text-ember">match standard.</em>
           </h1>
           <p className="max-w-[52ch] text-base leading-relaxed text-white/80 md:text-lg">

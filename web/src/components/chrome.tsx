@@ -1,8 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useCart, useIsClient, useRole } from "@/components/providers";
+import { SearchBox } from "@/components/search-box";
+import { NavDrawer } from "@/components/nav-drawer";
 import type { Role } from "@/lib/types";
 
 /* ============================================================
@@ -46,8 +49,8 @@ export function PreviewRibbon() {
 export function SiteHeader() {
   const { role: liveRole } = useRole();
   const { count } = useCart();
-  const router = useRouter();
   const pathname = usePathname();
+  const [drawerOpen, setDrawerOpen] = useState(false);
   // Render the visitor-neutral header until hydrated: this component hydrates
   // inside a Suspense boundary, possibly after the stored role has loaded, so
   // the hydration pass must always match the server's visitor markup.
@@ -73,34 +76,24 @@ export function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 bg-ink">
         <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-4 px-4 md:gap-6 md:px-10">
+          <button
+            onClick={() => setDrawerOpen(true)}
+            aria-label="Open navigation"
+            className="-ml-1 flex h-11 w-11 items-center justify-center text-white md:hidden"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5 fill-none stroke-current" strokeWidth="2">
+              <path d="M4 7h16M4 12h16M4 17h16" />
+            </svg>
+          </button>
           <Link
             href="/"
-            className="font-display text-[19px] font-extrabold tracking-wide text-chalk"
-            style={{ fontStretch: "112%" }}
+            className="stretch-xp font-display text-[19px] font-extrabold tracking-wide text-chalk"
           >
             PROSMASH
           </Link>
           {/* Commerce search is buyer-side chrome — suppliers work their own
               queue and never search the sales catalogue. */}
-          {role !== "supplier" && (
-            <form
-              role="search"
-              className="relative hidden max-w-[460px] flex-1 md:block"
-              onSubmit={(e) => {
-                e.preventDefault();
-                const q = new FormData(e.currentTarget).get("q");
-                router.push(`/search?q=${encodeURIComponent(String(q ?? ""))}`);
-              }}
-            >
-              <input
-                name="q"
-                type="search"
-                placeholder="Search equipment, categories…"
-                aria-label="Search"
-                className="h-10 w-full rounded-[2px] border border-white/25 bg-ink2 px-3 text-sm text-white placeholder:text-white/45"
-              />
-            </form>
-          )}
+          {role !== "supplier" && <SearchBox />}
           <div className="ml-auto flex items-center gap-4 md:gap-5">
             {(role === "visitor" || role === "pending") && (
               <a className="hidden text-sm font-medium text-white md:block" href="#" title="Sign-in arrives with account screens">
@@ -133,7 +126,10 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <nav aria-label="Site sections" className="sticky top-16 z-30 border-b border-n200 bg-chalk">
+      <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+      {/* Tab strip is desktop/tablet navigation; the drawer owns phones. */}
+      <nav aria-label="Site sections" className="sticky top-16 z-30 hidden border-b border-n200 bg-chalk md:block">
         <div className="mx-auto flex max-w-[1280px] gap-1 overflow-x-auto px-4 md:px-10">
           {tab("/", role === "supplier" ? "Home" : "Shop", "/__home")}
           {role !== "supplier" && tab("/catalog?cat=cricket", "Catalogue", "/catalog")}
@@ -183,7 +179,7 @@ export function SiteFooter() {
     <footer className="mt-16 bg-ink text-white/70">
       <div className="mx-auto grid max-w-[1280px] gap-8 px-4 pb-7 pt-11 sm:grid-cols-2 md:px-10 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:gap-11 lg:pb-9 lg:pt-14">
         <div>
-          <span className="font-display text-[22px] font-extrabold tracking-wide text-chalk" style={{ fontStretch: "112%" }}>
+          <span className="stretch-xp font-display text-[22px] font-extrabold tracking-wide text-chalk">
             PROSMASH
           </span>
           <p className="mt-3 max-w-[34ch] text-sm text-white/55">

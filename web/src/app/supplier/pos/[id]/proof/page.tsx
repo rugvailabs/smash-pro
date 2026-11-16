@@ -6,6 +6,7 @@ import { PageHead } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
 import { DeliveryProof } from "@/components/delivery-proof";
 import { getPO } from "@/lib/supplier-api";
+import { PanelSkeleton } from "@/components/skeletons";
 
 /* Delivery proof upload for an eligible direct-shipment PO (OBD-19). */
 
@@ -20,7 +21,7 @@ export async function generateMetadata({
 
 export default function ProofPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="min-h-[50vh]" />}>
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
       <ProofContent params={params} />
     </Suspense>
   );
@@ -38,9 +39,9 @@ async function ProofContent({ params }: { params: Promise<{ id: string }> }) {
         title={
           <span className="inline-flex flex-wrap items-center gap-2.5">
             Delivery proof — <span className="font-mono text-xl tracking-normal">{po.id}</span>
-            <Dest direct />
           </span>
         }
+        titleAside={<Dest direct />}
         sub="Dispatched 13 Nov 2026 · dispatch was released after ProSmash confirmed the buyer's advance payment"
       />
       <DeliveryProof po={po} />

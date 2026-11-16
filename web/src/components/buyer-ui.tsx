@@ -51,11 +51,14 @@ export function PanelHead({ title, aside }: { title: React.ReactNode; aside?: Re
   );
 }
 
+/** Key-value row — no-clip rule (DESIGN-STANDARDS §4): the value may wrap
+ *  onto its own full-width line but must never overflow the container,
+ *  whatever length production data has. */
 export function KV({ k, children }: { k: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-1.5 text-sm">
-      <span className="shrink-0 text-n600">{k}</span>
-      <span className="text-right text-ink">{children}</span>
+    <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-0.5 py-1.5 text-sm">
+      <span className="text-n600">{k}</span>
+      <span className="min-w-0 max-w-full break-words text-right text-ink">{children}</span>
     </div>
   );
 }
@@ -128,19 +131,26 @@ export function Rail({ steps }: { steps: RailStep[] }) {
   );
 }
 
+/** titleAside renders badges/chips visually beside the heading but OUTSIDE
+ *  the h1, so the accessible page name stays clean (never "PO-…Warehouse"). */
 export function PageHead({
-  title, sub, actions, crumb,
-}: { title: React.ReactNode; sub?: React.ReactNode; actions?: React.ReactNode; crumb?: React.ReactNode }) {
+  title, titleAside, sub, actions, crumb,
+}: { title: React.ReactNode; titleAside?: React.ReactNode; sub?: React.ReactNode; actions?: React.ReactNode; crumb?: React.ReactNode }) {
   return (
     <>
       {crumb && <div className="mb-1 text-[13px] text-n600">{crumb}</div>}
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-3.5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">{title}</h1>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[28px]">{title}</h1>
+            {titleAside}
+          </div>
           {sub && <div className="mt-1 text-sm text-n600">{sub}</div>}
         </div>
         {actions && <div className="flex gap-3">{actions}</div>}
       </div>
+      {/* page-header rule: the screen's single 16° brand motif */}
+      <div className="rule-16 mb-6" aria-hidden />
     </>
   );
 }

@@ -3,6 +3,7 @@
 import {
   createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore,
 } from "react";
+import { ToastProvider } from "@/components/toast";
 import type { CartLine, RacquetConfig, Role } from "@/lib/types";
 
 /* ============================================================
@@ -119,7 +120,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <RoleContext.Provider value={roleValue}>
-      <CartContext.Provider value={cartValue}>{children}</CartContext.Provider>
+      <CartContext.Provider value={cartValue}>
+        <ToastProvider>{children}</ToastProvider>
+      </CartContext.Provider>
     </RoleContext.Provider>
   );
 }

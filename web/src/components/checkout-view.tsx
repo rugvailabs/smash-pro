@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PRODUCTS } from "@/data/products";
 import { useCart } from "@/components/providers";
-import { Banner, NoteFlag, Panel, Sect } from "@/components/buyer-ui";
+import { Banner, GstCard, NoteFlag, Panel, Sect } from "@/components/buyer-ui";
 import { inr } from "@/lib/format";
 import type { Address } from "@/lib/types";
 
@@ -129,19 +129,9 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
       </div>
 
       <div className="lg:sticky lg:top-[132px]">
-        <Panel className="p-4">
-          <div className="flex justify-between py-1 text-sm">
-            <span>Items subtotal <span className="text-n600">(ex-GST)</span></span>
-            <span className="num">{inr(subtotal)}</span>
-          </div>
-          <div className="flex justify-between py-1 text-sm"><span>GST</span><span className="num">{inr(gst)}</span></div>
-          <div className="pb-1 text-xs text-n600">Rates per product HSN — pending tax confirmation</div>
-          <div className="flex justify-between py-1 text-sm"><span>Shipping</span><span className="num">{inr(DEMO_SHIPPING)}</span></div>
-          <div className="mt-1.5 flex items-baseline justify-between border-t border-n400 pt-3">
-            <b className="text-[15px] text-ink">Total payable (incl. GST)</b>
-            <span className="num font-display text-[21px] font-bold text-ink">{inr(total)}</span>
-          </div>
-        </Panel>
+        {/* single shared GST block (library §16) — identical at checkout,
+            payment and order detail */}
+        <GstCard subtotal={subtotal} gst={gst} shipping={DEMO_SHIPPING} total={total} />
         <button
           onClick={() => router.push(`/checkout/payment?method=${method}`)}
           className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"

@@ -50,8 +50,42 @@ body {
 /* tabular money everywhere it's asked for */
 .num { font-variant-numeric: tabular-nums; }
 
+/* Archivo Expanded width for display type (VISUAL-IDENTITY §3) —
+   wordmark and display-size headings only, never body text. */
+.stretch-xp { font-stretch: 112%; }
+
+/* 16° diagonal motif — the system's single decorative device
+   (VISUAL-IDENTITY §6). Portals use it at most once per screen,
+   as the page-header rule. */
+.rule-16 {
+  position: relative;
+  height: 1px;
+  background: var(--color-n200);
+}
+.rule-16::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: -1.5px;
+  width: 34px;
+  height: 4px;
+  background: var(--color-ember-deep);
+  transform: skewX(-16deg);
+}
+
 /* focus visibility (WCAG 2.2 AA) */
 :focus-visible { outline: 2px solid var(--color-ember-deep); outline-offset: 2px; }
+
+/* skeleton bones (library §14) — layout-true loading placeholders */
+.bone {
+  background: var(--color-n100);
+  border-radius: 2px;
+  animation: bone-pulse 1.4s ease-in-out infinite;
+}
+@keyframes bone-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }

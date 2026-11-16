@@ -1,0 +1,147 @@
+"use client";
+
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRole } from "@/components/providers";
+import { suggest, type Suggestion } from "@/lib/suggest";
+
+/* ============================================================
+   Header search with autocomplete (library §3): grouped panel —
+   Products (name + mono SKU) · Categories · Reference IDs
+   (signed-in buyer only). Min 2 chars; arrows/Enter/Esc;
+   listbox semantics; matched substring in semibold, no
+   highlight colour. Chalk panel, raised shadow, hairline groups.
+   ============================================================ */
+
+function Match({ text, q }: { text: string; q: string }) {
+  const i = text.toLowerCase().indexOf(q.trim().toLowerCase());
+  if (i < 0 || !q.trim()) return <>{text}</>;
+  const end = i + q.trim().length;
+  return (
+    <>
+      {text.slice(0, i)}
+      <span className="font-semibold">{text.slice(i, end)}</span>
+      {text.slice(end)}
+    </>
+  );
+}
+
+export function SearchBox({
+  variant = "header",
+  onNavigate,
+}: {
+  /** header: ink band styling · drawer: on-ink full-width row */
+  variant?: "header" | "drawer";
+  onNavigate?: () => void;
+}) {
+  const { role } = useRole();
+  const router = useRouter();
+  const listId = useId();
+  const [q, setQ] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const rootRef = useRef<HTMLFormElement>(null);
+
+  const items = useMemo(() => suggest(q, role), [q, role]);
+  const showPanel = open && items.length > 0;
+
+  // close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [open]);
+
+  const go = (href: string) => {
+    setOpen(false);
+    setActive(-1);
+    onNavigate?.();
+    router.push(href);
+  };
+
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") { setOpen(false); setActive(-1); return; }
+    if (!showPanel) return;
+    if (e.key === "ArrowDown") { e.preventDefault(); setActive((a) => (a + 1) % items.length); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); setActive((a) => (a <= 0 ? items.length - 1 : a - 1)); }
+    else if (e.key === "Enter" && active >= 0) { e.preventDefault(); go(items[active].href); }
+  };
+
+  // group rendering preserves item order within fixed group order
+  const groups = useMemo(() => {
+    const order: Suggestion["group"][] = ["Products", "Categories", "Reference IDs"];
+    return order
+      .map((g) => ({ g, rows: items.map((s, i) => ({ s, i })).filter((r) => r.s.group === g) }))
+      .filter((x) => x.rows.length > 0);
+  }, [items]);
+
+  return (
+    <form
+      ref={rootRef}
+      role="search"
+      className={variant === "header" ? "relative hidden max-w-[460px] flex-1 md:block" : "relative"}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (active >= 0 && showPanel) { go(items[active].href); return; }
+        setOpen(false);
+        onNavigate?.();
+        router.push(`/search?q=${encodeURIComponent(q)}`);
+      }}
+    >
+      <input
+        name="q"
+        type="search"
+        placeholder="Search equipment, categories…"
+        aria-label="Search"
+        autoComplete="off"
+        role="combobox"
+        aria-expanded={showPanel}
+        aria-controls={listId}
+        aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
+        value={q}
+        onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(-1); }}
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+        className="h-10 w-full rounded-[2px] border border-white/25 bg-ink2 px-3 text-base text-white placeholder:text-white/45 md:text-sm"
+      />
+      {showPanel && (
+        <ul
+          id={listId}
+          role="listbox"
+          aria-label="Search suggestions"
+          className="absolute left-0 right-0 top-[calc(100%+4px)] z-50 max-h-[60vh] overflow-y-auto rounded-[2px] border border-n200 bg-chalk py-1 shadow-raised"
+        >
+          {groups.map(({ g, rows }) => (
+            <li key={g} role="presentation" className="border-b border-n100 py-1 last:border-b-0">
+              <div className="px-3 pb-0.5 pt-1 font-mono text-[10px] uppercase tracking-[.08em] text-n400" aria-hidden>
+                {g}
+              </div>
+              <ul role="presentation">
+                {rows.map(({ s, i }) => (
+                  <li
+                    key={s.href}
+                    id={`${listId}-${i}`}
+                    role="option"
+                    aria-selected={active === i}
+                    className={
+                      "flex cursor-pointer items-baseline gap-3 px-3 py-2 text-sm text-ink " +
+                      (active === i ? "bg-n100" : "hover:bg-n100")
+                    }
+                    onPointerDown={(e) => { e.preventDefault(); go(s.href); }}
+                    onPointerEnter={() => setActive(i)}
+                  >
+                    <span className="min-w-0 flex-1 truncate"><Match text={s.label} q={q} /></span>
+                    {s.meta && <span className="shrink-0 font-mono text-[11px] text-n600">{s.meta}</span>}
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      )}
+    </form>
+  );
+}

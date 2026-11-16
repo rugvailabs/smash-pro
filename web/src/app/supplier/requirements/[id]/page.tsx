@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Banner, Chip, DocRow, KV, NoteFlag, PageHead, Panel, PanelHead, Sect } from "@/components/buyer-ui";
 import { getRequirement } from "@/lib/supplier-api";
+import { PanelSkeleton } from "@/components/skeletons";
 
 /* Requirement detail — SUP-005/006 · Workflow C/E. Direct-to-buyer
    requirements disclose full delivery details only at PO stage (Minimum
@@ -21,7 +22,7 @@ export async function generateMetadata({
 
 export default function RequirementPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="min-h-[50vh]" />}>
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
       <RequirementContent params={params} />
     </Suspense>
   );

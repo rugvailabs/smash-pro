@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { RACQUET_OPTIONS } from "@/data/products";
 import { useCart, useRole } from "@/components/providers";
+import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
@@ -28,11 +29,11 @@ const MISSING_NAMES: Record<GroupKey, string> = {
 export function RacquetConfigurator({ p }: { p: Product }) {
   const { role } = useRole();
   const { add } = useCart();
+  const { toast } = useToast();
   const [sel, setSel] = useState<Record<GroupKey, string | null>>({
     string: null, tension: null, grip: null,
   });
   const [qty, setQty] = useState(6);
-  const [note, setNote] = useState("");
 
   const delta = RACQUET_OPTIONS.string.find((o) => o.value === sel.string)?.delta ?? 0;
   const complete = Boolean(sel.string && sel.tension && sel.grip);
@@ -114,7 +115,7 @@ export function RacquetConfigurator({ p }: { p: Product }) {
               onClick={() => {
                 if (!complete) return;
                 add(p.sku, qty, { string: sel.string!, tension: sel.tension!, grip: sel.grip! }, delta);
-                setNote(`added — ${qty} racquets, ${sel.string} @ ${sel.tension}, grip ${sel.grip}`);
+                toast(`Added — ${qty} racquets, ${sel.string} @ ${sel.tension}, grip ${sel.grip}.`);
               }}
               className={
                 "inline-flex h-11 items-center rounded-[2px] px-5 text-sm font-semibold transition-colors " +
@@ -132,7 +133,6 @@ export function RacquetConfigurator({ p }: { p: Product }) {
           </a>
         )}
       </div>
-      {note && <p className="font-mono text-[10px] uppercase tracking-wide text-n400">{note}</p>}
     </div>
   );
 }

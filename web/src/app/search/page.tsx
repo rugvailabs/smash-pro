@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { searchProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
+import { GridSkeleton } from "@/components/skeletons";
+import { EmptyState } from "@/components/empty-state";
 
 /* Search results — server-rendered over the catalog API boundary. */
 
@@ -15,7 +17,7 @@ export default function SearchPage({
 }) {
   // searchParams is awaited inside Suspense so the route shell can prerender
   return (
-    <Suspense fallback={<main className="min-h-[60vh]" />}>
+    <Suspense fallback={<GridSkeleton />}>
       <SearchResults searchParams={searchParams} />
     </Suspense>
   );
@@ -49,15 +51,12 @@ async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: str
           // Results grid is above the fold here too — eager-load row one only.
           <ProductGrid items={results} priorityCount={4} />
         ) : (
-          <div className="border border-n200 bg-chalk p-12 text-center">
-            <p className="mb-1 text-[15px] text-ink">
-              {q ? <>No sample products match &ldquo;{q}&rdquo;.</> : "Nothing searched yet."}
-            </p>
-            <p className="mb-4 text-sm text-n600">Try &ldquo;bat&rdquo;, &ldquo;racquet&rdquo; or &ldquo;jersey&rdquo;.</p>
-            <Link href="/catalog?cat=cricket" className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white">
-              Browse the catalogue
-            </Link>
-          </div>
+          <EmptyState
+            message={q ? <>No sample products match &ldquo;{q}&rdquo;.</> : "Nothing searched yet."}
+            hint={<>Try &ldquo;bat&rdquo;, &ldquo;racquet&rdquo; or &ldquo;jersey&rdquo;.</>}
+            actionLabel="Browse the catalogue"
+            actionHref="/catalog?cat=cricket"
+          />
         )}
       </div>
     </main>

@@ -5,6 +5,8 @@ import { getCategories, getCategory, getProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { CatalogSubtitle } from "@/components/page-bits";
+import { CatalogFilters, PRICE_BANDS } from "@/components/catalog-filters";
+import { GridSkeleton } from "@/components/skeletons";
 
 /* Catalogue — category strip, role-aware page head, filter toolbar, grid. */
 
@@ -19,20 +21,36 @@ export default function CatalogPage({
 }) {
   // searchParams is awaited inside Suspense so the route shell can prerender
   return (
-    <Suspense fallback={<main className="min-h-[60vh]" />}>
+    <Suspense fallback={<GridSkeleton />}>
       <CatalogContent searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function CatalogContent({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
-  const { cat = "cricket" } = await searchParams;
-  const [categories, category, products] = await Promise.all([
+async function CatalogContent({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string; type?: string; price?: string; sort?: string }>;
+}) {
+  const { cat = "cricket", type, price, sort } = await searchParams;
+  const [categories, category, all] = await Promise.all([
     getCategories(),
     getCategory(cat),
     getProducts(cat),
   ]);
   const title = category?.name ?? "Catalogue";
+
+  // Presentation filtering/sorting over the API-boundary result; the future
+  // backend takes these as query parameters. Price bands filter the public
+  // standard price (role prices are presentation states of the same item).
+  const types = [...new Set(all.map((p) => p.sub))];
+  const band = price ? PRICE_BANDS[price] : undefined;
+  let products = all.filter(
+    (p) => (!type || p.sub === type) && (!band || (p.std >= band.min && p.std <= band.max))
+  );
+  if (sort === "price-asc") products = [...products].sort((a, b) => a.std - b.std);
+  else if (sort === "price-desc") products = [...products].sort((a, b) => b.std - a.std);
+  else if (sort === "name") products = [...products].sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <main>
@@ -70,13 +88,11 @@ async function CatalogContent({ searchParams }: { searchParams: Promise<{ cat?: 
       </div>
 
       <div className="mx-auto max-w-[1280px] px-4 pb-16 md:px-10">
-        {/* toolbar — static filter affordances (functional filtering arrives with the full catalogue) */}
+        {/* toolbar — URL-driven filters (library §10) */}
         <div className="flex flex-wrap items-center gap-2.5 py-4">
-          {["Type: All", "Price: Any", "Sort: Relevance"].map((f) => (
-            <select key={f} aria-label={f.split(":")[0]} className="h-9 rounded-[2px] border border-n400 bg-chalk px-2.5 text-[13px] text-ink">
-              <option>{f}</option>
-            </select>
-          ))}
+          <Suspense fallback={<span className="h-9" />}>
+            <CatalogFilters types={types} />
+          </Suspense>
           <span className="num ml-auto font-mono text-xs text-n600">
             {products.length} of {category?.count ?? products.length} items shown · sample
           </span>
@@ -97,6 +113,13 @@ async function CatalogContent({ searchParams }: { searchParams: Promise<{ cat?: 
         {products.length ? (
           // First grid row is the LCP on this route — eager-load it only.
           <ProductGrid items={products} priorityCount={4} />
+        ) : all.length ? (
+          <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
+            No <b className="text-ink">{title}</b> items match these filters.{" "}
+            <Link href={`/catalog?cat=${cat}`} className="font-semibold text-ember-deep hover:underline">
+              Clear filters
+            </Link>
+          </div>
         ) : (
           <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
             Sample data for <b className="text-ink">{title}</b> hasn&rsquo;t been

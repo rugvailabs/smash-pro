@@ -7,6 +7,7 @@ import { getCategory, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { AddToOrder, BuyerAvailability, PriceBlock, ProductGrid } from "@/components/product";
 import { RacquetConfigurator } from "@/components/configurator";
 import { DetailConvertNote } from "@/components/page-bits";
+import { DetailSkeleton } from "@/components/skeletons";
 
 /* Product detail — gallery, role-aware pricing, specs; racquets route
    through the mandatory stringing/tension/grip configurator. */
@@ -29,7 +30,7 @@ export default function ProductPage({
 }) {
   // params is awaited inside Suspense so the route shell can prerender
   return (
-    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pt-6 md:px-10" />}>
+    <Suspense fallback={<DetailSkeleton />}>
       <ProductDetail params={params} />
     </Suspense>
   );

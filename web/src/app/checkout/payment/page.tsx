@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PaymentDemo } from "@/components/payment-demo";
 import { PageHead } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 
 /* Payment demonstration — states per OBD-21 (auto-verify vs proof + admin
    verification vs failed/retry). Frontend demo only. */
@@ -16,7 +17,7 @@ export default function PaymentPage({
   searchParams: Promise<{ method?: string }>;
 }) {
   return (
-    <Suspense fallback={<main className="min-h-[60vh]" />}>
+    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
       <PaymentContent searchParams={searchParams} />
     </Suspense>
   );

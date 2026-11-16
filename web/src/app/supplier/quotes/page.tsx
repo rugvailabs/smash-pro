@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead, Panel } from "@/components/buyer-ui";
+import { EmptyState } from "@/components/empty-state";
 import { getQuotes } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
 import type { SupplierQuote } from "@/lib/types";
@@ -50,13 +51,12 @@ export default async function QuotesPage() {
       {quotes.length ? (
         <Panel>{quotes.map((q) => <Row key={q.reqId} q={q} />)}</Panel>
       ) : (
-        <Panel className="p-10 text-center text-[15px] text-n600">
-          No quotations yet — open{" "}
-          <Link href="/supplier/requirements" className="font-semibold text-ember-deep hover:underline">
-            matched requirements
-          </Link>{" "}
-          to submit your first quotation.
-        </Panel>
+        <EmptyState
+          message="No quotations yet."
+          hint="Open a matched requirement to submit your first quotation."
+          actionLabel="View requirements"
+          actionHref="/supplier/requirements"
+        />
       )}
       <NoteFlag className="mt-2.5">
         own quotations only — competing offers are never visible · every

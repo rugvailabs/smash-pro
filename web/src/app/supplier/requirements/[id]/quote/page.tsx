@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { PageHead } from "@/components/buyer-ui";
 import { QuoteForm } from "@/components/quote-form";
 import { getRequirement } from "@/lib/supplier-api";
+import { PanelSkeleton } from "@/components/skeletons";
 
 /* Submit quotation — SUP-006 · Workflow E step 1. */
 
@@ -19,7 +20,7 @@ export async function generateMetadata({
 
 export default function QuotePage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="min-h-[50vh]" />}>
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
       <QuoteContent params={params} />
     </Suspense>
   );

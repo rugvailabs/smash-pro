@@ -6,6 +6,7 @@ import { RequireBuyer } from "@/components/require-buyer";
 import { OrderDetail } from "@/components/order-detail";
 import { Chip, PageHead } from "@/components/buyer-ui";
 import { getOrder } from "@/lib/buyer-api";
+import { PanelSkeleton } from "@/components/skeletons";
 
 /* Order detail — progress, lines, delivery, payment, documents. */
 
@@ -20,7 +21,7 @@ export async function generateMetadata({
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="min-h-[60vh]" />}>
+    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
       <OrderContent params={params} />
     </Suspense>
   );

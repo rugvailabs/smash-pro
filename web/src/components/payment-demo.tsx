@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { PRODUCTS } from "@/data/products";
 import { useCart } from "@/components/providers";
-import { Banner, Chip, KV, NoteFlag, Panel, PanelHead, Sect } from "@/components/buyer-ui";
+import { Banner, Chip, GstCard, KV, NoteFlag, Panel, PanelHead, Sect } from "@/components/buyer-ui";
 import { DEMO_SHIPPING, demoGstSplit } from "@/components/checkout-view";
 import { inr } from "@/lib/format";
 
@@ -147,18 +147,9 @@ export function PaymentDemo({ method }: { method: string }) {
       </div>
 
       <div className="lg:sticky lg:top-[132px]">
-        <Panel className="p-4">
-          <div className="flex justify-between py-1 text-sm">
-            <span>Items subtotal <span className="text-n600">(ex-GST)</span></span>
-            <span className="num">{inr(subtotal)}</span>
-          </div>
-          <div className="flex justify-between py-1 text-sm"><span>GST</span><span className="num">{inr(gst)}</span></div>
-          <div className="flex justify-between py-1 text-sm"><span>Shipping</span><span className="num">{inr(DEMO_SHIPPING)}</span></div>
-          <div className="mt-1.5 flex items-baseline justify-between border-t border-n400 pt-3">
-            <b className="text-[15px] text-ink">Total payable</b>
-            <span className="num font-display text-[21px] font-bold text-ink">{inr(total)}</span>
-          </div>
-        </Panel>
+        {/* single shared GST block (library §16) — identical at checkout,
+            payment and order detail */}
+        <GstCard subtotal={subtotal} gst={gst} shipping={DEMO_SHIPPING} total={total} totalLabel="Total payable" />
         <Panel className="mt-3.5">
           <PanelHead title="Order status" />
           <div className="px-4 py-3">

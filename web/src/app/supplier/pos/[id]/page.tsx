@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, Sect } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
 import { getPO } from "@/lib/supplier-api";
+import { PanelSkeleton } from "@/components/skeletons";
 import { inr } from "@/lib/format";
 
 /* PO detail — SUP-009 · Workflow N. Terms display the awarded quotation
@@ -21,7 +22,7 @@ export async function generateMetadata({
 
 export default function PoPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="min-h-[50vh]" />}>
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
       <PoContent params={params} />
     </Suspense>
   );
@@ -36,12 +37,8 @@ async function PoContent({ params }: { params: Promise<{ id: string }> }) {
     <main>
       <PageHead
         crumb={<><Link href="/supplier/pos" className="hover:underline">Purchase orders</Link> / <b className="text-ink">{po.id}</b></>}
-        title={
-          <span className="inline-flex flex-wrap items-center gap-2.5">
-            <span className="font-mono text-xl tracking-normal">{po.id}</span>
-            <Dest direct={po.destination === "direct"} />
-          </span>
-        }
+        title={<span className="font-mono text-xl tracking-normal">{po.id}</span>}
+        titleAside={<Dest direct={po.destination === "direct"} />}
         sub={
           po.awardedFrom ? (
             <>Issued {po.issued} · from your awarded quotation{" "}

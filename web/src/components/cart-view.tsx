@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { PRODUCTS } from "@/data/products";
 import { useCart, useRole } from "@/components/providers";
+import { useToast } from "@/components/toast";
+import { EmptyState } from "@/components/empty-state";
 import { inr } from "@/lib/format";
 
 /* Working demo cart. Checkout is role-gated — approved buyers proceed to
@@ -12,6 +14,7 @@ import { inr } from "@/lib/format";
 export function CartView() {
   const { role } = useRole();
   const { lines, setQty, remove } = useCart();
+  const { toast } = useToast();
 
   const priced = lines
     .map((l) => {
@@ -26,11 +29,13 @@ export function CartView() {
 
   if (!priced.length) {
     return (
-      <div className="border border-n200 bg-chalk p-12 text-center">
-        <p className="mb-4 text-[15px] text-ink">Your order is empty.</p>
-        <Link href="/catalog?cat=cricket" className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white">
-          Browse the catalogue
-        </Link>
+      <div className="mt-6">
+        <EmptyState
+          message="Your order is empty."
+          hint="Items you add from the catalogue appear here."
+          actionLabel="Browse the catalogue"
+          actionHref="/catalog?cat=cricket"
+        />
       </div>
     );
   }
@@ -64,7 +69,10 @@ export function CartView() {
               <button aria-label="Increase" className="h-full w-8" onClick={() => setQty(l.key, l.qty + 1)}>+</button>
             </span>
             <div className="num w-full text-right text-[15px] font-semibold text-ink sm:w-auto">{inr(total)}</div>
-            <button className="text-[13px] font-medium text-ember-deep hover:underline" onClick={() => remove(l.key)}>
+            <button
+              className="text-[13px] font-medium text-ember-deep hover:underline"
+              onClick={() => { remove(l.key); toast(`Removed ${p.name.split(" — ")[0]} from your order.`); }}
+            >
               Remove
             </button>
           </div>

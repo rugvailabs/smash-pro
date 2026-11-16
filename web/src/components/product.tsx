@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useCart, useRole } from "@/components/providers";
+import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
 import type { Product } from "@/lib/types";
 
@@ -43,22 +44,24 @@ export function PriceBlock({ p, size = "card" }: { p: Product; size?: "card" | "
 }
 
 export function ProductCard({ p, priority = false }: { p: Product; priority?: boolean }) {
+  // Library §4: vertical card from 480px up; below 480px a compact
+  // horizontal row — 96px square image left, content right.
   return (
     <Link
       href={`/product/${p.sku}`}
-      className="group flex flex-col overflow-hidden rounded-[2px] border border-n200 bg-chalk transition-colors hover:border-n400"
+      className="group flex flex-col overflow-hidden rounded-[2px] border border-n200 bg-chalk transition-colors hover:border-n400 max-[479px]:flex-row"
     >
-      <div className="relative aspect-[4/3] w-full bg-n100">
+      <div className="relative aspect-[4/3] w-full bg-n100 max-[479px]:m-3 max-[479px]:h-24 max-[479px]:w-24 max-[479px]:shrink-0 max-[479px]:self-start max-[479px]:rounded-[2px] max-[479px]:aspect-square overflow-hidden">
         <Image
           src={p.img}
           alt={`${p.name} — representative image`}
           fill
           priority={priority}
-          sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 300px"
+          sizes="(max-width: 479px) 96px, (max-width: 640px) 50vw, (max-width: 1100px) 33vw, 300px"
           className="object-cover"
         />
       </div>
-      <div className="flex flex-1 flex-col p-4">
+      <div className="flex min-w-0 flex-1 flex-col p-4 max-[479px]:py-3 max-[479px]:pl-0 max-[479px]:pr-3">
         <span className="font-mono text-[11px] uppercase tracking-widest text-n600">{p.sub}</span>
         <div className="mt-1 text-[15px] font-semibold leading-tight text-ink group-hover:underline group-hover:underline-offset-2">
           {p.name}
@@ -82,7 +85,7 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
  *  keep lazy loading. */
 export function ProductGrid({ items, priorityCount = 0 }: { items: Product[]; priorityCount?: number }) {
   return (
-    <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
       {items.map((p, i) => (
         <ProductCard key={p.sku} p={p} priority={i < priorityCount} />
       ))}
@@ -93,8 +96,8 @@ export function ProductGrid({ items, priorityCount = 0 }: { items: Product[]; pr
 export function AddToOrder({ p }: { p: Product }) {
   const { role } = useRole();
   const { add } = useCart();
+  const { toast } = useToast();
   const [qty, setQty] = useState(24);
-  const [note, setNote] = useState("");
 
   if (role !== "buyer") {
     return (
@@ -115,13 +118,12 @@ export function AddToOrder({ p }: { p: Product }) {
           className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
           onClick={() => {
             add(p.sku, qty);
-            setNote(`added to your order — ${qty} units · open the cart to review`);
+            toast(`Added to your order — ${qty} units. Open the cart to review.`);
           }}
         >
           Add to order
         </button>
       </div>
-      {note && <p className="font-mono text-[10px] uppercase tracking-wide text-n400">{note}</p>}
       <p className="mt-1 text-[13px] text-n600">
         Approved institutions order with 100% advance payment — dispatch follows confirmed payment.
       </p>

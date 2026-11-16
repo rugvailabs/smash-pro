@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Banner, Chip, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { getQuote } from "@/lib/supplier-api";
+import { PanelSkeleton } from "@/components/skeletons";
 import { inr } from "@/lib/format";
 
 /* Quotation detail + negotiation — SUP-007/008 · Workflows E/F. Own
@@ -22,7 +23,7 @@ export async function generateMetadata({
 
 export default function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="min-h-[50vh]" />}>
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
       <QuoteDetailContent params={params} />
     </Suspense>
   );
