@@ -471,11 +471,24 @@ request through ProSmash and be able to confirm receipt through the website.
 
 ## 4. Platform / Cross-Portal (PLT)
 
-### PLT-001 — Authentication and portal isolation _(Confirmed)_
-Each role shall access only its own portal; sessions, navigation and data are
-strictly isolated per the access boundaries in `USER-ROLES-AND-PERMISSIONS.md` §3.
-- **AC1:** A credential grants exactly one role's portal.
-- **AC2:** Cross-portal data leakage cases in §3 (items 2, 3, 4, 6) are testable and enforced.
+### PLT-001 — Authentication and role-scoped access _(Confirmed — amended 2026-11-16, unified website)_
+The platform presents one unified web application for the public catalogue,
+buyer workflows and supplier workflows, plus a **separate Super Admin
+application**. Within the unified application, every screen, navigation item
+and data element is scoped to the authenticated role per the access
+boundaries in `USER-ROLES-AND-PERMISSIONS.md` §3; the only screens shared
+across roles are the public catalogue surfaces (PLT-006), which expose only
+public data plus the viewer's own applicable price (OBD-03).
+- **AC1:** A credential grants exactly one role (single-role accounts;
+  multi-user/role structure remains open under OBD-15).
+- **AC2:** Buyer-only routes and data are inaccessible to suppliers, visitors
+  and pending accounts; supplier-only routes and data are inaccessible to
+  buyers, visitors and pending accounts. Enforcement is **server-side**;
+  client-side gating is presentation only.
+- **AC3:** Cross-role data leakage cases in §3 (items 2, 3, 4, 6) remain
+  testable and enforced exactly as written.
+- **AC4:** Super Admin remains a separate application surface with separate
+  authentication; no admin screen or data is served from the unified website.
 
 ### PLT-002 — Notifications _(Workflows D, G, J–N · Confirmed)_
 The platform shall deliver in-portal and email notifications for the events

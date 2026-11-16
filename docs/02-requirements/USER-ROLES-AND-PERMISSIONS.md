@@ -81,7 +81,12 @@ per organization — also §5.
 
 Hard boundaries that hold regardless of future permission refinements:
 
-1. **Portal isolation** — each role accesses only its own portal. No shared screens.
+1. **Role-scoped access** (amended 2026-11-16, PLT-001) — buyer, supplier and
+   public surfaces live in one unified application, but every screen and data
+   element is scoped to the authenticated role; shared screens are limited to
+   the public catalogue (PLT-006), which exposes only public data plus the
+   viewer's own applicable price. The Super Admin application remains fully
+   separate.
 2. **Suppliers never see buyers**, with one narrow exception. No buyer
    identities, order volumes, or demand data beyond what an admin chooses to
    include in a procurement requirement. Exception (hybrid model, OBD-01): a

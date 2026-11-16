@@ -22,8 +22,11 @@ catalog with standard listed prices** (confirmed — OBD-03: discounts and
 discounted prices require login; no supplier/commercial data), buyer/supplier
 registration entries, and sign-in.
 
-Portals are fully isolated (PLT-001): separate navigation, no shared session
-or cross-portal links.
+Access is role-scoped (PLT-001, amended 2026-11-16): buyer, supplier and
+public surfaces share one unified website with role-unlocked navigation;
+shared screens are limited to the public catalogue, and the Super Admin
+application remains fully separate. Data isolation per
+`USER-ROLES-AND-PERMISSIONS.md` §3 is unchanged.
 
 ## 2. Navigation Hierarchy
 
