@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Search · PROSMASH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body data-role="visitor">
+
+<div class="ribbon">
+  <b>DESIGN PREVIEW</b><span>sample data · illustrative prices</span>
+  <label>Preview as:
+    <select id="role-select" aria-label="Preview account state">
+      <option value="visitor">Visitor</option>
+      <option value="pending">Registered buyer (pending)</option>
+      <option value="buyer">Approved buyer</option>
+      <option value="supplier">Supplier</option>
+    </select>
+  </label>
+  <span class="lic"><a href="../img/LICENSES.md">image credits</a></span>
+</div>
+
+<header class="mast">
+  <div class="in">
+    <a class="wm" href="index.html">PROSMASH</a>
+    <form class="search" data-search role="search">
+      <span class="ic" aria-hidden="true"></span>
+      <input type="search" placeholder="Search equipment, categories…" aria-label="Search">
+    </form>
+    <div class="right">
+      <a class="signin only-anon" href="#">Sign in</a>
+      <a class="btn btn-pri h40 only-visitor" href="#">Register</a>
+      <span class="acct only-pending">St. Xavier's High School <span class="tag">UNDER REVIEW</span></span>
+      <span class="acct only-buyer">St. Xavier's High School <span class="tag">BUYER</span></span>
+      <span class="acct only-supplier">Meerut Sports Works <span class="tag">SUPPLIER</span></span>
+      <a class="cartlink" href="cart.html">Cart <span class="ct">0</span></a>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<nav class="tabstrip" aria-label="Site sections">
+  <div class="in">
+    <a href="index.html">Shop</a>
+    <a class="on" href="catalog.html?cat=cricket">Catalogue</a>
+    <a class="only-buyer" href="../buyer-dashboard.html">Dashboard</a>
+    <a class="only-buyer" href="../buyer-orders.html">Orders</a>
+    <a class="only-buyer" href="../buyer-requests.html">Requests</a>
+    <a class="only-supplier" href="../supplier-dashboard.html">Supplier Workspace</a>
+  </div>
+</nav>
+<div class="pendbar only-pending"><b>Your registration is under review.</b>
+  Browsing at standard listed prices until approval.</div>
+
+<div class="pagehead">
+  <div class="in">
+    <div class="crumb"><a href="index.html">Home</a> / <b>Search</b></div>
+    <h1>Results for “<span data-q>—</span>”</h1>
+    <p class="note-flag" style="margin-top:4px">search runs over the sample catalogue only</p>
+  </div>
+</div>
+
+<main class="wrap" style="padding-bottom:64px">
+  <div class="toolbar">
+    <span class="rescount" id="rescount" style="margin-left:0">—</span>
+    <a class="btn-ter" href="../buyer-requests.html" style="margin-left:auto;font-size:13px" title="Approved buyers can request unlisted products">Can't find it? Request a product →</a>
+  </div>
+  <div class="pgrid" id="search-grid"></div>
+</main>
+
+<footer class="site">
+  <div class="legal">
+    <div class="in2">
+      <span>© 2026 PROSMASH</span><span>B2B SPORTS COMMERCE · INDIA</span>
+      <span style="margin-left:auto">UNIFIED PREVIEW · ALL DATA ILLUSTRATIVE</span>
+    </div>
+  </div>
+</footer>
+
+<a class="wafloat" href="https://wa.me/910000000000" target="_blank" rel="noopener"
+   aria-label="Chat with ProSmash on WhatsApp (placeholder link — official number pending)"
+   title="WhatsApp contact — placeholder link, official number pending">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H9l-4.2 3.5c-.5.4-.8.2-.8-.4V5.5Z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg>
+  <span class="dot">WA</span>
+</a>
+
+<script src="site.js"></script>
+</body>
+</html>

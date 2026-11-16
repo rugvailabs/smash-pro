@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tour Carbon Racquet — Strung to Order · PROSMASH</title>
+<!-- Badminton racquet configurator: stringing, tension and grip are MANDATORY
+     selections before add-to-order (owner-directed feature; underlying product-options
+     capability is a NEW requirement to document). Option pricing is ILLUSTRATIVE and
+     pending approval. Preview only. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body data-role="visitor">
+
+<div class="ribbon">
+  <b>DESIGN PREVIEW</b><span>sample data · illustrative prices</span>
+  <label>Preview as:
+    <select id="role-select" aria-label="Preview account state">
+      <option value="visitor">Visitor</option>
+      <option value="pending">Registered buyer (pending)</option>
+      <option value="buyer">Approved buyer</option>
+      <option value="supplier">Supplier</option>
+    </select>
+  </label>
+  <span class="lic"><a href="../img/LICENSES.md">image credits</a></span>
+</div>
+
+<header class="mast">
+  <div class="in">
+    <a class="wm" href="index.html">PROSMASH</a>
+    <form class="search" data-search role="search">
+      <span class="ic" aria-hidden="true"></span>
+      <input type="search" placeholder="Search equipment, categories…" aria-label="Search">
+    </form>
+    <div class="right">
+      <a class="signin only-anon" href="#">Sign in</a>
+      <a class="btn btn-pri h40 only-visitor" href="#">Register</a>
+      <span class="acct only-pending">St. Xavier's High School <span class="tag">UNDER REVIEW</span></span>
+      <span class="acct only-buyer">St. Xavier's High School <span class="tag">BUYER</span></span>
+      <span class="acct only-supplier">Meerut Sports Works <span class="tag">SUPPLIER</span></span>
+      <a class="cartlink" href="cart.html">Cart <span class="ct">0</span></a>
+    </div>
+    <button class="burger" aria-label="Menu"></button>
+  </div>
+</header>
+
+<nav class="tabstrip" aria-label="Site sections">
+  <div class="in">
+    <a href="index.html">Shop</a>
+    <a class="on" href="catalog.html?cat=badminton">Catalogue</a>
+    <a class="only-buyer" href="../buyer-dashboard.html">Dashboard</a>
+    <a class="only-buyer" href="../buyer-orders.html">Orders</a>
+    <a class="only-buyer" href="../buyer-requests.html">Requests</a>
+    <a class="only-supplier" href="../supplier-dashboard.html">Supplier Workspace</a>
+  </div>
+</nav>
+<div class="pendbar only-pending"><b>Your registration is under review.</b>
+  Browsing at standard listed prices until approval.</div>
+
+<main class="wrap" style="padding:26px 40px 64px">
+  <div class="crumb" style="margin-bottom:18px"><a href="index.html">Home</a> /
+    <a href="catalog.html?cat=badminton">Badminton</a> / <b>Tour Carbon Racquet</b></div>
+
+  <div class="detail">
+    <div class="gal">
+      <div class="pimg"><img src="../img/badminton/racquet-tour-hero.jpg" alt="Badminton racquet — representative image"></div>
+      <p class="note">representative image · cc-licensed · replaced by approved product photography</p>
+    </div>
+
+    <div class="dinfo">
+      <span class="eyebrow">Badminton · Racquets · <span class="id" style="font-size:12px">SKU BD-2001</span></span>
+      <h1>Tour Carbon Racquet — 3U, Head-Heavy</h1>
+      <div class="sub">Full graphite · 88 g · strung to your specification</div>
+
+      <div class="dprice">
+        <div class="price-std-primary">
+          <div class="plabel">Standard price</div>
+          <div class="pval num">₹5,400.00 <small>incl. GST</small></div>
+          <p class="convert only-visitor">Institutional pricing —
+            <a href="#">Register to view your price</a> or <a href="#">sign in</a>.</p>
+          <p class="convert only-pending" style="color:var(--n600)">Your institutional pricing activates on approval.</p>
+        </div>
+        <div class="price-buyer">
+          <div class="plabel yours">Your price</div>
+          <div class="pval num">₹4,590.00 <small>incl. GST</small></div>
+          <div class="pstd num">Standard ₹5,400.00</div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">illustrative sample pricing — configured discounts pending (OBD-20)</p>
+      </div>
+
+      <!-- configurator -->
+      <div class="cfg" id="cfg">
+        <div class="ct">Configure your racquets</div>
+        <div class="cs">Racquets ship strung and gripped — stringing, tension
+        and grip are required before ordering.</div>
+
+        <div class="grp">
+          <label class="gl">Stringing <span class="req">required</span></label>
+          <div class="optrow" data-grp="string">
+            <button class="opt" data-val="Tour Nylon">Tour Nylon<small>included</small></button>
+            <button class="opt" data-val="Premium Gauge" data-delta="350">Premium Gauge<small>+ ₹350.00 · illustrative</small></button>
+          </div>
+        </div>
+        <div class="grp">
+          <label class="gl">String tension <span class="req">required</span></label>
+          <div class="optrow" data-grp="tension">
+            <button class="opt" data-val="22 lbs">22 lbs<small>control · beginners</small></button>
+            <button class="opt" data-val="24 lbs">24 lbs<small>all-round</small></button>
+            <button class="opt" data-val="26 lbs">26 lbs<small>club play</small></button>
+            <button class="opt" data-val="28 lbs">28 lbs<small>advanced</small></button>
+            <button class="opt" data-val="30 lbs">30 lbs<small>tournament</small></button>
+          </div>
+        </div>
+        <div class="grp">
+          <label class="gl">Grip size <span class="req">required</span></label>
+          <div class="optrow" data-grp="grip">
+            <button class="opt" data-val="G4">G4<small>standard</small></button>
+            <button class="opt" data-val="G5">G5<small>slim</small></button>
+          </div>
+        </div>
+
+        <div class="cfgsum" id="cfg-sum"><span class="cfgmiss">Select stringing, tension and grip to continue.</span></div>
+        <p class="note-flag" style="margin-top:8px">option pricing illustrative —
+        pending owner approval · product-options capability is a new
+        requirement to document</p>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+        <span class="qty only-buyer"><button aria-label="Decrease" id="q-minus">−</button><span class="num" id="q-val">6</span><button aria-label="Increase" id="q-plus">+</button></span>
+        <button class="btn btn-pri only-buyer isoff" id="add-btn" aria-disabled="true">Add to order</button>
+        <a class="btn btn-pri only-anon" href="#">Register to order</a>
+      </div>
+      <p class="note-flag only-buyer" id="added-note" style="display:none!important"></p>
+
+      <div class="spec-label">Specifications</div>
+      <table class="spectab" aria-label="Key specifications">
+        <tr><th>Frame</th><td>Full graphite, head-heavy balance</td></tr>
+        <tr><th>Weight</th><td class="num">3U (85–89 g)</td></tr>
+        <tr><th>Max tension</th><td class="num">30 lbs</td></tr>
+        <tr><th>Shaft</th><td>Medium flex</td></tr>
+        <tr><th>Supplied</th><td>Strung &amp; gripped to order · full-length cover</td></tr>
+      </table>
+    </div>
+  </div>
+</main>
+
+<footer class="site">
+  <div class="legal">
+    <div class="in2">
+      <span>© 2026 PROSMASH</span><span>B2B SPORTS COMMERCE · INDIA</span>
+      <span style="margin-left:auto">UNIFIED PREVIEW · ALL DATA ILLUSTRATIVE</span>
+    </div>
+  </div>
+</footer>
+
+<a class="wafloat" href="https://wa.me/910000000000" target="_blank" rel="noopener"
+   aria-label="Chat with ProSmash on WhatsApp (placeholder link — official number pending)"
+   title="WhatsApp contact — placeholder link, official number pending">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H9l-4.2 3.5c-.5.4-.8.2-.8-.4V5.5Z"/><path d="M8.5 8.5h7M8.5 11.5h4.5"/></svg>
+  <span class="dot">WA</span>
+</a>
+
+<script src="site.js"></script>
+<script>
+let qv = 6;
+const sel = {string:null, tension:null, grip:null, delta:0};
+function refreshCfg(){
+  const done = sel.string && sel.tension && sel.grip;
+  const sum = document.getElementById('cfg-sum');
+  if(done){
+    sum.innerHTML = '<b>Your build:</b> ' + sel.string + ' · ' + sel.tension + ' · Grip ' + sel.grip +
+      (sel.delta? ' · option + ₹'+sel.delta.toFixed(2)+' <span class="note-flag">illustrative</span>':'');
+  } else {
+    const miss = ['string','tension','grip'].filter(k=>!sel[k]).map(k=>({string:'stringing',tension:'tension',grip:'grip'})[k]);
+    sum.innerHTML = '<span class="cfgmiss">Still needed: '+miss.join(', ')+'.</span>';
+  }
+  const btn = document.getElementById('add-btn');
+  if(done){ btn.classList.remove('isoff'); btn.removeAttribute('aria-disabled'); }
+  else { btn.classList.add('isoff'); btn.setAttribute('aria-disabled','true'); }
+}
+window.psAfterRender = function(){
+  document.querySelectorAll('.optrow').forEach(row=>{
+    row.querySelectorAll('.opt').forEach(b=>{
+      b.onclick = ()=>{
+        row.querySelectorAll('.opt').forEach(x=>x.classList.remove('sel'));
+        b.classList.add('sel');
+        const g = row.dataset.grp;
+        sel[g] = b.dataset.val;
+        if(g==='string'){ sel.delta = parseFloat(b.dataset.delta||'0'); }
+        refreshCfg();
+      };
+    });
+  });
+  const vEl = document.getElementById('q-val');
+  document.getElementById('q-minus').onclick = ()=>{ qv=Math.max(1,qv-1); vEl.textContent=qv; };
+  document.getElementById('q-plus').onclick  = ()=>{ qv++; vEl.textContent=qv; };
+  document.getElementById('add-btn').onclick = ()=>{
+    if(!(sel.string && sel.tension && sel.grip)) return;
+    addToCart('BD-2001', qv, {string:sel.string, tension:sel.tension, grip:sel.grip}, sel.delta);
+    const n=document.getElementById('added-note');
+    n.style.setProperty('display','block','important');
+    n.textContent = 'added — '+qv+' racquets, '+sel.string+' @ '+sel.tension+', grip '+sel.grip;
+  };
+  refreshCfg();
+};
+</script>
+</body>
+</html>

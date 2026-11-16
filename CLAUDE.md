@@ -35,9 +35,12 @@ direct-shipment governance). Rules:
   implementation, regardless of documentation status.
 
 ## Current Stage
-Initialization & planning. **No technology stack has been selected.**
-Do not install dependencies, scaffold frameworks, or generate application code
-until the stack decision is recorded in `docs/03-architecture/`.
+Frontend implementation. The frontend stack is **Next.js (App Router) +
+TypeScript + Tailwind CSS** in `web/` — owner-approved and recorded in
+`docs/03-architecture/ADR-0001-frontend-stack.md`. Backend, database, auth
+providers and payment integration remain **not selected** — do not introduce
+them until recorded in `docs/03-architecture/`. Design previews under
+`docs/04-design-system/preview/` are frozen visual references.
 
 ## Design Doctrine (non-negotiable)
 ProSmash must look like a serious commercial trade platform, not a template.
