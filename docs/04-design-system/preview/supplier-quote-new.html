@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submit Quotation · PROSMASH Supplier</title>
+<!-- SUP-006 · Workflow E step 1. Fields are the APPROVED quotation fields only:
+     unit price, quantity, lead time, validity, requested payment terms, notes +
+     attachments. No quote-discount field exists in the approved model. Submission is
+     a prototype interaction. Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right"><span class="bell"><i>2</i></span><span class="orgm">Meerut Sports Works ▾</span></div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a href="supplier-dashboard.html">Dashboard</a>
+    <a class="on" href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="crumb"><a href="supplier-requirements.html">Requirements</a> /
+      <a href="supplier-requirement-detail.html">REQ-2026-0091</a> / <b>Submit quotation</b></div>
+    <div class="pagehead">
+      <div>
+        <h1>Quotation — <span class="id" style="font-size:18px">REQ-2026-0091</span></h1>
+        <p class="sub">Adjustable training hurdles × 120 · deadline today 18:00 IST</p>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div class="panel" style="padding:20px">
+        <p class="note-flag" style="margin-bottom:14px">visual prototype —
+        submission &amp; upload are non-functional preview interactions</p>
+        <div class="fgrid">
+          <div class="field">
+            <label for="q-price">Unit price, incl. GST where applicable (required)</label>
+            <input id="q-price" type="text" class="num" value="₹2,340.00">
+            <p class="help">Line total auto-calculates at quoted quantity</p>
+          </div>
+          <div class="field">
+            <label for="q-qty">Quantity offered (required)</label>
+            <input id="q-qty" type="number" value="120">
+            <p class="help">Partial-quantity quotes: policy pending confirmation</p>
+          </div>
+          <div class="field">
+            <label for="q-lead">Lead time (required)</label>
+            <input id="q-lead" type="text" value="18 days from PO">
+          </div>
+          <div class="field">
+            <label for="q-valid">Quotation valid till (required)</label>
+            <input id="q-valid" type="text" value="05 Dec 2026">
+          </div>
+          <div class="field full">
+            <label for="q-terms">Requested payment terms</label>
+            <input id="q-terms" type="text" value="50% advance, balance on delivery">
+            <p class="help">Terms are part of your offer — allowed-terms policy pending confirmation</p>
+          </div>
+          <div class="field full">
+            <label for="q-notes">Notes</label>
+            <textarea id="q-notes">Frames powder-coated in-house; sample unit available on request.</textarea>
+          </div>
+          <div class="field full">
+            <label>Attachments (specs, certificates, sample photos)</label>
+            <div class="upload">Drag files here, or <b>browse</b>
+              <span class="note-flag" style="display:block;margin-top:6px">non-functional prototype</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:6px">
+          <button class="btn btn-pri" aria-disabled="true">Submit quotation (prototype)</button>
+          <button class="btn btn-sec">Save draft</button>
+        </div>
+      </div>
+
+      <div class="sticky">
+        <div class="panel">
+          <div class="phead"><b>Offer summary</b></div>
+          <div style="padding:12px 16px">
+            <div class="kv"><span class="k">Unit price</span><span class="v2 num">₹2,340.00</span></div>
+            <div class="kv"><span class="k">Quantity</span><span class="v2 num">120</span></div>
+            <div class="kv"><span class="k">Line total</span><span class="v2 num" style="font-weight:600">₹2,80,800.00</span></div>
+            <div class="kv"><span class="k">Lead time</span><span class="v2">18 days</span></div>
+            <div class="kv"><span class="k">Valid till</span><span class="v2">05 Dec 2026</span></div>
+          </div>
+        </div>
+        <div class="banner" style="margin-top:12px">
+          <span><b>Revisions are versioned.</b> You can revise this quotation
+          while the requirement is open — every version is kept on record and
+          visible to you and ProSmash.</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

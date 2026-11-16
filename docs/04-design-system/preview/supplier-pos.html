@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Purchase Orders · PROSMASH Supplier</title>
+<!-- SUP-009 · Workflow N. PO destination is admin-set: warehouse or direct-to-buyer
+     (OBD-19 Option C — suppliers can never choose it). Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right"><span class="bell"><i>2</i></span><span class="orgm">Meerut Sports Works ▾</span></div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a href="supplier-dashboard.html">Dashboard</a>
+    <a href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a class="on" href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="pagehead">
+      <div>
+        <h1>Purchase orders</h1>
+        <p class="sub">Awarded orders from ProSmash · terms exactly as quoted</p>
+      </div>
+    </div>
+
+    <div class="tframe">
+      <table class="dtable">
+        <thead><tr>
+          <th>PO</th><th>Destination</th><th>Lines</th><th>Issued</th><th>Fulfilment</th><th class="r">Value</th><th></th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">PO-2026-00412</td>
+            <td><span class="dest">Warehouse</span></td>
+            <td>500 × Willow Bat G2</td>
+            <td>13 Nov 2026</td>
+            <td><span class="chip c-info">Acknowledged</span></td>
+            <td class="r num">₹19,90,000.00</td>
+            <td><a class="btn btn-sec h32" href="supplier-po-detail.html">Open</a></td>
+          </tr>
+          <tr>
+            <td class="id">PO-2026-00425</td>
+            <td><span class="dest direct">Direct</span></td>
+            <td>24 × Adjustable hurdles</td>
+            <td>11 Nov 2026</td>
+            <td><span class="chip c-warn">Awaiting delivery proof</span></td>
+            <td class="r num">₹53,760.00</td>
+            <td><a class="btn btn-pri h32" href="supplier-delivery-proof.html">Proof</a></td>
+          </tr>
+          <tr>
+            <td class="id">PO-2026-00418</td>
+            <td><span class="dest direct">Direct</span></td>
+            <td>12 × Medicine Ball 5 kg</td>
+            <td>08 Nov 2026</td>
+            <td><span class="chip c-ok">Delivered · proof on record</span></td>
+            <td class="r num">₹17,880.00</td>
+            <td><a class="btn btn-sec h32" href="supplier-po-detail.html">Open</a></td>
+          </tr>
+          <tr>
+            <td class="id">PO-2026-00371</td>
+            <td><span class="dest">Warehouse</span></td>
+            <td>60 × Practice nets</td>
+            <td>12 Oct 2026</td>
+            <td><span class="chip c-ok">Received in full · closed</span></td>
+            <td class="r num">₹1,74,000.00</td>
+            <td><a class="btn btn-sec h32" href="#">Open</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-flag" style="margin-top:8px">destination is set by ProSmash
+    per PO (OBD-19) · partial shipments &amp; dispatch-document requirements
+    pending confirmation · values illustrative</p>
+  </main>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard · PROSMASH Supplier</title>
+<!-- Logged-in supplier: Meerut Sports Works (approved; categories Cricket, Athletics,
+     Gym & Fitness; direct-shipment approved by admin). All data illustrative.
+     Boundary: no buyer identities, no competing quotations, no requirement origins. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right">
+    <span class="bell"><i>2</i></span>
+    <span class="orgm">Meerut Sports Works ▾</span>
+  </div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a class="on" href="supplier-dashboard.html">Dashboard</a>
+    <a href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="pagehead">
+      <div>
+        <h1>What needs you now</h1>
+        <p class="sub">Meerut Sports Works · 14 Nov 2026</p>
+        <p class="note-flag" style="margin-top:4px">illustrative preview data —
+        figures &amp; amounts are sample values</p>
+      </div>
+    </div>
+
+    <div class="tiles">
+      <a class="tile" href="supplier-requirements.html"><div class="tl">Open matched requirements</div><div class="tv">2</div><div class="tc w">1 closes today</div></a>
+      <a class="tile" href="supplier-quotation-detail.html"><div class="tl">Quotes needing action</div><div class="tv">1</div><div class="tc w">Revision requested</div></a>
+      <a class="tile" href="supplier-pos.html"><div class="tl">POs in fulfilment</div><div class="tv">2</div><div class="tc w">1 awaiting delivery proof</div></a>
+      <a class="tile" href="supplier-payments.html"><div class="tl">Outstanding receivable</div><div class="tv num">₹9,95,000.00</div><div class="tc">across 1 PO</div></a>
+    </div>
+
+    <div class="cols" style="margin-top:22px">
+      <div>
+        <div class="panel">
+          <div class="phead"><b>Action queue</b><span class="cnt">3 items</span></div>
+          <div class="arow">
+            <div class="grow">
+              <div class="t">Upload delivery proof — <span class="id">PO-2026-00425</span></div>
+              <div class="s">Direct shipment dispatched 13 Nov · proof required before buyer confirmation</div>
+            </div>
+            <span class="chip c-warn">Awaiting proof</span>
+            <a class="btn btn-pri h32" href="supplier-delivery-proof.html">Upload</a>
+          </div>
+          <div class="arow">
+            <div class="grow">
+              <div class="t">Revision requested — <span class="id">REQ-2026-0089</span> quotation</div>
+              <div class="s">ProSmash asked for a revised lead time · requested 13 Nov</div>
+            </div>
+            <span class="chip c-warn">Revision requested</span>
+            <a class="btn btn-sec h32" href="supplier-quotation-detail.html">Open</a>
+          </div>
+          <div class="arow">
+            <div class="grow">
+              <div class="t">Requirement closes today — <span class="id">REQ-2026-0091</span></div>
+              <div class="s">Adjustable training hurdles × 120 · quote by 18:00 IST</div>
+            </div>
+            <span class="chip c-info">Open</span>
+            <a class="btn btn-sec h32" href="supplier-requirement-detail.html">Review</a>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:18px">
+          <div class="phead"><b>Purchase orders</b><a class="btn-ter more" href="supplier-pos.html">All →</a></div>
+          <div class="arow">
+            <span class="id">PO-2026-00412</span>
+            <span class="dest">Warehouse</span>
+            <div class="grow"><div class="s">500 × English Willow Bat G2 · dispatch by 04 Dec</div></div>
+            <span class="chip c-info">Acknowledged</span>
+          </div>
+          <div class="arow">
+            <span class="id">PO-2026-00425</span>
+            <span class="dest direct">Direct</span>
+            <div class="grow"><div class="s">24 × Adjustable hurdles · dispatched 13 Nov</div></div>
+            <span class="chip c-warn">Awaiting proof</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <div class="phead"><b>Your account</b></div>
+          <div style="padding:12px 16px">
+            <div class="kv"><span class="k">Status</span><span class="v2"><span class="chip c-ok">Active</span></span></div>
+            <div class="kv"><span class="k">Categories</span><span class="v2">Cricket · Athletics · Gym &amp; Fitness</span></div>
+            <div class="kv"><span class="k">Direct shipment</span><span class="v2"><span class="chip c-ok">Approved</span></span></div>
+          </div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">direct-shipment eligibility
+        is set by ProSmash per supplier and per product — view-only here
+        (OBD-19)</p>
+        <div class="banner" style="margin-top:14px">
+          <span><b>Requirements are matched to your approved categories.</b>
+          You'll be notified when a new requirement is published in Cricket,
+          Athletics or Gym &amp; Fitness.</span>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

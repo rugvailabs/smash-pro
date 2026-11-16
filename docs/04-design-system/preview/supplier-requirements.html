@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Requirements · PROSMASH Supplier</title>
+<!-- SUP-005 / Workflow D: ONLY requirements matching this supplier's approved categories.
+     No requirement origins (stock plan / buyer order / request) are ever shown (C.2).
+     Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right"><span class="bell"><i>2</i></span><span class="orgm">Meerut Sports Works ▾</span></div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a href="supplier-dashboard.html">Dashboard</a>
+    <a class="on" href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="pagehead">
+      <div>
+        <h1>Procurement requirements</h1>
+        <p class="sub">Matched to your approved categories: Cricket · Athletics · Gym &amp; Fitness</p>
+      </div>
+    </div>
+
+    <div class="sect">Open — quote before the deadline</div>
+    <div class="panel">
+      <div class="arow">
+        <span class="id">REQ-2026-0091</span>
+        <div class="grow">
+          <div class="t">Adjustable training hurdles — set of 6 heights</div>
+          <div class="s">Athletics · qty 120 · deliver to ProSmash warehouse</div>
+        </div>
+        <span class="dl w">closes today 18:00</span>
+        <span class="chip c-info">Open · not quoted</span>
+        <a class="btn btn-pri h32" href="supplier-requirement-detail.html">Review &amp; quote</a>
+      </div>
+      <div class="arow">
+        <span class="id">REQ-2026-0089</span>
+        <div class="grow">
+          <div class="t">Rubber-coated dumbbell sets — 5–30 kg pairs</div>
+          <div class="s">Gym &amp; Fitness · qty 40 sets · deliver to ProSmash warehouse</div>
+        </div>
+        <span class="dl">closes 19 Nov</span>
+        <span class="chip c-warn">Quoted · revision requested</span>
+        <a class="btn btn-sec h32" href="supplier-quotation-detail.html">Open quotation</a>
+      </div>
+    </div>
+
+    <div class="sect">Recently closed</div>
+    <div class="panel">
+      <div class="arow">
+        <span class="id">REQ-2026-0087</span>
+        <div class="grow">
+          <div class="t">English Willow Bats — Grade 2, short handle</div>
+          <div class="s">Cricket · qty 500 · closed 13 Nov</div>
+        </div>
+        <span class="chip c-ok">Awarded to you</span>
+        <a class="btn btn-sec h32" href="supplier-po-detail.html">View PO</a>
+      </div>
+      <div class="arow">
+        <span class="id">REQ-2026-0084</span>
+        <div class="grow">
+          <div class="t">Competition shot puts — 4 kg / 7.26 kg</div>
+          <div class="s">Athletics · qty 60 · closed 09 Nov</div>
+        </div>
+        <span class="chip c-neu">Closed</span>
+      </div>
+    </div>
+    <p class="note-flag" style="margin-top:8px">non-winning outcome wording
+    ("closed" vs "not selected") pending OBD-07 · requirement origins are never
+    shown to suppliers</p>
+  </main>
+</div>
+
+</body>
+</html>

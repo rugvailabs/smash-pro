@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Catalogue · PROSMASH Supplier</title>
+<!-- SUP-004/SUP-012 · Workflow B. Supply-catalogue items are sourcing information for
+     ProSmash — never shown to buyers. Purchase-cost changes are PROPOSALS: effective
+     only on Super Admin acceptance, never touching customer selling prices (OBD-20).
+     Indicative supply pricing on items is itself pending (OBD-04). Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right"><span class="bell"><i>2</i></span><span class="orgm">Meerut Sports Works ▾</span></div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a href="supplier-dashboard.html">Dashboard</a>
+    <a href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a class="on" href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="pagehead">
+      <div>
+        <h1>My catalogue</h1>
+        <p class="sub">What you can supply — visible to the ProSmash sourcing
+        team only, never to buyers</p>
+      </div>
+      <div class="actions"><a class="btn btn-sec" href="#">+ Add item (prototype)</a></div>
+    </div>
+
+    <div class="tframe">
+      <table class="dtable">
+        <thead><tr>
+          <th>Item</th><th>Category</th><th>Capacity / month</th><th>Lead time</th><th class="r">Current cost to ProSmash</th><th>Cost proposal</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td style="white-space:normal;min-width:220px"><b>English Willow Bat — Grade 2, SH</b></td>
+            <td>Cricket</td>
+            <td class="num">800</td>
+            <td>21 days</td>
+            <td class="r num">₹3,980.00</td>
+            <td><span class="chip c-warn">₹4,080.00 proposed · awaiting ProSmash decision</span></td>
+          </tr>
+          <tr>
+            <td style="white-space:normal;min-width:220px"><b>Kashmir Willow Bat — Match, FS</b></td>
+            <td>Cricket</td>
+            <td class="num">1,500</td>
+            <td>14 days</td>
+            <td class="r num">₹1,310.00</td>
+            <td><a class="btn btn-ter" href="#" style="font-size:13px">Propose change</a></td>
+          </tr>
+          <tr>
+            <td style="white-space:normal;min-width:220px"><b>Practice Net — 60×10 ft HDPE</b></td>
+            <td>Cricket</td>
+            <td class="num">200</td>
+            <td>10 days</td>
+            <td class="r num">₹2,900.00</td>
+            <td><a class="btn btn-ter" href="#" style="font-size:13px">Propose change</a></td>
+          </tr>
+          <tr>
+            <td style="white-space:normal;min-width:220px"><b>Adjustable Training Hurdles — 6 ht</b></td>
+            <td>Athletics</td>
+            <td class="num">600</td>
+            <td>18 days</td>
+            <td class="r num">₹2,240.00</td>
+            <td><a class="btn btn-ter" href="#" style="font-size:13px">Propose change</a></td>
+          </tr>
+          <tr>
+            <td style="white-space:normal;min-width:220px"><b>Medicine Ball — Rubber, 5 kg</b></td>
+            <td>Gym &amp; Fitness</td>
+            <td class="num">2,000</td>
+            <td>7 days</td>
+            <td class="r num">₹1,490.00</td>
+            <td><a class="btn btn-ter" href="#" style="font-size:13px">Propose change</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-flag" style="margin-top:8px">all items fall within your
+    approved categories — category subscriptions drive requirement matching ·
+    costs are supplier-side purchase costs, never customer prices · indicative
+    supply pricing policy pending (OBD-04) · all values illustrative</p>
+
+    <div class="sect" style="margin-top:22px">Cost-change proposals</div>
+    <div class="panel">
+      <div class="arow">
+        <div class="grow">
+          <div class="t">English Willow Bat G2 — ₹3,980.00 → ₹4,080.00</div>
+          <div class="s">Submitted 12 Nov 2026 · reason: willow input cost increase · requested effective: next PO</div>
+        </div>
+        <span class="chip c-warn">Awaiting ProSmash decision</span>
+      </div>
+      <div class="arow">
+        <div class="grow">
+          <div class="t">Practice Net — ₹3,050.00 → ₹2,900.00</div>
+          <div class="s">Submitted 02 Oct 2026 · accepted by ProSmash 05 Oct 2026</div>
+        </div>
+        <span class="chip c-ok">Accepted</span>
+      </div>
+    </div>
+    <p class="note-flag" style="margin-top:8px">proposals take effect only on
+    Super Admin acceptance and never change customer-facing selling prices
+    (OBD-20) · rejection always carries a reason</p>
+  </main>
+</div>
+
+</body>
+</html>

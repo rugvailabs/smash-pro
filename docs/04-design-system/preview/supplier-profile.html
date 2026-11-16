@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile · PROSMASH Supplier</title>
+<!-- SUP-003 · ADM-020 AC5. Direct-shipment eligibility: VIEW-ONLY, admin-controlled
+     (supplier + per-product flags, OBD-19 Option C). Document states are neutral
+     illustrative prototype data — OBD-02 verification workflow is ◇ proposed.
+     Sensitive-field edits route to admin re-review (field list pending).
+     Multi-user orgs pending OBD-15. Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right"><span class="bell"><i>2</i></span><span class="orgm">Meerut Sports Works ▾</span></div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a href="supplier-dashboard.html">Dashboard</a>
+    <a href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a class="on" href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="pagehead">
+      <div>
+        <h1>Supplier profile</h1>
+        <p class="sub">Meerut Sports Works ·
+          <span class="chip c-ok" style="vertical-align:middle">Active</span></p>
+      </div>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="sect">Business details</div>
+        <div class="panel" style="padding:12px 16px">
+          <div class="kv"><span class="k">Legal name</span><span class="v2">Meerut Sports Works Pvt. Ltd.</span></div>
+          <div class="kv"><span class="k">Supplier type</span><span class="v2">Manufacturer</span></div>
+          <div class="kv"><span class="k">GSTIN</span><span class="v2 id">09AAFCM2210R1ZQ</span></div>
+          <div class="kv"><span class="k">Contact</span><span class="v2">Sales Head · 98111 20410</span></div>
+          <div class="kv"><span class="k">Email</span><span class="v2">sales@meerutsportsworks.example</span></div>
+          <div class="kv"><span class="k">Works address</span><span class="v2">Plot 14, Sports Goods Complex, Meerut 250002</span></div>
+          <div style="padding-top:12px"><a class="btn btn-sec" href="#">Edit business details</a></div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">edits to legal name /
+        GSTIN / bank details route to ProSmash re-review before taking effect ·
+        exact sensitive-field list pending</p>
+
+        <div class="sect">Documents</div>
+        <div class="panel">
+          <div class="docrow"><span class="fn">gst-certificate.pdf</span><span class="chip c-neu">On file</span></div>
+          <div class="docrow"><span class="fn">pan-card.pdf</span><span class="chip c-neu">On file</span></div>
+          <div class="docrow"><span class="fn">udyam-registration.pdf</span><span class="chip c-neu">On file</span></div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">prototype data — document
+        states are illustrative; the verification workflow is ◇ proposed
+        (OBD-02) and not yet an established platform capability</p>
+      </div>
+
+      <div>
+        <div class="sect">Categories — drive requirement matching</div>
+        <div class="panel" style="padding:12px 16px">
+          <div class="kv"><span class="k">Approved</span><span class="v2">Cricket · Athletics · Gym &amp; Fitness</span></div>
+          <div style="padding-top:12px"><a class="btn btn-ter" href="#" style="font-size:13px">Request a category change</a></div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">category changes take
+        effect on future requirement matching after ProSmash review</p>
+
+        <div class="sect">Direct-shipment eligibility — set by ProSmash</div>
+        <div class="panel" style="padding:12px 16px">
+          <div class="kv"><span class="k">Supplier approval</span><span class="v2"><span class="chip c-ok">Approved</span></span></div>
+          <div class="kv"><span class="k">Enabled products</span><span class="v2 num">2 of 5 catalogue items</span></div>
+          <div class="kv"><span class="k">Adjustable hurdles</span><span class="v2"><span class="chip c-ok">Enabled</span></span></div>
+          <div class="kv"><span class="k">Medicine Ball 5 kg</span><span class="v2"><span class="chip c-ok">Enabled</span></span></div>
+          <div class="kv"><span class="k">All other items</span><span class="v2"><span class="chip c-neu">Warehouse only</span></span></div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">view-only — both the
+        supplier approval and per-product enablement are controlled by
+        ProSmash (OBD-19 Option C); there is no way to change them here ·
+        evaluation criteria ◇ proposed</p>
+
+        <div class="sect">Users</div>
+        <div class="panel" style="padding:12px 16px">
+          <div class="kv"><span class="k">Signed in as</span><span class="v2">sales@meerutsportsworks.example</span></div>
+        </div>
+        <p class="note-flag" style="margin-top:8px">multi-user organizations
+        pending OBD-15 — no roles designed until decided</p>
+      </div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>

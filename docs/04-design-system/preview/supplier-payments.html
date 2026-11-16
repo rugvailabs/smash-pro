@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payments · PROSMASH Supplier</title>
+<!-- SUP-010 · Workflow N: per-PO invoiced / received / outstanding, terms as quoted.
+     NO payout schedules, settlement cycles, commissions or credit terms are shown or
+     implied — those policies are pending (OBD-14 / OBD-21 ◇ / allowed-terms).
+     Figures mirror ProSmash records (ADM-017). Data illustrative. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="supplier.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="wm" href="supplier-dashboard.html">PROSMASH</a><span class="ptag">SUPPLIER</span>
+  <div class="right"><span class="bell"><i>2</i></span><span class="orgm">Meerut Sports Works ▾</span></div>
+  <button class="burger" aria-label="Menu"></button>
+</header>
+
+<div class="shell">
+  <nav class="sidenav">
+    <div class="gt">Work</div>
+    <a href="supplier-dashboard.html">Dashboard</a>
+    <a href="supplier-requirements.html">Requirements <span class="ct">2</span></a>
+    <a href="supplier-quotation-detail.html">Quotations <span class="ct">1</span></a>
+    <a href="supplier-pos.html">Purchase orders <span class="ct">2</span></a>
+    <div class="gt">Money</div>
+    <a class="on" href="supplier-payments.html">Payments</a>
+    <div class="gt">Catalogue</div>
+    <a href="supplier-catalog.html">My catalogue</a>
+    <div class="gt">Account</div>
+    <a href="supplier-profile.html">Profile</a>
+  </nav>
+
+  <main class="content">
+    <div class="pagehead">
+      <div>
+        <h1>Payments</h1>
+        <p class="sub">Your complete money trail with ProSmash — per purchase order</p>
+        <p class="note-flag" style="margin-top:4px">amounts illustrative ·
+        figures mirror ProSmash records</p>
+      </div>
+    </div>
+
+    <div class="tiles" style="grid-template-columns:repeat(3,1fr)">
+      <div class="tile"><div class="tl">Invoiced to ProSmash</div><div class="tv num">₹20,61,640.00</div><div class="tc">3 active/recent POs</div></div>
+      <div class="tile"><div class="tl">Received</div><div class="tv num">₹10,66,640.00</div><div class="tc">recorded by ProSmash</div></div>
+      <div class="tile"><div class="tl">Outstanding</div><div class="tv num">₹9,95,000.00</div><div class="tc w">1 PO with balance due</div></div>
+    </div>
+
+    <div class="sect" style="margin-top:22px">Per purchase order</div>
+    <div class="tframe">
+      <table class="dtable">
+        <thead><tr>
+          <th>PO</th><th>Terms (as quoted)</th><th class="r">PO value</th><th class="r">Received</th><th class="r">Outstanding</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td class="id">PO-2026-00412</td>
+            <td>50% adv, bal. on delivery</td>
+            <td class="r num">₹19,90,000.00</td>
+            <td class="r num">₹9,95,000.00</td>
+            <td class="r num" style="font-weight:600">₹9,95,000.00</td>
+            <td><span class="chip c-warn">Balance on delivery</span></td>
+          </tr>
+          <tr>
+            <td class="id">PO-2026-00425</td>
+            <td>On delivery</td>
+            <td class="r num">₹53,760.00</td>
+            <td class="r num">₹0.00</td>
+            <td class="r num" style="font-weight:600">₹53,760.00</td>
+            <td><span class="chip c-neu">Awaiting delivery closure</span></td>
+          </tr>
+          <tr>
+            <td class="id">PO-2026-00418</td>
+            <td>On delivery</td>
+            <td class="r num">₹17,880.00</td>
+            <td class="r num">₹17,880.00</td>
+            <td class="r num">₹0.00</td>
+            <td><span class="chip c-ok">Paid</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-flag" style="margin-top:8px">payment terms originate from
+    your awarded quotation on each PO · allowed-terms policy, payout mechanics
+    and any platform fee model are pending owner decisions (OBD-14 / OBD-21 ◇)
+    — no settlement schedule is implied by this view</p>
+
+    <div class="sect" style="margin-top:22px">Recent payment records</div>
+    <div class="panel">
+      <div class="docrow"><span class="fn">Payment received — <span class="id">PO-2026-00412</span> advance</span><span class="fm">13 Nov 2026 · ₹9,95,000.00</span><span class="chip c-ok">Recorded</span></div>
+      <div class="docrow"><span class="fn">Payment received — <span class="id">PO-2026-00418</span> full</span><span class="fm">14 Nov 2026 · ₹17,880.00</span><span class="chip c-ok">Recorded</span></div>
+    </div>
+  </main>
+</div>
+
+</body>
+</html>
