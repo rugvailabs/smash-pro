@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { getRequirements, getSupplierProfile } from "@/lib/supplier-api";
 import type { SupplierRequirement } from "@/lib/types";
@@ -6,6 +7,8 @@ import type { SupplierRequirement } from "@/lib/types";
 /* Matched procurement requirements — SUP-005 / Workflow D. ONLY requirements
    matching this supplier's approved categories; requirement origins are
    never shown. */
+
+export const metadata: Metadata = { title: "Procurement requirements" };
 
 function Row({ r }: { r: SupplierRequirement }) {
   const tone = r.status === "open" ? "info" : r.status === "quoted-revision" ? "warn" : r.status === "awarded" ? "ok" : "neu";

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { Banner, Chip, NoteFlag, PageHead, type ChipTone } from "@/components/buyer-ui";
 import { getOrders } from "@/lib/buyer-api";
@@ -6,6 +7,8 @@ import { inr } from "@/lib/format";
 
 /* Payments & invoices — one record per order payment (OBD-21), with
    invoice/receipt references (design reference only — OBD-11 pending). */
+
+export const metadata: Metadata = { title: "Payments & invoices" };
 
 const PAY_TONE: Record<string, ChipTone> = {
   confirmed: "ok", "awaiting-verification": "warn", failed: "bad", "cancelled-unpaid": "bad",

@@ -23,6 +23,10 @@ export async function getRequirement(id: string): Promise<SupplierRequirement | 
   return REQUIREMENTS.find((r) => r.id === id);
 }
 
+export async function getQuotes(): Promise<SupplierQuote[]> {
+  return QUOTES;
+}
+
 export async function getQuote(reqId: string): Promise<SupplierQuote | undefined> {
   return QUOTES.find((q) => q.reqId === reqId);
 }

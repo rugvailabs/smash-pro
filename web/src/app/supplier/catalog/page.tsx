@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import { PageHead } from "@/components/buyer-ui";
 import { SupplyCatalog } from "@/components/supply-catalog";
 import { getCostProposals, getSupplyItems } from "@/lib/supplier-api";
 
 /* My catalogue — supply items + cost-change proposals (SUP-004/012). */
+
+export const metadata: Metadata = { title: "My catalogue" };
 
 export default async function SupplierCatalogPage() {
   const [items, proposals] = await Promise.all([getSupplyItems(), getCostProposals()]);

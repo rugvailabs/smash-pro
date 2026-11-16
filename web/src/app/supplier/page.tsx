@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
 import { getPOs, getSupplierProfile } from "@/lib/supplier-api";
@@ -7,6 +8,8 @@ import { inr } from "@/lib/format";
 /* Supplier dashboard — action queue, POs, account summary.
    Boundary: no buyer identities, no competing quotations, no requirement
    origins. Data illustrative. */
+
+export const metadata: Metadata = { title: "Supplier Workspace" };
 
 export default async function SupplierDashboard() {
   const [profile, pos] = await Promise.all([getSupplierProfile(), getPOs()]);

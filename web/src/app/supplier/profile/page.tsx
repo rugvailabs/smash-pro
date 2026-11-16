@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Chip, DocRow, KV, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { getSupplierProfile, getSupplyItems } from "@/lib/supplier-api";
 
@@ -6,6 +7,8 @@ import { getSupplierProfile, getSupplyItems } from "@/lib/supplier-api";
    Option C). Document states are neutral illustrative prototype data —
    OBD-02 verification workflow is ◇ proposed. Sensitive-field edits route
    to admin re-review (field list pending). Multi-user orgs pending OBD-15. */
+
+export const metadata: Metadata = { title: "Supplier profile" };
 
 export default async function SupplierProfilePage() {
   const [p, items] = await Promise.all([getSupplierProfile(), getSupplyItems()]);

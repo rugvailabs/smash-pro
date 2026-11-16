@@ -42,7 +42,7 @@ export function PriceBlock({ p, size = "card" }: { p: Product; size?: "card" | "
   );
 }
 
-export function ProductCard({ p }: { p: Product }) {
+export function ProductCard({ p, priority = false }: { p: Product; priority?: boolean }) {
   return (
     <Link
       href={`/product/${p.sku}`}
@@ -53,6 +53,7 @@ export function ProductCard({ p }: { p: Product }) {
           src={p.img}
           alt={`${p.name} — representative image`}
           fill
+          priority={priority}
           sizes="(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 300px"
           className="object-cover"
         />
@@ -76,11 +77,14 @@ export function ProductCard({ p }: { p: Product }) {
   );
 }
 
-export function ProductGrid({ items }: { items: Product[] }) {
+/** priorityCount: eager-load the first N card images — used only where the
+ *  grid is above the fold (the catalogue LCP); defaults to 0 so other grids
+ *  keep lazy loading. */
+export function ProductGrid({ items, priorityCount = 0 }: { items: Product[]; priorityCount?: number }) {
   return (
     <div className="grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
-      {items.map((p) => (
-        <ProductCard key={p.sku} p={p} />
+      {items.map((p, i) => (
+        <ProductCard key={p.sku} p={p} priority={i < priorityCount} />
       ))}
     </div>
   );

@@ -1,11 +1,21 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { PageHead } from "@/components/buyer-ui";
 import { QuoteForm } from "@/components/quote-form";
 import { getRequirement } from "@/lib/supplier-api";
 
 /* Submit quotation — SUP-006 · Workflow E step 1. */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: `Submit quotation — ${decodeURIComponent(id).toUpperCase()}` };
+}
 
 export default function QuotePage({ params }: { params: Promise<{ id: string }> }) {
   return (

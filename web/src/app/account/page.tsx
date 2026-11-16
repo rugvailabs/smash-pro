@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { Chip, DocRow, KV, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { getInstitution } from "@/lib/buyer-api";
@@ -7,6 +8,8 @@ import { getInstitution } from "@/lib/buyer-api";
    OBD-15 — flagged placeholder, no roles invented. Document states are
    neutral illustrative prototype data — OBD-02 verification workflow is
    ◇ proposed, not established. */
+
+export const metadata: Metadata = { title: "Institution profile" };
 
 export default async function AccountPage() {
   const inst = await getInstitution();

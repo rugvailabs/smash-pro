@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Chip, DocRow, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { getPaymentRecords, getPOs } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
@@ -7,6 +8,8 @@ import { inr } from "@/lib/format";
    commissions or credit terms are shown or implied — those policies are
    pending (OBD-14 / OBD-21 ◇ / allowed-terms). Figures mirror ProSmash
    records (ADM-017). */
+
+export const metadata: Metadata = { title: "Supplier payments" };
 
 export default async function SupplierPaymentsPage() {
   const [pos, records] = await Promise.all([getPOs(), getPaymentRecords()]);

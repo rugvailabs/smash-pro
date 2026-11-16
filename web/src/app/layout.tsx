@@ -10,7 +10,11 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const plex = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-plex" });
 
 export const metadata: Metadata = {
-  title: "PROSMASH — Sports Equipment for Institutions",
+  // Routes set their own title; the template brands every tab consistently.
+  title: {
+    default: "PROSMASH — Sports Equipment for Institutions",
+    template: "%s · PROSMASH",
+  },
   description:
     "India's B2B sports commerce platform for schools, academies, colleges and retailers. Preview build — all data illustrative.",
 };

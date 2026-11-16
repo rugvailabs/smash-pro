@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { OrderDetail } from "@/components/order-detail";
 import { Chip, PageHead } from "@/components/buyer-ui";
 import { getOrder } from "@/lib/buyer-api";
 
 /* Order detail — progress, lines, delivery, payment, documents. */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: `Order ${decodeURIComponent(id).toUpperCase()}` };
+}
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   return (

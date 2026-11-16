@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Banner, Chip, DocRow, KV, NoteFlag, PageHead, Panel, PanelHead, Sect } from "@/components/buyer-ui";
 import { getRequirement } from "@/lib/supplier-api";
 
 /* Requirement detail — SUP-005/006 · Workflow C/E. Direct-to-buyer
    requirements disclose full delivery details only at PO stage (Minimum
    Delivery Information, OBD-19). */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const r = await getRequirement(decodeURIComponent(id).toUpperCase());
+  return { title: r ? `${r.id} — ${r.title}` : "Requirement not found" };
+}
 
 export default function RequirementPage({ params }: { params: Promise<{ id: string }> }) {
   return (

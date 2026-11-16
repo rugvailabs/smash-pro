@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { searchProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
 
 /* Search results — server-rendered over the catalog API boundary. */
+
+export const metadata: Metadata = { title: "Search" };
 
 export default function SearchPage({
   searchParams,
@@ -43,7 +46,8 @@ async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: str
 
       <div className="mx-auto max-w-[1280px] px-4 py-6 pb-16 md:px-10">
         {results.length ? (
-          <ProductGrid items={results} />
+          // Results grid is above the fold here too — eager-load row one only.
+          <ProductGrid items={results} priorityCount={4} />
         ) : (
           <div className="border border-n200 bg-chalk p-12 text-center">
             <p className="mb-1 text-[15px] text-ink">

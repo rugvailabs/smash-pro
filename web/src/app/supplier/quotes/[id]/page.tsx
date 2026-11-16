@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Banner, Chip, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { getQuote } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
@@ -9,6 +10,15 @@ import { inr } from "@/lib/format";
    quotation only — competing quotations and other suppliers are NEVER
    visible. Private thread with ProSmash; formal revision requests appear
    as system markers. Messages immutable. */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: `Quotation — ${decodeURIComponent(id).toUpperCase()}` };
+}
 
 export default function QuoteDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, type ChipTone } from "@/components/buyer-ui";
 import { getInstitution, getOrders, getRequests } from "@/lib/buyer-api";
@@ -6,6 +7,8 @@ import { inr } from "@/lib/format";
 import type { Order } from "@/lib/types";
 
 /* Buyer dashboard — action items, recent orders, account summary. */
+
+export const metadata: Metadata = { title: "Dashboard" };
 
 const STATUS_TONE: Record<string, ChipTone> = {
   placed: "info", processing: "info", dispatched: "info",

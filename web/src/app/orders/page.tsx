@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { OrdersTable } from "@/components/orders-table";
 import { PageHead } from "@/components/buyer-ui";
 import { getOrders } from "@/lib/buyer-api";
 
 /* Orders — every order, payment and delivery, on record. */
+
+export const metadata: Metadata = { title: "Orders" };
 
 export default async function OrdersPage() {
   const orders = await getOrders();

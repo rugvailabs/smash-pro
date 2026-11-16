@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { getCategories, getCategory, getProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { CatalogSubtitle } from "@/components/page-bits";
 
 /* Catalogue — category strip, role-aware page head, filter toolbar, grid. */
+
+// Static title: reading searchParams in generateMetadata would force the
+// whole route dynamic; the category name is already visible in-page.
+export const metadata: Metadata = { title: "Catalogue" };
 
 export default function CatalogPage({
   searchParams,
@@ -90,7 +95,8 @@ async function CatalogContent({ searchParams }: { searchParams: Promise<{ cat?: 
         </RoleGate>
 
         {products.length ? (
-          <ProductGrid items={products} />
+          // First grid row is the LCP on this route — eager-load it only.
+          <ProductGrid items={products} priorityCount={4} />
         ) : (
           <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
             Sample data for <b className="text-ink">{title}</b> hasn&rsquo;t been

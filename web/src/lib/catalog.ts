@@ -33,3 +33,12 @@ export async function getFeatured(): Promise<Product[]> {
     .map((sku) => PRODUCTS.find((p) => p.sku === sku))
     .filter((p): p is Product => Boolean(p));
 }
+
+/** Procurement-relevant cross-sell: same-category items only. Returns an
+ *  empty list when the category has no other items — the caller hides the
+ *  section rather than padding it with unrelated products. */
+export async function getRelatedProducts(sku: string, limit = 4): Promise<Product[]> {
+  const current = PRODUCTS.find((p) => p.sku === sku);
+  if (!current) return [];
+  return PRODUCTS.filter((p) => p.cat === current.cat && p.sku !== current.sku).slice(0, limit);
+}

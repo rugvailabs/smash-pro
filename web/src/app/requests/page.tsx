@@ -1,9 +1,12 @@
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { RequestsView } from "@/components/requests-view";
 import { PageHead } from "@/components/buyer-ui";
 import { getRequests } from "@/lib/buyer-api";
 
 /* Product requests — list + new-request visual prototype (D12 pending). */
+
+export const metadata: Metadata = { title: "Product requests" };
 
 export default async function RequestsPage() {
   const requests = await getRequests();

@@ -2,13 +2,25 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { getCategory, getFeatured, getProduct } from "@/lib/catalog";
+import type { Metadata } from "next";
+import { getCategory, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { AddToOrder, BuyerAvailability, PriceBlock, ProductGrid } from "@/components/product";
 import { RacquetConfigurator } from "@/components/configurator";
 import { DetailConvertNote } from "@/components/page-bits";
 
 /* Product detail — gallery, role-aware pricing, specs; racquets route
    through the mandatory stringing/tension/grip configurator. */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ sku: string }>;
+}): Promise<Metadata> {
+  const { sku } = await params;
+  const p = await getProduct(decodeURIComponent(sku).toUpperCase());
+  if (!p) return { title: "Product not found" };
+  return { title: p.name, description: `${p.sub} · ${p.meta} · SKU ${p.sku}` };
+}
 
 export default function ProductPage({
   params,
@@ -27,8 +39,9 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
   const { sku } = await params;
   const p = await getProduct(sku.toUpperCase());
   if (!p) notFound();
-  const [category, featured] = await Promise.all([getCategory(p.cat), getFeatured()]);
-  const related = featured.filter((f) => f.sku !== p.sku).slice(0, 4);
+  // Cross-sell stays within the product's own category (procurement-relevant);
+  // the section is omitted entirely when the category has no other items.
+  const [category, related] = await Promise.all([getCategory(p.cat), getRelatedProducts(p.sku)]);
 
   return (
     <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-6 md:px-10">

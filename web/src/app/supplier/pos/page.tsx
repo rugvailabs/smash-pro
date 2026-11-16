@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
 import { getPOs } from "@/lib/supplier-api";
@@ -8,6 +9,8 @@ import type { PoFulfilment } from "@/lib/types";
 /* Purchase orders — SUP-009 · Workflow N. PO destination is admin-set:
    warehouse or direct-to-buyer (OBD-19 Option C — suppliers can never
    choose it). */
+
+export const metadata: Metadata = { title: "Purchase orders" };
 
 const TONE: Record<PoFulfilment, "info" | "warn" | "ok"> = {
   acknowledged: "info", "awaiting-proof": "warn", "delivered-proof": "ok", closed: "ok",

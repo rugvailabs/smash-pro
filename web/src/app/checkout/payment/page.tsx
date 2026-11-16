@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PaymentDemo } from "@/components/payment-demo";
 import { PageHead } from "@/components/buyer-ui";
 
 /* Payment demonstration — states per OBD-21 (auto-verify vs proof + admin
    verification vs failed/retry). Frontend demo only. */
+
+export const metadata: Metadata = { title: "Payment" };
 
 export default function PaymentPage({
   searchParams,

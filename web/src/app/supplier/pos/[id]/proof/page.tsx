@@ -1,12 +1,22 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { PageHead } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
 import { DeliveryProof } from "@/components/delivery-proof";
 import { getPO } from "@/lib/supplier-api";
 
 /* Delivery proof upload for an eligible direct-shipment PO (OBD-19). */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: `Delivery proof — ${decodeURIComponent(id).toUpperCase()}` };
+}
 
 export default function ProofPage({ params }: { params: Promise<{ id: string }> }) {
   return (

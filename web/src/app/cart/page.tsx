@@ -1,7 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CartView } from "@/components/cart-view";
 
 /* Cart — client cart lines over localStorage; checkout arrives in Phase C. */
+
+export const metadata: Metadata = { title: "Cart" };
 
 export default function CartPage() {
   return (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, Sect } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
 import { getPO } from "@/lib/supplier-api";
@@ -8,6 +9,15 @@ import { inr } from "@/lib/format";
 
 /* PO detail — SUP-009 · Workflow N. Terms display the awarded quotation
    version verbatim. Dispatch update is a prototype interaction. */
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  return { title: `Purchase order ${decodeURIComponent(id).toUpperCase()}` };
+}
 
 export default function PoPage({ params }: { params: Promise<{ id: string }> }) {
   return (

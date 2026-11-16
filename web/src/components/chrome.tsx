@@ -80,23 +80,27 @@ export function SiteHeader() {
           >
             PROSMASH
           </Link>
-          <form
-            role="search"
-            className="relative hidden max-w-[460px] flex-1 md:block"
-            onSubmit={(e) => {
-              e.preventDefault();
-              const q = new FormData(e.currentTarget).get("q");
-              router.push(`/search?q=${encodeURIComponent(String(q ?? ""))}`);
-            }}
-          >
-            <input
-              name="q"
-              type="search"
-              placeholder="Search equipment, categories…"
-              aria-label="Search"
-              className="h-10 w-full rounded-[2px] border border-white/25 bg-ink2 px-3 text-sm text-white placeholder:text-white/45"
-            />
-          </form>
+          {/* Commerce search is buyer-side chrome — suppliers work their own
+              queue and never search the sales catalogue. */}
+          {role !== "supplier" && (
+            <form
+              role="search"
+              className="relative hidden max-w-[460px] flex-1 md:block"
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = new FormData(e.currentTarget).get("q");
+                router.push(`/search?q=${encodeURIComponent(String(q ?? ""))}`);
+              }}
+            >
+              <input
+                name="q"
+                type="search"
+                placeholder="Search equipment, categories…"
+                aria-label="Search"
+                className="h-10 w-full rounded-[2px] border border-white/25 bg-ink2 px-3 text-sm text-white placeholder:text-white/45"
+              />
+            </form>
+          )}
           <div className="ml-auto flex items-center gap-4 md:gap-5">
             {(role === "visitor" || role === "pending") && (
               <a className="hidden text-sm font-medium text-white md:block" href="#" title="Sign-in arrives with account screens">
@@ -116,20 +120,23 @@ export function SiteHeader() {
                 </span>
               </span>
             )}
-            <Link href="/cart" className="relative inline-flex items-center gap-2 text-sm font-medium text-white">
-              Cart
-              <span className="min-w-5 rounded-[2px] bg-ember-deep px-1.5 py-px text-center font-mono text-[11px]">
-                {mounted ? count : 0}
-              </span>
-            </Link>
+            {/* The cart (and its badge) is buyer commerce — never supplier chrome. */}
+            {role !== "supplier" && (
+              <Link href="/cart" className="relative inline-flex items-center gap-2 text-sm font-medium text-white">
+                Cart
+                <span className="min-w-5 rounded-[2px] bg-ember-deep px-1.5 py-px text-center font-mono text-[11px]">
+                  {mounted ? count : 0}
+                </span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
 
       <nav aria-label="Site sections" className="sticky top-16 z-30 border-b border-n200 bg-chalk">
         <div className="mx-auto flex max-w-[1280px] gap-1 overflow-x-auto px-4 md:px-10">
-          {tab("/", "Shop", "/__home")}
-          {tab("/catalog?cat=cricket", "Catalogue", "/catalog")}
+          {tab("/", role === "supplier" ? "Home" : "Shop", "/__home")}
+          {role !== "supplier" && tab("/catalog?cat=cricket", "Catalogue", "/catalog")}
           {(role === "visitor" || role === "pending") && (
             <>
               {tab("/#how", "How it works", "/#how")}
@@ -184,14 +191,28 @@ export function SiteFooter() {
             schools, academies, colleges and retailers.
           </p>
         </div>
-        <div>
-          <h5 className={col}>Catalogue</h5>
-          <ul className="space-y-2">
-            {[["Cricket", "cricket"], ["Badminton", "badminton"], ["Basketball", "basketball"], ["Sportswear", "sportswear"]].map(([n, slug]) => (
-              <li key={slug}><Link className={item} href={`/catalog?cat=${slug}`}>{n}</Link></li>
-            ))}
-          </ul>
-        </div>
+        {role === "supplier" ? (
+          /* Suppliers get their workspace sections here — the buyer
+             catalogue links are commerce chrome and stay out of their way. */
+          <div>
+            <h5 className={col}>Workspace</h5>
+            <ul className="space-y-2">
+              <li><Link className={item} href="/supplier/requirements">Requirements</Link></li>
+              <li><Link className={item} href="/supplier/quotes">Quotations</Link></li>
+              <li><Link className={item} href="/supplier/pos">Purchase orders</Link></li>
+              <li><Link className={item} href="/supplier/payments">Payments</Link></li>
+            </ul>
+          </div>
+        ) : (
+          <div>
+            <h5 className={col}>Catalogue</h5>
+            <ul className="space-y-2">
+              {[["Cricket", "cricket"], ["Badminton", "badminton"], ["Basketball", "basketball"], ["Sportswear", "sportswear"]].map(([n, slug]) => (
+                <li key={slug}><Link className={item} href={`/catalog?cat=${slug}`}>{n}</Link></li>
+              ))}
+            </ul>
+          </div>
+        )}
         <div>
           <h5 className={col}>Platform</h5>
           <ul className="space-y-2">
@@ -202,7 +223,9 @@ export function SiteFooter() {
             {role === "buyer" && (
               <li><Link className={item} href="/dashboard">Your dashboard</Link></li>
             )}
-            <li><Link className={item} href="/cart">Cart</Link></li>
+            {role !== "supplier" && (
+              <li><Link className={item} href="/cart">Cart</Link></li>
+            )}
           </ul>
         </div>
         <div>

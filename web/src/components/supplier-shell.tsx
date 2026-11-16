@@ -69,7 +69,7 @@ const NAV: { group: string; items: { href: string; label: string; count?: number
     items: [
       { href: "/supplier", label: "Dashboard" },
       { href: "/supplier/requirements", label: "Requirements", count: 2 },
-      { href: "/supplier/quotes/REQ-2026-0089", label: "Quotations", count: 1 },
+      { href: "/supplier/quotes", label: "Quotations", count: 1 },
       { href: "/supplier/pos", label: "Purchase orders", count: 2 },
     ],
   },
@@ -81,7 +81,7 @@ const NAV: { group: string; items: { href: string; label: string; count?: number
 export function SupplierNav() {
   const pathname = usePathname();
   const isOn = (href: string) =>
-    href === "/supplier" ? pathname === "/supplier" : pathname.startsWith(href.split("/REQ-")[0]);
+    href === "/supplier" ? pathname === "/supplier" : pathname.startsWith(href);
 
   return (
     <nav aria-label="Supplier workspace" className="shrink-0 lg:w-[200px]">
