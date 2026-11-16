@@ -138,10 +138,11 @@ export function SiteHeader() {
           )}
           {role === "buyer" && (
             <>
-              {tab("#", "Dashboard", "/dashboard")}
-              {tab("#", "Orders", "/orders")}
-              {tab("#", "Requests", "/requests")}
-              {tab("#", "Account", "/account")}
+              {tab("/dashboard", "Dashboard", "/dashboard")}
+              {tab("/orders", "Orders", "/orders")}
+              {tab("/payments", "Payments", "/payments")}
+              {tab("/requests", "Requests", "/requests")}
+              {tab("/account", "Account", "/account")}
             </>
           )}
           {role === "supplier" && (
@@ -199,7 +200,7 @@ export function SiteFooter() {
               <li><a className={item} href="#">Register as a buyer</a></li>
             )}
             {role === "buyer" && (
-              <li><a className={item} href="#" title="Buyer screens arrive in Phase C">Your dashboard</a></li>
+              <li><Link className={item} href="/dashboard">Your dashboard</Link></li>
             )}
             <li><Link className={item} href="/cart">Cart</Link></li>
           </ul>

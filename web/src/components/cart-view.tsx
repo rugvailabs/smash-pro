@@ -2,18 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
 import { PRODUCTS } from "@/data/products";
 import { useCart, useRole } from "@/components/providers";
 import { inr } from "@/lib/format";
 
-/* Working demo cart. Checkout is role-gated; the full checkout flow
-   (address · GST breakdown · five payment methods) arrives in Phase C. */
+/* Working demo cart. Checkout is role-gated — approved buyers proceed to
+   the Phase C checkout (address · GST presentation · payment methods). */
 
 export function CartView() {
   const { role } = useRole();
   const { lines, setQty, remove } = useCart();
-  const [checkoutNote, setCheckoutNote] = useState(false);
 
   const priced = lines
     .map((l) => {
@@ -88,20 +86,12 @@ export function CartView() {
           </div>
         </div>
         {role === "buyer" ? (
-          <>
-            <button
-              className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
-              title="Full checkout arrives in Phase C"
-              onClick={() => setCheckoutNote(true)}
-            >
-              Proceed to checkout
-            </button>
-            {checkoutNote && (
-              <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
-                checkout demo arrives in phase c — address · gst breakdown · five payment methods
-              </p>
-            )}
-          </>
+          <Link
+            href="/checkout"
+            className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
+          >
+            Proceed to checkout
+          </Link>
         ) : (
           <a className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white" href="#">
             Register to order

@@ -11,7 +11,7 @@ export default function CartPage() {
       </div>
       <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[30px]">Your order</h1>
       <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
-        preview cart · sample data · checkout flow arrives in phase c
+        preview cart · sample data · all amounts illustrative
       </p>
       <CartView />
     </main>

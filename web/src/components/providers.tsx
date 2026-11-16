@@ -33,9 +33,10 @@ interface CartCtx {
   add: (sku: string, qty: number, config?: RacquetConfig, delta?: number) => void;
   setQty: (key: string, qty: number) => void;
   remove: (key: string) => void;
+  clear: () => void;
 }
 const CartContext = createContext<CartCtx>({
-  lines: [], count: 0, add: () => {}, setQty: () => {}, remove: () => {},
+  lines: [], count: 0, add: () => {}, setQty: () => {}, remove: () => {}, clear: () => {},
 });
 
 export function useCart() { return useContext(CartContext); }
@@ -103,6 +104,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     [lines, persist]
   );
 
+  const clear = useCallback(() => persist([]), [persist]);
+
   const count = useMemo(() => lines.reduce((s, l) => s + l.qty, 0), [lines]);
 
   const roleValue = useMemo(
@@ -110,8 +113,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     [role, setRole, isClient]
   );
   const cartValue = useMemo(
-    () => ({ lines, count, add, setQty, remove }),
-    [lines, count, add, setQty, remove]
+    () => ({ lines, count, add, setQty, remove, clear }),
+    [lines, count, add, setQty, remove, clear]
   );
 
   return (
