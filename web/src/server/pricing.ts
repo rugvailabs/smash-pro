@@ -1,14 +1,23 @@
 import "server-only";
-import { and, eq, isNull, or } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db, schema } from "@/server/db";
+import { normalizeBuyerType } from "@/lib/buyer-types";
 
 /* ============================================================
-   Pricing (OBD-20 DECIDED structure): discount applied before
-   GST presentation; INDIVIDUAL override beats category discount
-   (Option A precedence). Prices are GST-inclusive paise.
-   Applicable prices are computed SERVER-SIDE and serialised only
-   for approved buyers — anonymous/pending responses never carry
-   the field at all (price isolation at the boundary).
+   Pricing (OBD-05 revised): the approved-buyer discount is a
+   single rate per BUYER ORGANISATION TYPE, applied uniformly to
+   every product in all categories. There are no product-level or
+   per-organisation override rules — the buyer's organisation type
+   (resolved from the VERIFIED organisations.orgType, never client
+   data) fully determines the discount.
+
+   Discounts are basis points off the public standard listed price
+   and apply BEFORE GST presentation. Prices are GST-inclusive
+   paise. The applicable (buyer) price is computed SERVER-SIDE and
+   serialised only for approved buyers — anonymous / pending
+   responses never carry the field (price isolation at the
+   boundary). One buyer's rate never reveals another's: the rate
+   is keyed only by the requesting buyer's own org type.
    ============================================================ */
 
 export interface PricedProduct {
@@ -29,42 +38,33 @@ export interface PricedProduct {
 
 const toRupees = (paise: number) => Math.round(paise) / 100;
 
-/** OBD-20 Option A: org-product override > org-category > category-default. */
-export async function discountBpFor(
-  orgId: number | null,
-  catSlug: string,
-  sku: string
-): Promise<number> {
-  if (orgId !== null) {
-    const [op] = await db
-      .select()
-      .from(schema.priceRules)
-      .where(and(eq(schema.priceRules.scope, "org-product"), eq(schema.priceRules.orgId, orgId), eq(schema.priceRules.sku, sku)));
-    if (op) return op.discountPct;
-    const [oc] = await db
-      .select()
-      .from(schema.priceRules)
-      .where(and(eq(schema.priceRules.scope, "org-category"), eq(schema.priceRules.orgId, orgId), eq(schema.priceRules.catSlug, catSlug)));
-    if (oc) return oc.discountPct;
-  }
-  const [cd] = await db
-    .select()
-    .from(schema.priceRules)
-    .where(and(eq(schema.priceRules.scope, "category-default"), eq(schema.priceRules.catSlug, catSlug), isNull(schema.priceRules.orgId)));
-  return cd?.discountPct ?? 0;
-}
-
 export function applyDiscountPaise(stdPaise: number, bp: number): number {
   // basis points; round to whole paise (rounding method detail stays ◇ OBD-20)
   return Math.round((stdPaise * (10_000 - bp)) / 10_000);
 }
 
-/** Map a product row to its API shape; buyerOrgId=null → no buyer price. */
-export async function priceProduct(
-  p: typeof schema.products.$inferSelect,
-  buyerOrgId: number | null
-): Promise<PricedProduct> {
-  const out: PricedProduct = {
+/** The active buyer-category discount (basis points) for a buyer org.
+ *  Resolves the org's VERIFIED type → bucket → active rate. Returns 0 when
+ *  the org is unknown, or no active rate is configured for its type — an
+ *  approved buyer with no configured discount simply sees the standard price.
+ *  null orgId (anonymous / pending) always returns 0 and no buyer price is set. */
+export async function buyerTypeDiscountBp(buyerOrgId: number | null): Promise<number> {
+  if (buyerOrgId === null) return 0;
+  const [org] = await db
+    .select({ orgType: schema.organizations.orgType })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, buyerOrgId));
+  if (!org) return 0;
+  const key = normalizeBuyerType(org.orgType);
+  const [rule] = await db
+    .select({ discountBp: schema.buyerTypeDiscounts.discountBp })
+    .from(schema.buyerTypeDiscounts)
+    .where(and(eq(schema.buyerTypeDiscounts.buyerType, key), eq(schema.buyerTypeDiscounts.active, true)));
+  return rule?.discountBp ?? 0;
+}
+
+function toDto(p: typeof schema.products.$inferSelect): PricedProduct {
+  return {
     sku: p.sku,
     name: p.name,
     cat: p.catSlug,
@@ -76,57 +76,31 @@ export async function priceProduct(
     configurable: p.configurable || undefined,
     specs: p.specs,
   };
+}
+
+/** Map a product row to its API shape; buyerOrgId=null → no buyer price. */
+export async function priceProduct(
+  p: typeof schema.products.$inferSelect,
+  buyerOrgId: number | null
+): Promise<PricedProduct> {
+  const out = toDto(p);
   if (buyerOrgId !== null) {
-    const bp = await discountBpFor(buyerOrgId, p.catSlug, p.sku);
+    const bp = await buyerTypeDiscountBp(buyerOrgId);
     out.buyer = toRupees(applyDiscountPaise(p.stdPaise, bp));
   }
   return out;
 }
 
-/** Batch variant — fetches the org's full rule set once, then resolves
- *  OBD-20 Option A precedence PER PRODUCT (org-product > org-category >
- *  category-default), so per-SKU overrides never bleed across a category. */
+/** Batch variant — resolves the buyer's single buyer-type rate ONCE, then
+ *  applies it uniformly to every product (no per-SKU rule resolution). */
 export async function priceProducts(
   rows: (typeof schema.products.$inferSelect)[],
   buyerOrgId: number | null
 ): Promise<PricedProduct[]> {
-  const bySku = new Map<string, number>();
-  const byOrgCat = new Map<string, number>();
-  const byCatDefault = new Map<string, number>();
-  if (buyerOrgId !== null && rows.length) {
-    const rules = await db
-      .select()
-      .from(schema.priceRules)
-      .where(
-        or(
-          and(eq(schema.priceRules.orgId, buyerOrgId), eq(schema.priceRules.scope, "org-product")),
-          and(eq(schema.priceRules.orgId, buyerOrgId), eq(schema.priceRules.scope, "org-category")),
-          and(eq(schema.priceRules.scope, "category-default"), isNull(schema.priceRules.orgId))
-        )
-      );
-    for (const r of rules) {
-      if (r.scope === "org-product" && r.sku) bySku.set(r.sku, r.discountPct);
-      else if (r.scope === "org-category" && r.catSlug) byOrgCat.set(r.catSlug, r.discountPct);
-      else if (r.scope === "category-default" && r.catSlug) byCatDefault.set(r.catSlug, r.discountPct);
-    }
-  }
+  const bp = buyerOrgId !== null ? await buyerTypeDiscountBp(buyerOrgId) : 0;
   return rows.map((p) => {
-    const base: PricedProduct = {
-      sku: p.sku,
-      name: p.name,
-      cat: p.catSlug,
-      sub: p.sub,
-      img: p.img ?? undefined,
-      gallery: p.gallery ?? undefined,
-      meta: p.meta,
-      std: toRupees(p.stdPaise),
-      configurable: p.configurable || undefined,
-      specs: p.specs,
-    };
-    if (buyerOrgId !== null) {
-      const bp = bySku.get(p.sku) ?? byOrgCat.get(p.catSlug) ?? byCatDefault.get(p.catSlug) ?? 0;
-      base.buyer = toRupees(applyDiscountPaise(p.stdPaise, bp));
-    }
+    const base = toDto(p);
+    if (buyerOrgId !== null) base.buyer = toRupees(applyDiscountPaise(p.stdPaise, bp));
     return base;
   });
 }

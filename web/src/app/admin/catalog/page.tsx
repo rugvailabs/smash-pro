@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { NoteFlag, Sect } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 import { AdminGate } from "@/components/admin-shell";
-import { AdminHead, ADMIN_CATEGORIES } from "@/components/admin-ui";
-import { BulkCatalog, CategoryDiscountForm } from "@/components/admin-bulk-catalog";
+import { AdminHead } from "@/components/admin-ui";
+import { BulkCatalog } from "@/components/admin-bulk-catalog";
 import { ProductForm } from "@/components/admin-product-form";
 import { getAdminCounts, getProductsAdmin } from "@/lib/admin-api";
 
@@ -46,14 +47,13 @@ async function AdminCatalogContent() {
 
       <BulkCatalog products={products} />
       <NoteFlag className="mt-2.5">
-        standard listed prices are public (obd-03) — buyer discounts apply on
-        top via price rules · deactivating hides the product from the
-        catalogue without deleting its record · bulk and single-item controls
-        are both recorded (plt-003)
+        standard listed prices are public (obd-03) — approved-buyer discounts
+        are set per buyer organisation type on the{" "}
+        <Link href="/admin/pricing" className="font-semibold text-ember-deep hover:underline">Pricing</Link>{" "}
+        page and apply to all products · deactivating hides the product from
+        the catalogue without deleting its record · bulk and single-item
+        controls are both recorded (plt-003)
       </NoteFlag>
-
-      <Sect>Category default discount</Sect>
-      <CategoryDiscountForm categories={ADMIN_CATEGORIES} />
 
       <div className="mt-8 grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
         <div className="min-w-0">

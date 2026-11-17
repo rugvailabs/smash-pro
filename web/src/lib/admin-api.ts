@@ -2,14 +2,15 @@ import type {
   AdminAnalytics, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminReport, AdminRequirementDetail,
-  AdminRequirementRow, AuditLogPage, Reconciliation, SupplierPerformanceRow,
+  AdminRequirementRow, AuditLogPage, BuyerTypeDiscountRow, Reconciliation,
+  SupplierPerformanceRow,
 } from "@/lib/admin-types";
 import {
-  adminCountsForSession, complaintsForAdmin, getAnalytics, getAuditLog,
-  getOrganizationsFull, getReconciliation, getSupplierPerformance, orderForAdmin,
-  ordersForAdmin, organizationForAdmin, organizationsForAdmin, paymentsForAdmin,
-  posForAdmin, priceRulesForAdmin, productRequestsForAdmin, productsForAdmin,
-  reportForAdmin, requirementForAdmin, requirementsForAdmin,
+  adminCountsForSession, buyerTypeDiscountsForAdmin, complaintsForAdmin, getAnalytics,
+  getAuditLog, getOrganizationsFull, getReconciliation, getSupplierPerformance,
+  orderForAdmin, ordersForAdmin, organizationForAdmin, organizationsForAdmin,
+  paymentsForAdmin, posForAdmin, priceRulesForAdmin, productRequestsForAdmin,
+  productsForAdmin, reportForAdmin, requirementForAdmin, requirementsForAdmin,
 } from "@/server/admin";
 
 /** API BOUNDARY — Super Admin reads (B5), backed by server/admin.ts.
@@ -37,6 +38,10 @@ export async function getProductsAdmin(): Promise<AdminProductRow[]> {
 
 export async function getPriceRulesAdmin(): Promise<AdminPriceRule[]> {
   return priceRulesForAdmin();
+}
+
+export async function getBuyerTypeDiscounts(): Promise<BuyerTypeDiscountRow[]> {
+  return buyerTypeDiscountsForAdmin();
 }
 
 export async function getOrdersAdmin(): Promise<AdminOrderRow[]> {

@@ -52,11 +52,17 @@ export async function runSeed() {
       active: true,
     }))
   );
-  // OBD-20 decided structure — illustrative 15% category-default tier
-  // reproduces the approved sample buyer price (std × 0.85) exactly.
-  await db.insert(schema.priceRules).values(
-    CATEGORIES.map((c) => ({ scope: "category-default", catSlug: c.slug, discountPct: 1500 }))
-  );
+  // OBD-05 (revised): buyer-CATEGORY discounts — one rate per buyer org type,
+  // applied uniformly to every product in all categories for approved buyers
+  // of that type. Illustrative percentages (OBD-20 pending). "Schools &
+  // Colleges" at 15% reproduces the approved sample buyer price (std × 0.85)
+  // exactly for the demo School buyer.
+  await db.insert(schema.buyerTypeDiscounts).values([
+    { buyerType: "schools-colleges", discountBp: 1500, active: true },
+    { buyerType: "sports-academies", discountBp: 1200, active: true },
+    { buyerType: "retail-shops", discountBp: 800, active: true },
+    { buyerType: "other-institutions", discountBp: 1000, active: true },
+  ]);
 
   /* organizations */
   const [buyerOrg] = await db.insert(schema.organizations).values({
@@ -67,11 +73,9 @@ export async function runSeed() {
     city: INSTITUTION.city, buyerCategory: INSTITUTION.buyerCategory,
   }).returning();
 
-  // One org-product override (OBD-20 Option A top precedence): St. Xavier's
-  // gets 20% on the stumps set — exercises per-SKU precedence end-to-end.
-  await db.insert(schema.priceRules).values({
-    scope: "org-product", orgId: buyerOrg.id, sku: "CR-0915", discountPct: 2000,
-  });
+  // OBD-05 (revised): no per-organisation or per-product override rules —
+  // the demo School buyer's discount derives solely from its organisation
+  // type (schools-colleges, 15%), applied across every product.
 
   const supplierCatSlugs = ["cricket", "athletics", "gym-fitness"];
   const [supplierOrg] = await db.insert(schema.organizations).values({

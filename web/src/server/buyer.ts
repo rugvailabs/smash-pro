@@ -3,7 +3,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { audit, getSession, type SessionUser } from "@/server/auth";
 import { notifyAdmins } from "@/server/notifications";
-import { applyDiscountPaise, discountBpFor } from "@/server/pricing";
+import { applyDiscountPaise, buyerTypeDiscountBp } from "@/server/pricing";
 import { RACQUET_OPTIONS } from "@/data/products";
 import type { BuyerRequest, Institution, Order, RacquetConfig } from "@/lib/types";
 import type { BuyerAccount, BuyerAddress, ReorderResult } from "@/lib/buyer-api";
@@ -178,10 +178,11 @@ export async function cartForSession(): Promise<CartDto | null> {
     .orderBy(asc(schema.cartLines.id));
   const out: CartLineDto[] = [];
   let itemsIncl = 0;
+  // buyer-type discount is uniform across all products — resolve it once
+  const bp = await buyerTypeDiscountBp(s.orgId!);
   for (const l of lines) {
     const [p] = await db.select().from(schema.products).where(eq(schema.products.sku, l.sku));
     if (!p) continue;
-    const bp = await discountBpFor(s.orgId!, p.catSlug, p.sku);
     const unitPaise = applyDiscountPaise(p.stdPaise, bp) + l.deltaPaise;
     const totalPaise = unitPaise * l.qty;
     itemsIncl += totalPaise;

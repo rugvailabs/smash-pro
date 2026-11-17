@@ -48,6 +48,8 @@ export interface AdminProductRow {
   hasImg: boolean;
 }
 
+/** LEGACY — product-category / per-org / per-product rules (superseded by
+ *  BuyerTypeDiscountRow). Retained only while the legacy routes exist. */
 export interface AdminPriceRule {
   id: number;
   scope: "category-default" | "org-category" | "org-product";
@@ -57,6 +59,20 @@ export interface AdminPriceRule {
   sku: string | null;
   /** basis points — 1500 = 15% */
   discountBp: number;
+}
+
+/** OBD-05 (revised) buyer-category discount row — one per buyer org type.
+ *  Always returns the full set of four types (configured or not). */
+export interface BuyerTypeDiscountRow {
+  buyerType: string;
+  label: string;
+  /** always "All Products" — the rate applies across every category */
+  coverage: string;
+  /** whether a rate has been set for this type */
+  configured: boolean;
+  /** rate as a percentage (e.g. 12.5), 0 when not configured */
+  discountPct: number;
+  active: boolean;
 }
 
 export interface AdminOrderRow {

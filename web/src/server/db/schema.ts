@@ -81,9 +81,10 @@ export const products = pgTable("products", {
   active: boolean("active").notNull().default(true),
 });
 
-/** OBD-20 decided structure: discount before GST; individual overrides
- *  category. scope: 'category-default' (catSlug) | 'org-category'
- *  (orgId+catSlug) | 'org-product' (orgId+sku). */
+/** LEGACY (OBD-20 Option A) — product-category / per-org / per-product
+ *  discount rules. Superseded by buyer-type discounts (OBD-05 revision):
+ *  the pricing engine no longer reads this table. Retained (not dropped)
+ *  pending an approved data migration of any live rows. */
 export const priceRules = pgTable("price_rules", {
   id: serial("id").primaryKey(),
   scope: text("scope").notNull(),
@@ -92,6 +93,20 @@ export const priceRules = pgTable("price_rules", {
   sku: text("sku").references(() => products.sku),
   discountPct: integer("discount_pct_bp").notNull(), // basis points (1500 = 15%)
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** OBD-05 (revised): buyer-CATEGORY discounts. One configurable rate per
+ *  buyer organisation type, applied uniformly to EVERY product in ALL
+ *  categories for every approved buyer of that type. `buyerType` is one of
+ *  the four BuyerTypeKey values (lib/buyer-types.ts); `discountBp` is basis
+ *  points off the public standard listed price, applied before GST; `active`
+ *  toggles the rate without deleting it. At most one row per buyer type. */
+export const buyerTypeDiscounts = pgTable("buyer_type_discounts", {
+  id: serial("id").primaryKey(),
+  buyerType: text("buyer_type").notNull(), // schools-colleges | sports-academies | retail-shops | other-institutions
+  discountBp: integer("discount_bp").notNull(), // basis points (1500 = 15%)
+  active: boolean("active").notNull().default(true),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
 /* ---------- buyer org data ---------- */

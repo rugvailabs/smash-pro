@@ -3,12 +3,13 @@ import { and, asc, desc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { audit, getSession, requireAdmin, type SessionUser } from "@/server/auth";
 import { notifyOrg } from "@/server/notifications";
+import { BUYER_TYPES, isBuyerTypeKey, type BuyerTypeKey } from "@/lib/buyer-types";
 import type {
   AdminAnalytics, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminQuoteView, AdminReport,
   AdminRequirementDetail, AdminRequirementRow, AuditLogPage, AuditLogRow,
-  Reconciliation, ReconciliationRow, SupplierPerformanceRow,
+  BuyerTypeDiscountRow, Reconciliation, ReconciliationRow, SupplierPerformanceRow,
 } from "@/lib/admin-types";
 
 /* ============================================================
@@ -415,6 +416,106 @@ export async function deletePriceRule(id: number) {
   await db.delete(schema.priceRules).where(eq(schema.priceRules.id, id));
   await audit(s.userId, "price-rule.delete", "price_rule", String(id), {
     scope: rule.scope, orgId: rule.orgId, catSlug: rule.catSlug, sku: rule.sku,
+  });
+}
+
+/* ---------- buyer-category discounts (OBD-05 revised) ----------
+   One rate per buyer organisation type, applied to ALL products in
+   ALL categories for every approved buyer of that type. Percentages
+   at the boundary; stored as basis points. Max one row per type. */
+
+const MAX_DISCOUNT_BP = 9000; // 90% ceiling (mirrors the legacy bound)
+
+/** Returns all four buyer types with their current rate (percent), active
+ *  state and whether a rate has been configured — so the admin table always
+ *  shows the full set of buyer categories. */
+export async function buyerTypeDiscountsForAdmin(): Promise<BuyerTypeDiscountRow[]> {
+  if (!(await adminSession())) return [];
+  const rows = await db.select().from(schema.buyerTypeDiscounts);
+  const byType = new Map(rows.map((x) => [x.buyerType, x]));
+  return BUYER_TYPES.map((t) => {
+    const row = byType.get(t.key);
+    return {
+      buyerType: t.key,
+      label: t.label,
+      coverage: "All Products",
+      configured: row !== undefined,
+      discountPct: row ? row.discountBp / 100 : 0,
+      active: row ? row.active : false,
+    };
+  });
+}
+
+function bpFromPercent(pct: number): number {
+  if (!Number.isFinite(pct) || pct < 0 || pct > MAX_DISCOUNT_BP / 100) {
+    throw new Error("400:Discount must be a percentage between 0 and 90");
+  }
+  const bp = Math.round(pct * 100); // 12.5% → 1250 bp
+  if (!Number.isInteger(bp) || bp < 0 || bp > MAX_DISCOUNT_BP) {
+    throw new Error("400:Discount must be a percentage between 0 and 90");
+  }
+  return bp;
+}
+
+/** Create or edit the rate for a buyer type (upsert — one row per type).
+ *  `active` defaults to true so creating a rate enables it. */
+export async function upsertBuyerTypeDiscount(input: {
+  buyerType: string; discountPct: number; active?: boolean;
+}): Promise<{ buyerType: BuyerTypeKey; discountPct: number; active: boolean }> {
+  const s = await requireAdmin();
+  if (!isBuyerTypeKey(input.buyerType)) throw new Error("400:Unknown buyer category");
+  const bp = bpFromPercent(input.discountPct);
+  const active = input.active ?? true;
+
+  const [existing] = await db
+    .select({ id: schema.buyerTypeDiscounts.id })
+    .from(schema.buyerTypeDiscounts)
+    .where(eq(schema.buyerTypeDiscounts.buyerType, input.buyerType));
+  if (existing) {
+    await db
+      .update(schema.buyerTypeDiscounts)
+      .set({ discountBp: bp, active, updatedAt: new Date() })
+      .where(eq(schema.buyerTypeDiscounts.id, existing.id));
+  } else {
+    await db
+      .insert(schema.buyerTypeDiscounts)
+      .values({ buyerType: input.buyerType, discountBp: bp, active });
+  }
+  await audit(s.userId, "buyer-discount.upsert", "buyer_type_discount", input.buyerType, {
+    discountBp: bp, active,
+  });
+  return { buyerType: input.buyerType, discountPct: bp / 100, active };
+}
+
+/** Activate / deactivate a buyer type's rate without deleting it. */
+export async function setBuyerTypeDiscountActive(buyerType: string, active: boolean) {
+  const s = await requireAdmin();
+  if (!isBuyerTypeKey(buyerType)) throw new Error("400:Unknown buyer category");
+  const [existing] = await db
+    .select({ id: schema.buyerTypeDiscounts.id })
+    .from(schema.buyerTypeDiscounts)
+    .where(eq(schema.buyerTypeDiscounts.buyerType, buyerType));
+  if (!existing) throw new Error("404");
+  await db
+    .update(schema.buyerTypeDiscounts)
+    .set({ active, updatedAt: new Date() })
+    .where(eq(schema.buyerTypeDiscounts.id, existing.id));
+  await audit(s.userId, "buyer-discount.active", "buyer_type_discount", buyerType, { active });
+}
+
+/** Remove a buyer type's rate entirely — that type reverts to the standard
+ *  listed price for its approved buyers. */
+export async function removeBuyerTypeDiscount(buyerType: string) {
+  const s = await requireAdmin();
+  if (!isBuyerTypeKey(buyerType)) throw new Error("400:Unknown buyer category");
+  const [existing] = await db
+    .select()
+    .from(schema.buyerTypeDiscounts)
+    .where(eq(schema.buyerTypeDiscounts.buyerType, buyerType));
+  if (!existing) throw new Error("404");
+  await db.delete(schema.buyerTypeDiscounts).where(eq(schema.buyerTypeDiscounts.id, existing.id));
+  await audit(s.userId, "buyer-discount.remove", "buyer_type_discount", buyerType, {
+    discountBp: existing.discountBp,
   });
 }
 
