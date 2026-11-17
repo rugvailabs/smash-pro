@@ -126,7 +126,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Football ---------------- */
   {
     sku: "FB-0105", name: "Football — Size 5, Thermo-bonded Match",
-    cat: "football", sub: "Balls",
+    cat: "football", sub: "Balls", img: "/img/football/match-football-hero.jpg",
     meta: "Size 5 · thermo-bonded, match grade", std: 1480, buyer: 1258,
     specs: [
       ["Size", "5 (official)"],
@@ -208,7 +208,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BB-0108", name: "Training Basketball — Size 6, Rubber, Box of 5",
-    cat: "basketball", sub: "Balls",
+    cat: "basketball", sub: "Balls", img: "/img/basketball/training-basketball-hero.jpg",
     meta: "Size 6 · moulded rubber · box of 5", std: 4200, buyer: 3570,
     specs: [
       ["Size", "6"],
@@ -228,7 +228,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BB-0202", name: "Basketball Net — Heavy Nylon, Pair",
-    cat: "basketball", sub: "Court equipment",
+    cat: "basketball", sub: "Court equipment", img: "/img/basketball/basketball-net-hero.jpg",
     meta: "Heavy nylon · 12-loop · pair", std: 460, buyer: 391,
     specs: [
       ["Twine", "Heavy braided nylon"],
@@ -269,7 +269,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Volleyball ---------------- */
   {
     sku: "VB-0104", name: "Volleyball — Match, 18-Panel PU",
-    cat: "volleyball", sub: "Balls",
+    cat: "volleyball", sub: "Balls", img: "/img/volleyball/volleyball-match-hero.jpg",
     meta: "18-panel PU · match grade", std: 1260, buyer: 1071,
     specs: [
       ["Construction", "18-panel, machine-stitched PU"],
@@ -289,7 +289,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "VB-0203", name: "Volleyball Net — Competition, 9.5 m",
-    cat: "volleyball", sub: "Nets & posts",
+    cat: "volleyball", sub: "Nets & posts", img: "/img/volleyball/volleyball-net-hero.jpg",
     meta: "9.5 m · steel top cable", std: 1850, buyer: 1572.5,
     specs: [
       ["Length", "9.5 m"],
@@ -309,7 +309,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "VB-0215", name: "Net Antenna & Pocket Set — Fibreglass, Pair",
-    cat: "volleyball", sub: "Nets & posts",
+    cat: "volleyball", sub: "Nets & posts", img: "/img/volleyball/net-antenna-hero.jpg",
     meta: "Fibreglass rods · pair with pockets", std: 980, buyer: 833,
     specs: [
       ["Rod", "Fibreglass, 1.8 m, banded"],
@@ -353,7 +353,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BD-2104", name: "Institutional Racquet — Aluminium, Set of 4",
-    cat: "badminton", sub: "Racquets",
+    cat: "badminton", sub: "Racquets", img: "/img/badminton/racquet-aluminium-hero.jpg",
     meta: "Aluminium frame · set of 4, strung", std: 2360, buyer: 2006,
     specs: [
       ["Frame", "Aluminium, steel shaft"],
@@ -425,7 +425,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "TN-0204", name: "Tennis Balls — Pressurised Match, Carton of 24",
-    cat: "tennis", sub: "Balls",
+    cat: "tennis", sub: "Balls", img: "/img/tennis/tennis-balls-hero.jpg",
     meta: "Pressurised felt · carton of 24", std: 3120, buyer: 2652,
     specs: [
       ["Type", "Pressurised, woven felt"],
@@ -445,7 +445,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "TN-0303", name: "Tennis Net — Double Top Braid, 12.8 m",
-    cat: "tennis", sub: "Nets & posts",
+    cat: "tennis", sub: "Nets & posts", img: "/img/tennis/tennis-net-hero.jpg",
     meta: "12.8 m · 3 mm braided PE", std: 3880, buyer: 3298,
     specs: [
       ["Length", "12.8 m (doubles)"],
@@ -487,7 +487,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AT-0115", name: "Training Hurdles — Collapsible, Set of 10",
-    cat: "athletics", sub: "Track equipment",
+    cat: "athletics", sub: "Track equipment", img: "/img/athletics/hurdle-training-hero.jpg",
     meta: "Height-adjustable · set of 10", std: 8400, buyer: 7140,
     specs: [
       ["Heights", "Adjustable, 5 settings"],
@@ -623,7 +623,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "IG-0109", name: "Table Tennis Bats — Club, Set of 4",
-    cat: "indoor-games", sub: "Table tennis",
+    cat: "indoor-games", sub: "Table tennis", img: "/img/indoor-games/tt-bat-hero.jpg",
     meta: "Pimpled-in rubber · set of 4", std: 1720, buyer: 1462,
     specs: [
       ["Blade", "5-ply wood"],
@@ -643,7 +643,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "IG-0204", name: "Carrom Board — Tournament, 84 cm",
-    cat: "indoor-games", sub: "Carrom",
+    cat: "indoor-games", sub: "Carrom", img: "/img/indoor-games/carrom-board-hero.jpg",
     meta: "84 cm plywood surface", std: 4650, buyer: 3952.5,
     specs: [
       ["Playing surface", "84 cm, seasoned plywood"],
@@ -663,7 +663,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "IG-0303", name: "Chess Sets — Weighted, Folding Board, Set of 5",
-    cat: "indoor-games", sub: "Board games",
+    cat: "indoor-games", sub: "Board games", img: "/img/indoor-games/chess-set-hero.jpg",
     meta: "48 cm folding boards · set of 5", std: 3400, buyer: 2890,
     specs: [
       ["Board", "48 cm, folding"],
@@ -673,7 +673,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "IG-0309", name: "Ludo & Snakes Combo Boards — Set of 10",
-    cat: "indoor-games", sub: "Board games",
+    cat: "indoor-games", sub: "Board games", img: "/img/indoor-games/ludo-board-hero.jpg",
     meta: "Two-in-one boards · set of 10", std: 1900, buyer: 1615,
     specs: [
       ["Board", "Two-in-one, laminated"],
@@ -725,7 +725,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "OG-0209", name: "Flying Discs — 175 g, Set of 6",
-    cat: "outdoor-games", sub: "Playground",
+    cat: "outdoor-games", sub: "Playground", img: "/img/outdoor-games/flying-discs-hero.jpg",
     meta: "175 g · set of 6", std: 1440, buyer: 1224,
     specs: [
       ["Weight", "175 g"],
@@ -735,7 +735,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "OG-0302", name: "Roller Skates — Adjustable Junior, Pair",
-    cat: "outdoor-games", sub: "Skating",
+    cat: "outdoor-games", sub: "Skating", img: "/img/outdoor-games/roller-skates-hero.jpg",
     meta: "4-size adjustable · pair", std: 1850, buyer: 1572.5,
     specs: [
       ["Adjustment", "4 sizes per unit"],
@@ -757,7 +757,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "SW-3102", name: "Team Tracksuits — Set of 15",
-    cat: "sportswear", sub: "Team wear",
+    cat: "sportswear", sub: "Team wear", img: "/img/sportswear/tracksuit-hero.jpg",
     meta: "Warp-knit polyester · set of 15", std: 13500, buyer: 11475,
     specs: [
       ["Fabric", "Warp-knit polyester"],

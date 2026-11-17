@@ -156,6 +156,16 @@ export const inputCls =
   "h-10 w-full rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink placeholder:text-n400";
 export const labelCls = "mb-1.5 block text-[13px] font-medium text-ink";
 
+/** CSV export link — a plain download anchor to a server export route (NOT a
+ *  page, so Next's Link is wrong here; the rule is disabled intentionally). */
+export function ExportCsvLink({ kind, label = "Export CSV" }: { kind: string; label?: string }) {
+  return (
+    <a href={`/api/admin/export/${kind}`} className={btnGhost} download>
+      {label}
+    </a>
+  );
+}
+
 /** Audit reassurance line — rendered wherever mutations happen. */
 export function AuditNote({ className = "mt-2.5" }: { className?: string }) {
   return (

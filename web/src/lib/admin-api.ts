@@ -1,13 +1,15 @@
 import type {
-  AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow, AdminOrgRow,
-  AdminPaymentRow, AdminPoRow, AdminPriceRule, AdminProductRequestRow, AdminProductRow,
-  AdminReport, AdminRequirementDetail, AdminRequirementRow,
+  AdminAnalytics, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
+  AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
+  AdminProductRequestRow, AdminProductRow, AdminReport, AdminRequirementDetail,
+  AdminRequirementRow, AuditLogPage, Reconciliation, SupplierPerformanceRow,
 } from "@/lib/admin-types";
 import {
-  adminCountsForSession, complaintsForAdmin, orderForAdmin, ordersForAdmin,
-  organizationForAdmin, organizationsForAdmin, paymentsForAdmin, posForAdmin,
-  priceRulesForAdmin, productRequestsForAdmin, productsForAdmin, reportForAdmin,
-  requirementForAdmin, requirementsForAdmin,
+  adminCountsForSession, complaintsForAdmin, getAnalytics, getAuditLog,
+  getOrganizationsFull, getReconciliation, getSupplierPerformance, orderForAdmin,
+  ordersForAdmin, organizationForAdmin, organizationsForAdmin, paymentsForAdmin,
+  posForAdmin, priceRulesForAdmin, productRequestsForAdmin, productsForAdmin,
+  reportForAdmin, requirementForAdmin, requirementsForAdmin,
 } from "@/server/admin";
 
 /** API BOUNDARY — Super Admin reads (B5), backed by server/admin.ts.
@@ -71,4 +73,28 @@ export async function getProductRequestsAdmin(): Promise<AdminProductRequestRow[
 
 export async function getAdminReport(): Promise<AdminReport | null> {
   return reportForAdmin();
+}
+
+/* ---------- enhancements (B5+) ---------- */
+
+export async function getAuditLogAdmin(filter?: {
+  entity?: string; entityId?: string; limit?: number; offset?: number;
+}): Promise<AuditLogPage> {
+  return getAuditLog(filter);
+}
+
+export async function getOrganizationsFullAdmin(): Promise<AdminOrgFullRow[]> {
+  return getOrganizationsFull();
+}
+
+export async function getSupplierPerformanceAdmin(): Promise<SupplierPerformanceRow[]> {
+  return getSupplierPerformance();
+}
+
+export async function getReconciliationAdmin(): Promise<Reconciliation> {
+  return getReconciliation();
+}
+
+export async function getAnalyticsAdmin(): Promise<AdminAnalytics | null> {
+  return getAnalytics();
 }

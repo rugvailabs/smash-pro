@@ -1,11 +1,14 @@
 import "server-only";
-import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, ne } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { audit, getSession, requireAdmin, type SessionUser } from "@/server/auth";
+import { notifyOrg } from "@/server/notifications";
 import type {
-  AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow, AdminOrgRow,
-  AdminPaymentRow, AdminPoRow, AdminPriceRule, AdminProductRequestRow, AdminProductRow,
-  AdminQuoteView, AdminReport, AdminRequirementDetail, AdminRequirementRow,
+  AdminAnalytics, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
+  AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
+  AdminProductRequestRow, AdminProductRow, AdminQuoteView, AdminReport,
+  AdminRequirementDetail, AdminRequirementRow, AuditLogPage, AuditLogRow,
+  Reconciliation, ReconciliationRow, SupplierPerformanceRow,
 } from "@/lib/admin-types";
 
 /* ============================================================
@@ -62,13 +65,20 @@ function nextOrderStatus(o: {
   return null;
 }
 
+/** Admin PO lifecycle (PO contract): a PO is issued in the `issued` state and
+ *  only the SUPPLIER moves `issued`→`acknowledged` and (direct)
+ *  `acknowledged`→`awaiting-proof`→`delivered-proof`. The admin can only CLOSE
+ *  a PO that has reached its admin-closeable state — a WAREHOUSE PO at
+ *  `acknowledged`, or a DIRECT PO at `delivered-proof`. `issued` and
+ *  `awaiting-proof` are the supplier's to move, so this returns null for them
+ *  (and for any other non-closeable combination). */
 function nextPoFulfilment(p: {
   fulfilment: string; destination: string;
 }): { fulfilment: string; label: string } | null {
-  if (p.fulfilment === "acknowledged" && p.destination === "direct") {
-    return { fulfilment: "awaiting-proof", label: "Awaiting delivery proof" };
+  if (p.fulfilment === "acknowledged" && p.destination === "warehouse") {
+    return { fulfilment: "closed", label: "Received in full · closed" };
   }
-  if (p.fulfilment === "acknowledged" || p.fulfilment === "delivered-proof") {
+  if (p.fulfilment === "delivered-proof" && p.destination === "direct") {
     return { fulfilment: "closed", label: "Received in full · closed" };
   }
   return null;
@@ -644,7 +654,7 @@ export async function requirementForAdmin(id: string): Promise<AdminRequirementD
       })),
       // supplier-side rows store "you" for the supplier's own messages
       messages: msgs.map((m) => ({
-        from: (m.fromRole === "you" ? "supplier" : m.fromRole) as "prosmash" | "supplier" | "system",
+        from: (m.fromRole === "you" ? "supplier" : m.fromRole) as "smash pro" | "supplier" | "system",
         meta: m.meta, body: m.body,
       })),
     });
@@ -736,9 +746,9 @@ export async function sendQuoteMessage(quotationId: number, text: string) {
   if (!q) throw new Error("404");
   const v = await latestVersion(q.id);
   const meta =
-    `PROSMASH · ${fullDate()}, ${timeOfDay()}` + (v ? ` · re: v${v.v}` : "");
+    `SMASH PRO · ${fullDate()}, ${timeOfDay()}` + (v ? ` · re: v${v.v}` : "");
   await db.insert(schema.negotiationMessages).values({
-    quotationId: q.id, fromRole: "prosmash", meta, body,
+    quotationId: q.id, fromRole: "smash pro", meta, body,
   });
   await audit(s.userId, "negotiation.message", "quotation", String(q.id));
 }
@@ -762,11 +772,11 @@ export async function requestQuoteRevision(quotationId: number, note: string) {
     .where(eq(schema.requirements.id, q.reqId));
   await db.insert(schema.negotiationMessages).values({
     quotationId: q.id, fromRole: "system", meta: "",
-    body: `ProSmash requested a revision · ${fullDate()}, ${timeOfDay()}${vRef}`,
+    body: `Smash Pro requested a revision · ${fullDate()}, ${timeOfDay()}${vRef}`,
   });
   await db.insert(schema.negotiationMessages).values({
-    quotationId: q.id, fromRole: "prosmash",
-    meta: `PROSMASH · ${fullDate()}, ${timeOfDay()}${vRef}`,
+    quotationId: q.id, fromRole: "smash pro",
+    meta: `SMASH PRO · ${fullDate()}, ${timeOfDay()}${vRef}`,
     body,
   });
   await audit(s.userId, "quotation.request-revision", "quotation", String(q.id));
@@ -866,10 +876,10 @@ export async function createPo(input: {
     destination: input.destination, issued,
     lineName: req.title, lineQty,
     unitPaise: v.unitPaise, valuePaise,
-    // demo simplification: the supplier acknowledgement flow is not built —
-    // POs are issued directly in the acknowledged state
-    fulfilment: "acknowledged", fulfilmentLabel: "Acknowledged",
-    acknowledgedAt: `${issued}, ${timeOfDay()}`,
+    // PO contract: a PO is issued in the `issued` state awaiting supplier
+    // acknowledgement — the admin never short-circuits that step
+    fulfilment: "issued", fulfilmentLabel: "Issued · awaiting acknowledgement",
+    acknowledgedAt: null,
     dispatchBy: v.lead,
     dispatchedQty: `0 of ${lineQty}`, receivedQty: `0 of ${lineQty}`,
     awardedFrom: { reqId: q.reqId, version: `v${v.v}` },
@@ -1093,4 +1103,592 @@ export async function reportForAdmin(): Promise<AdminReport | null> {
       .slice(0, 5)
       .map(([slug, paise]) => ({ slug, name: catName.get(slug) ?? slug, value: r(paise) })),
   };
+}
+
+/* ============================================================
+   ENHANCEMENTS (B5+)
+   ============================================================ */
+
+const fmtDateTime = (d: Date) => `${fullDate(d)}, ${timeOfDay(d)}`;
+
+/** Collapse an audit-detail jsonb into a short "k: v · k: v" string. */
+function summariseDetail(detail: unknown): string | null {
+  if (detail === null || detail === undefined) return null;
+  if (typeof detail !== "object") return String(detail);
+  const parts: string[] = [];
+  for (const [k, v] of Object.entries(detail as Record<string, unknown>)) {
+    let val: string;
+    if (v === null || v === undefined) val = "—";
+    else if (Array.isArray(v)) val = v.map((x) => String(x)).join(", ");
+    else if (typeof v === "object") val = JSON.stringify(v);
+    else val = String(v);
+    if (val.length > 80) val = `${val.slice(0, 80)}…`;
+    parts.push(`${k}: ${val}`);
+  }
+  return parts.length ? parts.join(" · ") : null;
+}
+
+/* ---------- 1 · audit log viewer (read-only) ---------- */
+
+/** Recent audit rows joined to the actor, newest first. Optional filter by
+ *  entity type and a case-insensitive substring match on entityId; paginated
+ *  (default 100, hard cap 200 per page). The audit log is append-only — this
+ *  is a read surface only, never an edit/delete path. */
+export async function getAuditLog(filter?: {
+  entity?: string; entityId?: string; limit?: number; offset?: number;
+}): Promise<AuditLogPage> {
+  // default page ~100 rows; hard cap keeps a single response bounded while
+  // letting the page's "load more" grow the window
+  const limit = Math.min(Math.max(filter?.limit ?? 100, 1), 1000);
+  const offset = Math.max(filter?.offset ?? 0, 0);
+  if (!(await adminSession())) return { rows: [], total: 0, limit, offset, entities: [] };
+
+  const entity = filter?.entity?.trim() || null;
+  const entityIdMatch = filter?.entityId?.trim().toLowerCase() || null;
+
+  const rows = await db
+    .select({
+      id: schema.auditLog.id, action: schema.auditLog.action,
+      entity: schema.auditLog.entity, entityId: schema.auditLog.entityId,
+      detail: schema.auditLog.detail, at: schema.auditLog.at,
+      actorEmail: schema.users.email, actorRole: schema.users.role,
+    })
+    .from(schema.auditLog)
+    .leftJoin(schema.users, eq(schema.auditLog.actorUserId, schema.users.id))
+    .orderBy(desc(schema.auditLog.id));
+
+  const entities = [...new Set(rows.map((x) => x.entity))].sort();
+  const filtered = rows.filter(
+    (x) =>
+      (!entity || x.entity === entity) &&
+      (!entityIdMatch || x.entityId.toLowerCase().includes(entityIdMatch))
+  );
+  const page = filtered.slice(offset, offset + limit);
+  return {
+    rows: page.map(
+      (x): AuditLogRow => ({
+        id: x.id,
+        actorEmail: x.actorEmail ?? null,
+        actorRole: x.actorRole ?? null,
+        action: x.action,
+        entity: x.entity,
+        entityId: x.entityId,
+        detail: summariseDetail(x.detail),
+        at: fmtDateTime(x.at),
+      })
+    ),
+    total: filtered.length,
+    limit, offset, entities,
+  };
+}
+
+/* ---------- 2 · organization management (active/suspended) ---------- */
+
+/** Every organization with kind/status and derived counts (buyer orders /
+ *  supplier POs). Drives the management surface — distinct from the pending
+ *  approvals queue, which stays in organizationsForAdmin(). */
+export async function getOrganizationsFull(): Promise<AdminOrgFullRow[]> {
+  if (!(await adminSession())) return [];
+  const orgs = await db.select().from(schema.organizations).orderBy(desc(schema.organizations.id));
+  const orders = await db
+    .select({ orgId: schema.orders.orgId, totalPaise: schema.orders.totalPaise })
+    .from(schema.orders);
+  const pos = await db
+    .select({ supplierOrgId: schema.purchaseOrders.supplierOrgId, valuePaise: schema.purchaseOrders.valuePaise })
+    .from(schema.purchaseOrders);
+
+  const orderCount = new Map<number, number>();
+  const orderValue = new Map<number, number>();
+  for (const o of orders) {
+    orderCount.set(o.orgId, (orderCount.get(o.orgId) ?? 0) + 1);
+    orderValue.set(o.orgId, (orderValue.get(o.orgId) ?? 0) + o.totalPaise);
+  }
+  const poCount = new Map<number, number>();
+  const poValue = new Map<number, number>();
+  for (const p of pos) {
+    poCount.set(p.supplierOrgId, (poCount.get(p.supplierOrgId) ?? 0) + 1);
+    poValue.set(p.supplierOrgId, (poValue.get(p.supplierOrgId) ?? 0) + p.valuePaise);
+  }
+
+  return orgs.map((o): AdminOrgFullRow => {
+    const supplier = o.kind === "supplier";
+    return {
+      id: o.id,
+      kind: o.kind as AdminOrgFullRow["kind"],
+      status: o.status as AdminOrgFullRow["status"],
+      name: o.name, orgType: o.orgType, city: o.city, gstin: o.gstin,
+      contactName: o.contactName, email: o.email,
+      directApproved: o.directApproved, submitted: fullDate(o.createdAt),
+      orderCount: orderCount.get(o.id) ?? 0,
+      poCount: poCount.get(o.id) ?? 0,
+      totalValue: r(supplier ? (poValue.get(o.id) ?? 0) : (orderValue.get(o.id) ?? 0)),
+    };
+  });
+}
+
+/** Suspend an ACTIVE organization. Session role resolution gates buyers and
+ *  suppliers on org status === "active" (auth.requireApproved / supplier's
+ *  approvedSupplier), so a suspended org's users lose access immediately. */
+export async function suspendOrganization(orgId: number, reason: string) {
+  const s = await requireAdmin();
+  const trimmed = reason.trim();
+  if (!trimmed || trimmed.length > 1000) throw new Error("400:A suspension reason is required");
+  const [org] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, orgId));
+  if (!org) throw new Error("404");
+  if (org.status !== "active") throw new Error("409");
+  await db.update(schema.organizations).set({ status: "suspended" }).where(eq(schema.organizations.id, orgId));
+  await notifyOrg(
+    orgId,
+    `Your Smash Pro account has been suspended. Reason: ${trimmed}. Please contact the operations team.`
+  );
+  await audit(s.userId, "org.suspend", "organization", String(orgId), { reason: trimmed });
+}
+
+/** Reactivate a SUSPENDED organization — restores access. */
+export async function reactivateOrganization(orgId: number) {
+  const s = await requireAdmin();
+  const [org] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, orgId));
+  if (!org) throw new Error("404");
+  if (org.status !== "suspended") throw new Error("409");
+  await db.update(schema.organizations).set({ status: "active" }).where(eq(schema.organizations.id, orgId));
+  await notifyOrg(orgId, "Your Smash Pro account has been reactivated. You can sign in and resume trading.");
+  await audit(s.userId, "org.reactivate", "organization", String(orgId));
+}
+
+/* ---------- 3 · bulk catalogue & pricing operations ---------- */
+
+/** Activate/deactivate many products in one operation. One audit entry
+ *  records the affected count and SKUs. */
+export async function bulkSetProductsActive(skus: string[], active: boolean): Promise<{ count: number }> {
+  const s = await requireAdmin();
+  if (typeof active !== "boolean") throw new Error("400:active must be true or false");
+  if (!Array.isArray(skus) || skus.length === 0) throw new Error("400:Select at least one product");
+  if (skus.length > 500) throw new Error("400:Too many products in one operation (max 500)");
+  const norm = [...new Set(skus.map((x) => String(x).trim().toUpperCase()).filter(Boolean))];
+  if (!norm.length) throw new Error("400:Select at least one product");
+  const known = new Set(
+    (await db.select({ sku: schema.products.sku }).from(schema.products)).map((x) => x.sku)
+  );
+  const valid = norm.filter((x) => known.has(x));
+  if (!valid.length) throw new Error("400:None of the selected products were found");
+  await db.update(schema.products).set({ active }).where(inArray(schema.products.sku, valid));
+  await audit(s.userId, "product.bulk-active", "product", "bulk", {
+    active, count: valid.length, skus: valid,
+  });
+  return { count: valid.length };
+}
+
+/** Upsert the category-default price rule (OBD-20 decided structure) for a
+ *  category — the approved-buyer base discount tier. Reuses the same bp bounds
+ *  as createPriceRule (0..9000). */
+export async function bulkApplyCategoryDiscount(
+  catSlug: string, discountBp: number
+): Promise<{ id: number; updated: boolean }> {
+  const s = await requireAdmin();
+  if (!Number.isInteger(discountBp) || discountBp < 0 || discountBp > 9000) {
+    throw new Error("400:Discount must be a whole number of basis points between 0 and 9000");
+  }
+  const [cat] = await db
+    .select({ slug: schema.categories.slug })
+    .from(schema.categories)
+    .where(eq(schema.categories.slug, catSlug));
+  if (!cat) throw new Error("400:Unknown category");
+  const [existing] = await db
+    .select()
+    .from(schema.priceRules)
+    .where(
+      and(
+        eq(schema.priceRules.scope, "category-default"),
+        eq(schema.priceRules.catSlug, cat.slug),
+        isNull(schema.priceRules.orgId)
+      )
+    );
+  if (existing) {
+    await db
+      .update(schema.priceRules)
+      .set({ discountPct: discountBp })
+      .where(eq(schema.priceRules.id, existing.id));
+    await audit(s.userId, "price-rule.upsert", "price_rule", String(existing.id), {
+      scope: "category-default", catSlug: cat.slug, discountBp,
+    });
+    return { id: existing.id, updated: true };
+  }
+  const [row] = await db
+    .insert(schema.priceRules)
+    .values({ scope: "category-default", orgId: null, catSlug: cat.slug, sku: null, discountPct: discountBp })
+    .returning();
+  await audit(s.userId, "price-rule.upsert", "price_rule", String(row.id), {
+    scope: "category-default", catSlug: cat.slug, discountBp,
+  });
+  return { id: row.id, updated: false };
+}
+
+/** Reprice many products at once (validate all before writing any). */
+export async function bulkRepriceProducts(
+  updates: { sku: string; std: number }[]
+): Promise<{ count: number }> {
+  const s = await requireAdmin();
+  if (!Array.isArray(updates) || updates.length === 0) throw new Error("400:No price updates supplied");
+  if (updates.length > 500) throw new Error("400:Too many products in one operation (max 500)");
+  const norm = updates.map((u) => ({ sku: String(u.sku).trim().toUpperCase(), std: u.std }));
+  for (const u of norm) {
+    if (!u.sku) throw new Error("400:Each update needs a SKU");
+    assertStd(u.std);
+  }
+  const known = new Set(
+    (await db.select({ sku: schema.products.sku }).from(schema.products)).map((x) => x.sku)
+  );
+  const bad = [...new Set(norm.filter((u) => !known.has(u.sku)).map((u) => u.sku))];
+  if (bad.length) throw new Error(`400:Unknown products: ${bad.join(", ")}`);
+  for (const u of norm) {
+    await db.update(schema.products).set({ stdPaise: Math.round(u.std * 100) }).where(eq(schema.products.sku, u.sku));
+  }
+  await audit(s.userId, "product.bulk-reprice", "product", "bulk", {
+    count: norm.length, skus: norm.map((u) => u.sku),
+  });
+  return { count: norm.length };
+}
+
+/* ---------- 4 · supplier performance (read-only analytics) ---------- */
+
+/** Per active supplier: quotation win rate, PO issuance/closure, direct
+ *  delivery-proof posture, total PO value and outstanding balance — all
+ *  derived from existing procurement tables. Ranked by PO value. */
+export async function getSupplierPerformance(): Promise<SupplierPerformanceRow[]> {
+  if (!(await adminSession())) return [];
+  const suppliers = await db
+    .select()
+    .from(schema.organizations)
+    .where(and(eq(schema.organizations.kind, "supplier"), eq(schema.organizations.status, "active")));
+  const quotes = await db
+    .select({
+      supplierOrgId: schema.quotations.supplierOrgId,
+      status: schema.quotations.status,
+    })
+    .from(schema.quotations);
+  const pos = await db
+    .select({
+      supplierOrgId: schema.purchaseOrders.supplierOrgId,
+      destination: schema.purchaseOrders.destination,
+      fulfilment: schema.purchaseOrders.fulfilment,
+      valuePaise: schema.purchaseOrders.valuePaise,
+      outstandingPaise: schema.purchaseOrders.outstandingPaise,
+    })
+    .from(schema.purchaseOrders);
+
+  const by = new Map<number, SupplierPerformanceRow & { _value: number; _out: number }>();
+  for (const sup of suppliers) {
+    by.set(sup.id, {
+      orgId: sup.id, name: sup.name, quotesSubmitted: 0, quotesAwarded: 0, winRate: 0,
+      posIssued: 0, posClosed: 0, posInFlight: 0, proofsOnRecord: 0, awaitingProof: 0,
+      poValueTotal: 0, outstanding: 0, _value: 0, _out: 0,
+    });
+  }
+  for (const q of quotes) {
+    const row = by.get(q.supplierOrgId);
+    if (!row) continue;
+    row.quotesSubmitted += 1;
+    if (q.status === "awarded") row.quotesAwarded += 1;
+  }
+  for (const p of pos) {
+    const row = by.get(p.supplierOrgId);
+    if (!row) continue;
+    row.posIssued += 1;
+    if (p.fulfilment === "closed") row.posClosed += 1;
+    else row.posInFlight += 1;
+    if (p.destination === "direct") {
+      if (p.fulfilment === "delivered-proof" || p.fulfilment === "closed") row.proofsOnRecord += 1;
+      if (p.fulfilment === "awaiting-proof") row.awaitingProof += 1;
+    }
+    row._value += p.valuePaise;
+    row._out += p.outstandingPaise;
+  }
+  return [...by.values()]
+    .map((row): SupplierPerformanceRow => ({
+      orgId: row.orgId, name: row.name,
+      quotesSubmitted: row.quotesSubmitted, quotesAwarded: row.quotesAwarded,
+      winRate: row.quotesSubmitted > 0 ? Math.round((row.quotesAwarded / row.quotesSubmitted) * 100) : 0,
+      posIssued: row.posIssued, posClosed: row.posClosed, posInFlight: row.posInFlight,
+      proofsOnRecord: row.proofsOnRecord, awaitingProof: row.awaitingProof,
+      poValueTotal: r(row._value), outstanding: r(row._out),
+    }))
+    .sort((a, b) => b.poValueTotal - a.poValueTotal || b.quotesAwarded - a.quotesAwarded);
+}
+
+/* ---------- 5 · payment reconciliation ---------- */
+
+/** Orders with their payment status, declared-vs-total (mismatch flagged),
+ *  verifier and confirmed date, plus confirmed/awaiting/failed totals. A
+ *  focused operational view — no new money movement (OBD-21: no gateway). */
+export async function getReconciliation(): Promise<Reconciliation> {
+  const empty: Reconciliation = {
+    rows: [],
+    summary: {
+      confirmedCount: 0, confirmedTotal: 0, awaitingCount: 0, awaitingTotal: 0,
+      failedCount: 0, failedTotal: 0, mismatchCount: 0,
+    },
+  };
+  if (!(await adminSession())) return empty;
+
+  const orders = await db.select().from(schema.orders).orderBy(desc(schema.orders.id));
+  const pays = await db.select().from(schema.payments);
+  const orgs = await db
+    .select({ id: schema.organizations.id, name: schema.organizations.name })
+    .from(schema.organizations);
+  const users = await db.select({ id: schema.users.id, email: schema.users.email }).from(schema.users);
+  const orgName = new Map(orgs.map((o) => [o.id, o.name]));
+  const userEmail = new Map(users.map((u) => [u.id, u.email]));
+  const payByOrder = new Map(pays.map((p) => [p.orderId, p]));
+
+  let confirmedCount = 0, confirmedTotal = 0, awaitingCount = 0, awaitingTotal = 0;
+  let failedCount = 0, failedTotal = 0, mismatchCount = 0;
+
+  const rows = orders.map((o): ReconciliationRow => {
+    const pay = payByOrder.get(o.id);
+    const declared = pay?.declaredAmountPaise ?? null;
+    const total = o.totalPaise;
+    const mismatch = declared !== null && declared !== total;
+    if (mismatch) mismatchCount += 1;
+    const st = pay?.status ?? "";
+    if (st === "confirmed") { confirmedCount += 1; confirmedTotal += total; }
+    else if (st === "awaiting-verification") { awaitingCount += 1; awaitingTotal += total; }
+    else if (st === "failed" || st === "cancelled-unpaid") { failedCount += 1; failedTotal += total; }
+    return {
+      orderId: o.id,
+      orgName: orgName.get(o.orgId) ?? "",
+      method: pay?.method ?? "",
+      status: st,
+      statusLabel: pay?.statusLabel ?? "",
+      orderTotal: r(total),
+      declaredAmount: declared !== null ? r(declared) : null,
+      mismatch,
+      confirmedAt: pay?.confirmedAt ?? null,
+      verifiedBy: pay?.verifiedByUserId ? (userEmail.get(pay.verifiedByUserId) ?? null) : null,
+    };
+  });
+
+  return {
+    rows,
+    summary: {
+      confirmedCount, confirmedTotal: r(confirmedTotal),
+      awaitingCount, awaitingTotal: r(awaitingTotal),
+      failedCount, failedTotal: r(failedTotal),
+      mismatchCount,
+    },
+  };
+}
+
+/* ---------- 6 · business analytics (extended report) ---------- */
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/** Parse a display date like "14 Nov 2026" into a month label + sort key. */
+function monthOf(placed: string): { label: string; sort: number } | null {
+  const parts = placed.trim().split(/\s+/);
+  if (parts.length < 3) return null;
+  const mon = parts[1];
+  const year = Number(parts[2]);
+  const mi = MONTHS.indexOf(mon);
+  if (mi < 0 || !Number.isFinite(year)) return null;
+  return { label: `${mon} ${year}`, sort: year * 12 + mi };
+}
+
+export async function getAnalytics(): Promise<AdminAnalytics | null> {
+  if (!(await adminSession())) return null;
+  const orders = await db
+    .select({
+      id: schema.orders.id, orgId: schema.orders.orgId, placed: schema.orders.placed,
+      statusLabel: schema.orders.statusLabel, totalPaise: schema.orders.totalPaise,
+    })
+    .from(schema.orders);
+  const lines = await db
+    .select({
+      unitPaise: schema.orderLines.unitPaise,
+      qty: schema.orderLines.qty,
+      catSlug: schema.products.catSlug,
+    })
+    .from(schema.orderLines)
+    .innerJoin(schema.products, eq(schema.orderLines.sku, schema.products.sku));
+  const pos = await db
+    .select({
+      supplierOrgId: schema.purchaseOrders.supplierOrgId,
+      valuePaise: schema.purchaseOrders.valuePaise,
+      fulfilment: schema.purchaseOrders.fulfilment,
+    })
+    .from(schema.purchaseOrders);
+  const orgs = await db
+    .select({ id: schema.organizations.id, name: schema.organizations.name })
+    .from(schema.organizations);
+  const cats = await db.select().from(schema.categories);
+  const orgName = new Map(orgs.map((o) => [o.id, o.name]));
+  const catName = new Map(cats.map((c) => [c.slug, c.name]));
+
+  // orders by status (count + value)
+  const byStatus = new Map<string, { count: number; value: number }>();
+  for (const o of orders) {
+    const cur = byStatus.get(o.statusLabel) ?? { count: 0, value: 0 };
+    cur.count += 1; cur.value += o.totalPaise;
+    byStatus.set(o.statusLabel, cur);
+  }
+
+  // monthly trend by placed month
+  const months = new Map<number, { label: string; count: number; value: number }>();
+  for (const o of orders) {
+    const m = monthOf(o.placed);
+    if (!m) continue;
+    const cur = months.get(m.sort) ?? { label: m.label, count: 0, value: 0 };
+    cur.count += 1; cur.value += o.totalPaise;
+    months.set(m.sort, cur);
+  }
+
+  // top categories by order value
+  const catValue = new Map<string, number>();
+  for (const l of lines) catValue.set(l.catSlug, (catValue.get(l.catSlug) ?? 0) + l.unitPaise * l.qty);
+
+  // top buyers by order value
+  const buyerAgg = new Map<number, { orders: number; value: number }>();
+  for (const o of orders) {
+    const cur = buyerAgg.get(o.orgId) ?? { orders: 0, value: 0 };
+    cur.orders += 1; cur.value += o.totalPaise;
+    buyerAgg.set(o.orgId, cur);
+  }
+
+  // top suppliers by PO value
+  const supAgg = new Map<number, { pos: number; value: number }>();
+  for (const p of pos) {
+    const cur = supAgg.get(p.supplierOrgId) ?? { pos: 0, value: 0 };
+    cur.pos += 1; cur.value += p.valuePaise;
+    supAgg.set(p.supplierOrgId, cur);
+  }
+
+  // fulfilment funnel — current stage (counts sum to total POs)
+  const stage = { issued: 0, acknowledged: 0, proof: 0, closed: 0 };
+  for (const p of pos) {
+    if (p.fulfilment === "issued") stage.issued += 1;
+    else if (p.fulfilment === "acknowledged") stage.acknowledged += 1;
+    else if (p.fulfilment === "awaiting-proof" || p.fulfilment === "delivered-proof") stage.proof += 1;
+    else if (p.fulfilment === "closed") stage.closed += 1;
+  }
+
+  return {
+    orders: {
+      count: orders.length,
+      gmv: r(orders.reduce((sum, o) => sum + o.totalPaise, 0)),
+      byStatus: [...byStatus.entries()]
+        .map(([label, v]) => ({ label, count: v.count, value: r(v.value) }))
+        .sort((a, b) => b.value - a.value),
+    },
+    monthlyTrend: [...months.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([, v]) => ({ month: v.label, count: v.count, value: r(v.value) })),
+    topCategories: [...catValue.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([slug, paise]) => ({ slug, name: catName.get(slug) ?? slug, value: r(paise) })),
+    topBuyers: [...buyerAgg.entries()]
+      .sort((a, b) => b[1].value - a[1].value)
+      .slice(0, 8)
+      .map(([orgId, v]) => ({ orgId, name: orgName.get(orgId) ?? `Org ${orgId}`, orders: v.orders, value: r(v.value) })),
+    topSuppliers: [...supAgg.entries()]
+      .sort((a, b) => b[1].value - a[1].value)
+      .slice(0, 8)
+      .map(([orgId, v]) => ({ orgId, name: orgName.get(orgId) ?? `Org ${orgId}`, pos: v.pos, value: r(v.value) })),
+    fulfilmentFunnel: [
+      { label: "Issued · awaiting acknowledgement", count: stage.issued },
+      { label: "Acknowledged", count: stage.acknowledged },
+      { label: "Awaiting / delivered proof", count: stage.proof },
+      { label: "Closed", count: stage.closed },
+    ],
+  };
+}
+
+/* ---------- 7 · CSV exports ---------- */
+
+function csvCell(v: unknown): string {
+  const s = v === null || v === undefined ? "" : String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
+function toCsv(headers: string[], rows: unknown[][]): string {
+  const out = [headers.map(csvCell).join(",")];
+  for (const row of rows) out.push(row.map(csvCell).join(","));
+  return `${out.join("\r\n")}\r\n`;
+}
+
+/** Build a CSV for one of the exportable datasets, admin-gated. Reuses the
+ *  same read services so exports never diverge from the on-screen tables.
+ *  Returns the filename + body; the route sets the download headers. */
+export async function exportCsv(kind: string): Promise<{ filename: string; csv: string }> {
+  await requireAdmin();
+  const stamp = new Date().toISOString().slice(0, 10);
+  const file = (name: string) => `smash pro-${name}-${stamp}.csv`;
+
+  switch (kind) {
+    case "orders": {
+      const rows = await ordersForAdmin();
+      return {
+        filename: file("orders"),
+        csv: toCsv(
+          ["Order", "Buyer", "Placed", "Status", "Direct", "Lines", "Total (INR)", "Payment status"],
+          rows.map((o) => [
+            o.id, o.orgName, o.placed, o.statusLabel, o.direct ? "direct" : "warehouse",
+            o.lineCount, o.total.toFixed(2), o.paymentStatusLabel,
+          ])
+        ),
+      };
+    }
+    case "payments": {
+      const rows = await paymentsForAdmin();
+      return {
+        filename: file("payments"),
+        csv: toCsv(
+          ["Order", "Buyer", "Method", "Status", "Order total (INR)", "Declared (INR)", "Proof file"],
+          rows.map((p) => [
+            p.orderId, p.orgName, p.method, p.statusLabel, p.total.toFixed(2),
+            p.declaredAmount !== null ? p.declaredAmount.toFixed(2) : "", p.proofFilename ?? "",
+          ])
+        ),
+      };
+    }
+    case "organizations": {
+      const rows = await getOrganizationsFull();
+      return {
+        filename: file("organizations"),
+        csv: toCsv(
+          ["ID", "Kind", "Status", "Name", "Type", "City", "GSTIN", "Contact", "Email", "Orders", "POs", "Total value (INR)", "Submitted"],
+          rows.map((o) => [
+            o.id, o.kind, o.status, o.name, o.orgType, o.city, o.gstin, o.contactName,
+            o.email, o.orderCount, o.poCount, o.totalValue.toFixed(2), o.submitted,
+          ])
+        ),
+      };
+    }
+    case "supplier-performance": {
+      const rows = await getSupplierPerformance();
+      return {
+        filename: file("supplier-performance"),
+        csv: toCsv(
+          ["Supplier", "Quotes submitted", "Quotes awarded", "Win rate (%)", "POs issued", "POs closed", "POs in flight", "Proofs on record", "Awaiting proof", "PO value (INR)", "Outstanding (INR)"],
+          rows.map((s) => [
+            s.name, s.quotesSubmitted, s.quotesAwarded, s.winRate, s.posIssued, s.posClosed,
+            s.posInFlight, s.proofsOnRecord, s.awaitingProof, s.poValueTotal.toFixed(2), s.outstanding.toFixed(2),
+          ])
+        ),
+      };
+    }
+    case "audit-log": {
+      const page = await getAuditLog({ limit: 1000, offset: 0 });
+      return {
+        filename: file("audit-log"),
+        csv: toCsv(
+          ["ID", "Timestamp", "Actor", "Role", "Action", "Entity", "Entity ID", "Detail"],
+          page.rows.map((a) => [
+            a.id, a.at, a.actorEmail ?? "", a.actorRole ?? "", a.action, a.entity, a.entityId, a.detail ?? "",
+          ])
+        ),
+      };
+    }
+    default:
+      throw new Error("404");
+  }
 }

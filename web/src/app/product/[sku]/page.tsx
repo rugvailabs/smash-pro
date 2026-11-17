@@ -86,7 +86,7 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
           {/* certainty block — confirmed rules only (managed fulfilment,
               OBD-08 advance payment); no dates or SLAs are promised */}
           <div className="mt-5 border-y border-n100 py-3 text-[13px] text-n600">
-            <p><b className="font-medium text-ink">Fulfilled by ProSmash</b> — one counterparty for order, delivery and resolution.</p>
+            <p><b className="font-medium text-ink">Fulfilled by Smash Pro</b> — one counterparty for order, delivery and resolution.</p>
             <p className="mt-1">Dispatch follows confirmed payment — 100% advance, no credit facilities.</p>
             <NoteFlag className="mt-1.5">delivery timelines pending fulfilment confirmation (obd-19 ◇)</NoteFlag>
           </div>
@@ -111,7 +111,7 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
               points at the existing WhatsApp affordance only. */}
           <div className="mt-6 rounded-[2px] border border-n200 bg-chalk p-4">
             <div className="font-mono text-[11px] uppercase tracking-[.08em] text-n600">Stuck on a question?</div>
-            <div className="mt-1 text-sm font-semibold text-ink">Ask the ProSmash sourcing team</div>
+            <div className="mt-1 text-sm font-semibold text-ink">Ask the Smash Pro sourcing team</div>
             <p className="mt-1 max-w-[52ch] text-[13px] text-n600">
               Specifications, quantities, alternatives or institutional
               requirements — talk to the team that sources this catalogue.

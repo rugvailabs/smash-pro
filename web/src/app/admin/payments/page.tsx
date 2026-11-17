@@ -5,7 +5,7 @@ import { Chip, NoteFlag, Sect } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/empty-state";
 import { AdminGate } from "@/components/admin-shell";
-import { AdminHead, AdminTable, statusTone, tdCls, trCls } from "@/components/admin-ui";
+import { AdminHead, AdminTable, ExportCsvLink, statusTone, tdCls, trCls } from "@/components/admin-ui";
 import { VerifyPayment } from "@/components/admin-payment-actions";
 import { getAdminCounts, getPaymentsAdmin } from "@/lib/admin-api";
 import { inr } from "@/lib/format";
@@ -48,6 +48,7 @@ async function AdminPaymentsContent() {
         title="Payments"
         titleAside={queue.length > 0 ? <Chip tone="warn">{queue.length} to verify</Chip> : undefined}
         sub="Offline payment proofs await admin verification before an order counts as paid (OBD-08)"
+        actions={<ExportCsvLink kind="payments" />}
       />
 
       <Sect>Verification queue</Sect>

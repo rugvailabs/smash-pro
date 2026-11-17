@@ -2,10 +2,15 @@ import type {
   CostProposal, SupplierPO, SupplierProfile, SupplierQuote, SupplierRequirement, SupplyItem,
 } from "@/lib/types";
 import {
-  costProposalsForSession, paymentRecordsForSession, poForSession, posForSession,
-  profileForSession, quoteForSession, quotesForSession, requirementForSession,
-  requirementsForSession, supplyItemsForSession,
+  catalogItemsForSession, costProposalsForSession, paymentRecordsForSession, poForSession,
+  posForSession, profileForSession, quoteForSession, quotesForSession, requirementForSession,
+  requirementsForSession, supplierReportForSession, supplyItemsForSession,
+  type SupplierCatalogItem, type SupplierReport,
 } from "@/server/supplier";
+
+/** Supplier-workspace view types declared at the lib boundary (lib/types.ts
+ *  is frozen). Re-exported from the server so UI and routes share one shape. */
+export type { SupplierCatalogItem, SupplierReport };
 
 /** API BOUNDARY — now backed by the real backend (integration point I4).
  *  The server scopes every query to the session's supplier organization
@@ -48,6 +53,15 @@ export async function getPO(id: string): Promise<SupplierPO | undefined> {
 
 export async function getSupplyItems(): Promise<SupplyItem[]> {
   return supplyItemsForSession();
+}
+
+/** Catalogue items enriched with id + supplier-managed availability. */
+export async function getCatalogItems(): Promise<SupplierCatalogItem[]> {
+  return catalogItemsForSession();
+}
+
+export async function getSupplierReport(): Promise<SupplierReport | null> {
+  return supplierReportForSession();
 }
 
 export async function getCostProposals(): Promise<CostProposal[]> {

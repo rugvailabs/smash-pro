@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Banner, Chip, DocRow, GstCard, KV, NoteFlag, Panel, PanelHead, Rail, Sect } from "@/components/buyer-ui";
+import { BuyerReorderButton } from "@/components/buyer-reorder-button";
 import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
 import type { Order } from "@/lib/types";
@@ -59,7 +60,7 @@ export function OrderDetail({ order }: { order: Order }) {
       });
       if (res.ok) {
         setIssueSent(true);
-        toast("Report received — ProSmash will coordinate the resolution.");
+        toast("Report received — Smash Pro will coordinate the resolution.");
       } else {
         toast("The report didn't go through — please try again.");
       }
@@ -102,7 +103,7 @@ export function OrderDetail({ order }: { order: Order }) {
       {order.direct && confirmed && (
         <Banner tone="ok" className="mb-5">
           <b className="text-ink">Receipt confirmed.</b> Thank you — your
-          confirmation is on record with the delivery proof, and ProSmash has
+          confirmation is on record with the delivery proof, and Smash Pro has
           been notified.
         </Banner>
       )}
@@ -159,13 +160,13 @@ export function OrderDetail({ order }: { order: Order }) {
           <Sect id="report">Something wrong?</Sect>
           <Panel className="p-4">
             <p className="mb-3 text-sm">
-              Delayed, damaged, lost or missing items? Report it to ProSmash —
+              Delayed, damaged, lost or missing items? Report it to Smash Pro —
               we are your single point of contact and will coordinate the
               resolution.
             </p>
             {issueSent ? (
               <Banner tone="ok">
-                <b className="text-ink">Report received.</b> ProSmash will
+                <b className="text-ink">Report received.</b> Smash Pro will
                 investigate and coordinate the resolution — you will not be
                 referred to any third party.
               </Banner>
@@ -245,6 +246,15 @@ export function OrderDetail({ order }: { order: Order }) {
           </NoteFlag>
         </div>
       </div>
+
+      <Sect>Reorder</Sect>
+      <Panel className="p-4">
+        <p className="mb-3 text-sm text-n600">
+          Add every line from this order to your cart again — current prices and
+          availability apply, and anything no longer available is skipped.
+        </p>
+        <BuyerReorderButton orderId={order.id} />
+      </Panel>
 
       <div className="mt-8">
         <Link href="/orders" className="text-sm font-semibold text-ember-deep hover:underline">← Back to orders</Link>

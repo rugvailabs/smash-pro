@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getCategories, getFeatured } from "@/lib/catalog";
+import { CATEGORY_HERO } from "@/lib/nav-catalogue";
+import { HeroCarousel } from "@/components/hero-carousel";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { Bone } from "@/components/skeletons";
@@ -55,95 +57,85 @@ const STEPS: [string, string][] = [
   ["Register and get approved", "Your institution's details are reviewed before ordering is enabled."],
   ["See your price", "Standard prices are public. On approval, your institutional price appears on every product."],
   ["Order with 100% advance", "UPI, card, net banking, NEFT/RTGS or cheque — dispatch after payment is confirmed."],
-  ["One counterparty", "ProSmash manages fulfilment and stays your single point of contact for delivery."],
+  ["One counterparty", "Smash Pro manages fulfilment and stays your single point of contact for delivery."],
 ];
 
 export default function HomePage() {
-  // session-aware pricing makes this route dynamic — the shell streams
-  // behind a layout-true skeleton (library §14)
+  // The hero carousel is static (no server data) — render it immediately,
+  // outside the data Suspense, so it never waits on the catalogue query and
+  // its fixed height causes no layout shift. The data-driven sections below
+  // stream behind a layout-true skeleton (Cache Components, library §14).
   return (
-    <Suspense
-      fallback={
-        <main aria-busy="true">
-          <Bone className="h-[320px] w-full rounded-none md:h-[420px]" />
-          <div className="mx-auto max-w-[1280px] px-4 py-12 md:px-10">
-            <Bone className="mb-6 h-8 w-72" />
-            <div className="grid grid-cols-2 gap-px md:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => <Bone key={i} className="h-24 w-full rounded-none" />)}
-            </div>
-          </div>
-        </main>
-      }
-    >
-      <HomeContent />
-    </Suspense>
+    <main>
+      <HeroCarousel />
+      <SectionCut />
+      <Suspense fallback={<HomeSectionsSkeleton />}>
+        <HomeSections />
+      </Suspense>
+    </main>
   );
 }
 
-async function HomeContent() {
+function HomeSectionsSkeleton() {
+  return (
+    <div aria-busy="true" className="mx-auto max-w-[1280px] px-4 py-12 md:px-10">
+      <Bone className="mb-6 h-8 w-72" />
+      <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+        {Array.from({ length: 12 }).map((_, i) => <Bone key={i} className="aspect-[4/5] w-full rounded-[2px]" />)}
+      </div>
+    </div>
+  );
+}
+
+async function HomeSections() {
   const [categories, featured] = await Promise.all([getCategories(), getFeatured()]);
 
   return (
-    <main>
-      {/* hero */}
-      <section className="relative overflow-hidden bg-ink text-chalk">
-        <Image
-          src="/img/hero/home-hero.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-[rgba(13,27,36,.68)]" />
-        <div className="relative mx-auto max-w-[1280px] px-4 py-14 md:px-10 md:pb-[92px] md:pt-[84px]">
-          <span className="font-mono text-[11px] uppercase tracking-[.08em] text-white/55">
-            India&rsquo;s B2B sports commerce platform
-          </span>
-          {/* display scale: 33 → 42 → 56 (VISUAL-IDENTITY §3 — public ceiling) */}
-          <h1 className="stretch-xp my-4 max-w-[17ch] font-display text-[33px] font-bold leading-[1.1] tracking-[-.02em] text-chalk md:text-[42px] lg:text-[56px]">
-            Procurement at <em className="not-italic text-ember">match standard.</em>
-          </h1>
-          <p className="max-w-[52ch] text-base leading-relaxed text-white/80 md:text-lg">
-            One catalogue for schools, academies, colleges and retailers —
-            standard prices in the open, institutional pricing on approval, and
-            every order managed end to end by ProSmash.
-          </p>
-          <div className="mt-7 flex flex-wrap gap-3.5">
-            <Link href="/catalog?cat=cricket" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
-              Shop the catalogue
-            </Link>
-            <RoleGate show={["visitor", "pending"]}>
-              <Link href="/register" className="inline-flex h-12 items-center rounded-[2px] border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:border-white">
-                Register your institution
-              </Link>
-            </RoleGate>
-          </div>
-        </div>
-      </section>
-
-      <SectionCut />
+    <>
 
       {/* categories */}
       <section className="border-b border-n200 bg-chalk pb-11 pt-6 md:pb-16 md:pt-8">
         <div className="mx-auto max-w-[1280px] px-4 md:px-10">
           <Kick>Catalogue</Kick>
           <SectionHead title="Every sport. One platform." more="Browse all →" moreHref="/catalog?cat=cricket" />
-          <div className="grid grid-cols-2 border-l border-t border-n200 md:grid-cols-4">
-            {categories.map((c) => (
-              <Link
-                key={c.slug}
-                href={`/catalog?cat=${c.slug}`}
-                className="group flex min-h-[88px] flex-col justify-between border-b border-r border-n200 bg-chalk p-4 transition-colors hover:bg-paper md:min-h-[104px] md:p-[22px]"
-              >
-                {/* glyph slot reserved — the commissioned sport icon set
-                    (VISUAL-IDENTITY §5) drops in beside the name at T3d+ */}
-                <span className="font-display text-base font-bold text-ink underline-offset-4 group-hover:underline md:text-[19px]">
-                  {c.name}
-                </span>
-                <span className="num font-mono text-xs text-n600">{c.count} products</span>
-              </Link>
-            ))}
+          {/* image tile per category — name beneath, no product count.
+              Categories without approved imagery show the labelled frame. */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 md:grid-cols-4 md:gap-x-4 lg:grid-cols-6">
+            {categories.map((c) => {
+              const hero = CATEGORY_HERO[c.slug] ?? null;
+              return (
+                <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block">
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[2px] bg-n100">
+                    {hero ? (
+                      <Image
+                        src={hero}
+                        alt={c.name}
+                        fill
+                        sizes="(min-width:1024px) 16vw, (min-width:768px) 24vw, 50vw"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+                      />
+                    ) : (
+                      /* Library §4 placeholder — no substitute imagery */
+                      <div className="absolute inset-0 flex items-end justify-center pb-3" aria-hidden>
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            backgroundImage:
+                              "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
+                          }}
+                        />
+                        <span className="relative font-mono text-[9px] uppercase tracking-wide text-n400">
+                          imagery pending
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2.5 font-display text-[15px] font-bold leading-tight text-ink underline-offset-4 group-hover:text-ember-deep group-hover:underline md:text-base">
+                    {c.name}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </section>
@@ -166,7 +158,7 @@ async function HomeContent() {
       <section id="how" className="scroll-mt-32 border-y border-n200 bg-chalk py-11 md:py-16">
         <div className="mx-auto max-w-[1280px] px-4 md:px-10">
           <Kick>Process</Kick>
-          <SectionHead title="How ProSmash works" />
+          <SectionHead title="How Smash Pro works" />
           {/* numbered rail — the process genuinely is a sequence, so the
               numbering carries information; ticks mark each step on the rail */}
           <div className="grid gap-x-8 gap-y-7 border-t border-n200 sm:grid-cols-2 lg:grid-cols-4">
@@ -194,7 +186,7 @@ async function HomeContent() {
             />
             <div className="relative">
               <Kick onInk>For manufacturers · wholesalers · distributors · dealers</Kick>
-              <SectionHead onInk title="Supply to ProSmash" />
+              <SectionHead onInk title="Supply to Smash Pro" />
               <p className="-mt-4 mb-6 max-w-[62ch] text-[15px] text-white/80">
                 Receive qualified institutional demand matched to your categories,
                 quote through a fair structured process, and track purchase orders
@@ -216,6 +208,6 @@ async function HomeContent() {
           </div>
         </div>
       </section>
-    </main>
+    </>
   );
 }

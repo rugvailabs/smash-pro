@@ -68,7 +68,7 @@ async function SupplierDashboardContent() {
                 <div className="text-sm font-medium text-ink">
                   Revision requested — <span className="font-mono text-[12.5px]">REQ-2026-0089</span> quotation
                 </div>
-                <div className="text-[13px] text-n600">ProSmash asked for a revised lead time · requested 13 Nov</div>
+                <div className="text-[13px] text-n600">Smash Pro asked for a revised lead time · requested 13 Nov</div>
               </div>
               <Chip tone="warn">Revision requested</Chip>
               <Link href="/supplier/quotes/REQ-2026-0089" className="inline-flex h-9 items-center rounded-[2px] border border-n400 bg-chalk px-3.5 text-[13px] font-semibold text-ink hover:border-ink">Open</Link>
@@ -110,7 +110,7 @@ async function SupplierDashboardContent() {
             </div>
           </Panel>
           <NoteFlag>
-            direct-shipment eligibility is set by prosmash per supplier and per
+            direct-shipment eligibility is set by smash pro per supplier and per
             product — view-only here (obd-19)
           </NoteFlag>
           <Banner tone="info">

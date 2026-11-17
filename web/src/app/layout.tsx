@@ -12,8 +12,8 @@ const plex = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variabl
 export const metadata: Metadata = {
   // Routes set their own title; the template brands every tab consistently.
   title: {
-    default: "PROSMASH — Sports Equipment for Institutions",
-    template: "%s · PROSMASH",
+    default: "SMASH PRO — Sports Equipment for Institutions",
+    template: "%s · SMASH PRO",
   },
   description:
     "India's B2B sports commerce platform for schools, academies, colleges and retailers. Preview build — all data illustrative.",

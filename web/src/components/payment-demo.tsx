@@ -72,7 +72,7 @@ function ProofUpload({ orderId, hasProof }: { orderId: string; hasProof: boolean
       {error && <Banner tone="bad" className="mt-2.5">{error}</Banner>}
       <NoteFlag className="mt-2">
         file metadata only is retained in this phase (adr-0005) · verification
-        is performed by prosmash operations (obd-21)
+        is performed by smash pro operations (obd-21)
       </NoteFlag>
     </Panel>
   );
@@ -90,14 +90,14 @@ export function PaymentResult({ order }: { order: Order }) {
             <b className="text-ink">Payment confirmed.</b>{" "}
             {["UPI", "Card", "Net Banking"].includes(pay.method)
               ? "Confirmed automatically in this demo environment (gateway selection pending OBD-21)."
-              : "Verified by ProSmash operations."}{" "}
+              : "Verified by Smash Pro operations."}{" "}
             Your order has moved to processing.
             {pay.reference && <> <span className="font-mono text-xs">{pay.reference}</span></>}
           </Banner>
         ) : (
           <Banner tone="warn">
             <b className="text-ink">Awaiting verification.</b> NEFT/RTGS and
-            cheque payments count as confirmed only after ProSmash reviews the
+            cheque payments count as confirmed only after Smash Pro reviews the
             uploaded proof — dispatch follows confirmed payment (OBD-08).
           </Banner>
         )}

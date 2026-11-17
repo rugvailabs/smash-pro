@@ -165,7 +165,7 @@ export interface QuoteVersion {
 }
 
 export interface NegotiationMsg {
-  from: "prosmash" | "you" | "system";
+  from: "smash pro" | "you" | "system";
   meta: string;
   text: string;
 }
@@ -187,7 +187,7 @@ export interface SupplierQuote {
   thread: NegotiationMsg[];
 }
 
-export type PoFulfilment = "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";
+export type PoFulfilment = "issued" | "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";
 
 export interface SupplierPO {
   id: string;

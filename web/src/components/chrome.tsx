@@ -5,7 +5,10 @@ import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart, useIsClient, useRole } from "@/components/providers";
 import { SearchBox } from "@/components/search-box";
+import { MegaMenuDesktop } from "@/components/mega-menu";
 import { NavDrawer } from "@/components/nav-drawer";
+import { NotificationBell } from "@/components/notification-bell";
+import { PublicNavDesktop } from "@/components/public-nav";
 import type { Role } from "@/lib/types";
 
 /* ============================================================
@@ -18,7 +21,7 @@ const ROLE_LABELS: Record<Role, string> = {
   pending: "Registered buyer (pending)",
   buyer: "Approved buyer",
   supplier: "Supplier",
-  admin: "ProSmash admin",
+  admin: "Smash Pro admin",
 };
 
 export function PreviewRibbon() {
@@ -94,7 +97,7 @@ export function SiteHeader() {
             href="/"
             className="stretch-xp font-display text-[19px] font-extrabold tracking-wide text-chalk"
           >
-            PROSMASH
+            SMASH PRO
           </Link>
           {/* Commerce search is buyer-side chrome — suppliers and the admin
               console work their own queues, never the sales catalogue. */}
@@ -113,13 +116,15 @@ export function SiteHeader() {
             {role !== "visitor" && (
               <span className="hidden items-center gap-2 text-[13px] font-medium text-white lg:inline-flex">
                 {role === "admin"
-                  ? "ProSmash Operations"
+                  ? "Smash Pro Operations"
                   : orgName ?? (role === "supplier" ? "Supplier account" : "Buyer account")}
                 <span className="rounded-[2px] border border-white/25 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-white/55">
                   {role === "admin" ? "ADMIN" : role === "supplier" ? "SUPPLIER" : role === "buyer" ? "BUYER" : "UNDER REVIEW"}
                 </span>
               </span>
             )}
+            {/* In-app notification bell — every signed-in role */}
+            {mounted && role !== "visitor" && <NotificationBell />}
             {role !== "visitor" && (
               <button
                 onClick={() => void signOut().then(() => router.push("/"))}
@@ -146,12 +151,14 @@ export function SiteHeader() {
       {/* Tab strip is desktop/tablet navigation; the drawer owns phones. */}
       <nav aria-label="Site sections" className="sticky top-16 z-30 hidden border-b border-n200 bg-chalk md:block">
         <div className="mx-auto flex max-w-[1280px] gap-1 overflow-x-auto px-4 md:px-10">
-          {tab("/", role === "supplier" || role === "admin" ? "Home" : "Shop", "/__home")}
-          {role !== "supplier" && role !== "admin" && tab("/catalog?cat=cricket", "Catalogue", "/catalog")}
-          {(role === "visitor" || role === "pending") && (
+          {/* public (visitor / pending) get the redesigned 5-item nav; logged-in
+              roles keep their workspace nav below */}
+          {role === "visitor" || role === "pending" ? (
+            <PublicNavDesktop />
+          ) : (
             <>
-              {tab("/#how", "How it works", "/#how")}
-              {tab("/#supply", "For suppliers", "/#supply")}
+              {tab("/", role === "supplier" || role === "admin" ? "Home" : "Shop", "/__home")}
+              {role === "buyer" && <MegaMenuDesktop key="catalogue" />}
             </>
           )}
           {role === "buyer" && (
@@ -196,7 +203,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-[1280px] gap-8 px-4 pb-7 pt-11 sm:grid-cols-2 md:px-10 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:gap-11 lg:pb-9 lg:pt-14">
         <div>
           <span className="stretch-xp font-display text-[22px] font-extrabold tracking-wide text-chalk">
-            PROSMASH
+            SMASH PRO
           </span>
           <p className="mt-3 max-w-[34ch] text-sm text-white/55">
             India&rsquo;s managed B2B platform for sports equipment — built for
@@ -243,7 +250,7 @@ export function SiteFooter() {
         <div>
           <h5 className={col}>For suppliers</h5>
           <ul className="space-y-2">
-            <li><Link className={item} href="/#supply">Why supply to ProSmash</Link></li>
+            <li><Link className={item} href="/#supply">Why supply to Smash Pro</Link></li>
             {(role === "visitor" || role === "pending") && (
               <li><Link className={item} href="/register/supplier">Register as a supplier</Link></li>
             )}
@@ -255,7 +262,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="mx-auto flex max-w-[1280px] flex-wrap gap-x-6 gap-y-1 px-4 py-4 font-mono text-[11px] text-white/40 md:px-10">
-          <span>© 2026 PROSMASH</span>
+          <span>© 2026 SMASH PRO</span>
           <span>B2B SPORTS COMMERCE · INDIA</span>
           <span>TERMS</span>
           <span>PRIVACY</span>
@@ -272,7 +279,7 @@ export function WhatsAppFloat() {
       href="https://wa.me/910000000000"
       target="_blank"
       rel="noopener"
-      aria-label="Chat with ProSmash on WhatsApp (placeholder link — official number pending)"
+      aria-label="Chat with Smash Pro on WhatsApp (placeholder link — official number pending)"
       title="WhatsApp contact — placeholder link, official number pending"
       className="fixed bottom-5 right-5 z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink shadow-overlay transition-colors hover:bg-ink2"
     >

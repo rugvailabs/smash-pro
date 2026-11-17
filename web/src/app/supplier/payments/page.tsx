@@ -8,7 +8,7 @@ import { inr } from "@/lib/format";
 /* Supplier payments — SUP-010 · Workflow N: per-PO invoiced / received /
    outstanding, terms as quoted. NO payout schedules, settlement cycles,
    commissions or credit terms are shown or implied — those policies are
-   pending (OBD-14 / OBD-21 ◇ / allowed-terms). Figures mirror ProSmash
+   pending (OBD-14 / OBD-21 ◇ / allowed-terms). Figures mirror Smash Pro
    records (ADM-017). */
 
 export const metadata: Metadata = { title: "Supplier payments" };
@@ -33,14 +33,14 @@ async function SupplierPaymentsContent() {
     <main>
       <PageHead
         title="Payments"
-        sub={<>Your complete money trail with ProSmash — per purchase order
-          <NoteFlag className="mt-1">amounts illustrative · figures mirror prosmash records</NoteFlag></>}
+        sub={<>Your complete money trail with Smash Pro — per purchase order
+          <NoteFlag className="mt-1">amounts illustrative · figures mirror smash pro records</NoteFlag></>}
       />
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          ["Invoiced to ProSmash", inr(invoiced), `${active.length} active/recent POs`, false],
-          ["Received", inr(received), "recorded by ProSmash", false],
+          ["Invoiced to Smash Pro", inr(invoiced), `${active.length} active/recent POs`, false],
+          ["Received", inr(received), "recorded by Smash Pro", false],
           ["Outstanding", inr(outstanding), "1 PO with balance due", true],
         ].map(([l, v, c, warn]) => (
           <div key={l as string} className="rounded-[2px] border border-n200 bg-chalk p-4">

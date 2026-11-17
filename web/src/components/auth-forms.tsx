@@ -72,7 +72,7 @@ export function SignInForm() {
         </button>
       </form>
       <p className="mt-4 text-sm text-n600">
-        New to ProSmash?{" "}
+        New to Smash Pro?{" "}
         <Link href="/register" className="font-semibold text-ember-deep hover:underline">Register your institution</Link>
         {" "}·{" "}
         <Link href="/register/supplier" className="font-semibold text-ember-deep hover:underline">Register as a supplier</Link>
@@ -248,7 +248,7 @@ export function RegisterForm({ kind }: { kind: "buyer" | "supplier" }) {
           {busy ? "Registering…" : "Submit registration"}
         </button>
         <p className="mt-2.5 text-[13px] text-n600">
-          Your registration is reviewed by ProSmash before {kind === "buyer" ? "ordering" : "the workspace"} is
+          Your registration is reviewed by Smash Pro before {kind === "buyer" ? "ordering" : "the workspace"} is
           enabled — you can sign in meanwhile and track its status.
         </p>
       </form>

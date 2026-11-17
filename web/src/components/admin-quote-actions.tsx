@@ -166,7 +166,7 @@ export function IssuePo({ quotationId, supplierName }: { quotationId: number; su
             onChange={(e) => setDestination(e.target.value as "warehouse" | "direct")}
             className="h-10 rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink"
           >
-            <option value="warehouse">ProSmash warehouse</option>
+            <option value="warehouse">Smash Pro warehouse</option>
             <option value="direct">Direct to buyer</option>
           </select>
         </div>

@@ -4,7 +4,7 @@ import type { BuyerRequest, Institution, Order } from "@/lib/types";
  *  Consumed only via src/lib/buyer-api.ts (the future API boundary).
  *  Access boundaries §3: no supplier identity, cost, quotation or margin
  *  appears anywhere in this dataset — direct shipments are presented as
- *  ProSmash's own (the buyer transacts with ProSmash only). */
+ *  Smash Pro's own (the buyer transacts with Smash Pro only). */
 
 export const INSTITUTION: Institution = {
   name: "St. Xavier's High School",

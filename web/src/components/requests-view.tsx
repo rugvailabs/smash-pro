@@ -9,7 +9,7 @@ import type { BuyerRequest } from "@/lib/types";
 
 /* ============================================================
    Product requests — BUY-007 (Workflow K), now REAL (I3):
-   submission creates a request record for ProSmash sourcing
+   submission creates a request record for Smash Pro sourcing
    review. Attachment upload remains metadata-only (ADR-0005).
    D12 (PUBLIC enquiry) is unrelated and remains pending review —
    this is the approved signed-in buyer workflow.
@@ -131,7 +131,7 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
         <Sect>New request</Sect>
         <Panel className="p-5">
           <NoteFlag className="mb-3.5">
-            submission is live — requests go to prosmash sourcing review
+            submission is live — requests go to smash pro sourcing review
             (buy-007) · attachment upload records metadata only (adr-0005)
           </NoteFlag>
           <div className="mb-3.5">
@@ -179,7 +179,7 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
             {busy ? "Submitting…" : "Submit request"}
           </button>
           <p className="mt-2.5 text-[13px] text-n600">
-            Requests go to the ProSmash team for sourcing review and may be
+            Requests go to the Smash Pro team for sourcing review and may be
             declined with a reason.
           </p>
         </Panel>

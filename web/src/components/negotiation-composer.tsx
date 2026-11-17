@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 /* Negotiation thread composer (SUP-008, integration point I4):
-   sends a REAL message into the private thread with ProSmash.
+   sends a REAL message into the private thread with Smash Pro.
    Messages are immutable once sent. */
 
 export function NegotiationComposer({ reqId }: { reqId: string }) {
@@ -46,7 +46,7 @@ export function NegotiationComposer({ reqId }: { reqId: string }) {
     <div className="mt-4 flex gap-2.5">
       <input
         type="text"
-        placeholder="Write a message to ProSmash"
+        placeholder="Write a message to Smash Pro"
         aria-label="Message"
         value={text}
         onChange={(e) => setText(e.target.value)}

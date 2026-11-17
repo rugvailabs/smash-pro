@@ -2,9 +2,11 @@ import "server-only";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { audit, getSession, type SessionUser } from "@/server/auth";
+import { notifyAdmins } from "@/server/notifications";
 import { applyDiscountPaise, discountBpFor } from "@/server/pricing";
 import { RACQUET_OPTIONS } from "@/data/products";
 import type { BuyerRequest, Institution, Order, RacquetConfig } from "@/lib/types";
+import type { BuyerAccount, BuyerAddress, ReorderResult } from "@/lib/buyer-api";
 
 /* ============================================================
    Buyer commerce service (B3). Every function scopes to the
@@ -414,4 +416,213 @@ export async function createComplaint(orderId: string, body: string) {
   if (!o) throw new Error("404");
   await db.insert(schema.complaints).values({ orderId, orgId: s.orgId!, body });
   await audit(s.userId, "complaint.create", "order", orderId);
+}
+
+/* ============================================================
+   Buyer account management (BUY-009). All mutations are strictly
+   org-scoped — an address or org row belonging to another org is
+   never touched (404 if not owned). Sensitive-field edits route to
+   Smash Pro re-review (DECIDED) rather than applying directly.
+   ============================================================ */
+
+/** Trim + require + length-bound a user-supplied string, or throw 400. */
+function boundedStr(v: unknown, label: string, max: number): string {
+  if (typeof v !== "string") throw new Error(`400:${label} is required`);
+  const t = v.trim();
+  if (!t) throw new Error(`400:${label} is required`);
+  if (t.length > max) throw new Error(`400:${label} must be ${max} characters or fewer`);
+  return t;
+}
+
+/* ---------- delivery addresses — full CRUD ---------- */
+
+export async function listAddresses(): Promise<BuyerAddress[]> {
+  const s = await approvedBuyer();
+  if (!s) return [];
+  const rows = await db
+    .select()
+    .from(schema.addresses)
+    .where(eq(schema.addresses.orgId, s.orgId!))
+    .orderBy(desc(schema.addresses.isDefault), asc(schema.addresses.id));
+  return rows.map((a) => ({ id: a.id, label: a.label, detail: a.detail, isDefault: a.isDefault }));
+}
+
+export async function addAddress(input: {
+  label: string; detail: string; isDefault?: boolean;
+}): Promise<BuyerAddress> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const label = boundedStr(input.label, "Label", 80);
+  const detail = boundedStr(input.detail, "Address", 240);
+  const existing = await db
+    .select({ id: schema.addresses.id })
+    .from(schema.addresses)
+    .where(eq(schema.addresses.orgId, s.orgId!));
+  // the org's first address is always the default; otherwise honour the flag
+  const makeDefault = input.isDefault === true || existing.length === 0;
+  if (makeDefault) {
+    await db.update(schema.addresses).set({ isDefault: false }).where(eq(schema.addresses.orgId, s.orgId!));
+  }
+  const [row] = await db
+    .insert(schema.addresses)
+    .values({ orgId: s.orgId!, label, detail, isDefault: makeDefault })
+    .returning();
+  await audit(s.userId, "address.create", "address", String(row.id), { label, isDefault: makeDefault });
+  return { id: row.id, label: row.label, detail: row.detail, isDefault: row.isDefault };
+}
+
+export async function updateAddress(id: number, input: { label: string; detail: string }): Promise<void> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const label = boundedStr(input.label, "Label", 80);
+  const detail = boundedStr(input.detail, "Address", 240);
+  const [owned] = await db
+    .select({ id: schema.addresses.id })
+    .from(schema.addresses)
+    .where(and(eq(schema.addresses.id, id), eq(schema.addresses.orgId, s.orgId!)));
+  if (!owned) throw new Error("404");
+  await db
+    .update(schema.addresses)
+    .set({ label, detail })
+    .where(and(eq(schema.addresses.id, id), eq(schema.addresses.orgId, s.orgId!)));
+  await audit(s.userId, "address.update", "address", String(id), { label });
+}
+
+export async function deleteAddress(id: number): Promise<void> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const [owned] = await db
+    .select()
+    .from(schema.addresses)
+    .where(and(eq(schema.addresses.id, id), eq(schema.addresses.orgId, s.orgId!)));
+  if (!owned) throw new Error("404");
+  await db
+    .delete(schema.addresses)
+    .where(and(eq(schema.addresses.id, id), eq(schema.addresses.orgId, s.orgId!)));
+  // if the removed address was the default, promote the oldest remaining one
+  if (owned.isDefault) {
+    const [next] = await db
+      .select({ id: schema.addresses.id })
+      .from(schema.addresses)
+      .where(eq(schema.addresses.orgId, s.orgId!))
+      .orderBy(asc(schema.addresses.id));
+    if (next) {
+      await db.update(schema.addresses).set({ isDefault: true }).where(eq(schema.addresses.id, next.id));
+    }
+  }
+  await audit(s.userId, "address.delete", "address", String(id));
+}
+
+export async function setDefaultAddress(id: number): Promise<void> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const [owned] = await db
+    .select({ id: schema.addresses.id })
+    .from(schema.addresses)
+    .where(and(eq(schema.addresses.id, id), eq(schema.addresses.orgId, s.orgId!)));
+  if (!owned) throw new Error("404");
+  // single operation: clear the org's other defaults, then set this one
+  await db.update(schema.addresses).set({ isDefault: false }).where(eq(schema.addresses.orgId, s.orgId!));
+  await db
+    .update(schema.addresses)
+    .set({ isDefault: true })
+    .where(and(eq(schema.addresses.id, id), eq(schema.addresses.orgId, s.orgId!)));
+  await audit(s.userId, "address.set-default", "address", String(id));
+}
+
+/* ---------- institutional account ---------- */
+
+export async function accountForSession(): Promise<BuyerAccount | null> {
+  const s = await approvedBuyer();
+  if (!s) return null;
+  const [org] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, s.orgId!));
+  if (!org) return null;
+  return {
+    legalName: org.legalName, orgType: org.orgType, gstin: org.gstin,
+    contactName: org.contactName, contactPhone: org.contactPhone, email: org.email,
+  };
+}
+
+/** Non-sensitive fields (contact name / phone) apply immediately. */
+export async function updateContactDetails(input: {
+  contactName: string; contactPhone: string;
+}): Promise<void> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const contactName = boundedStr(input.contactName, "Contact name", 120);
+  const contactPhone = boundedStr(input.contactPhone, "Contact phone", 30);
+  if (!/^[0-9+()\-\s]{6,30}$/.test(contactPhone)) {
+    throw new Error("400:Enter a valid contact phone number");
+  }
+  await db
+    .update(schema.organizations)
+    .set({ contactName, contactPhone })
+    .where(eq(schema.organizations.id, s.orgId!));
+  await audit(s.userId, "account.contact-update", "organization", String(s.orgId!), { contactName, contactPhone });
+}
+
+const SENSITIVE_FIELDS = { legalName: "Legal name", gstin: "GSTIN" } as const;
+export type SensitiveField = keyof typeof SENSITIVE_FIELDS;
+
+/** Sensitive fields (legal name / GSTIN) do NOT change the org — the request
+ *  is recorded and handed to Smash Pro ops for re-review (DECIDED rule). */
+export async function requestSensitiveChange(input: {
+  field: SensitiveField; newValue: string; note?: string;
+}): Promise<void> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const label = SENSITIVE_FIELDS[input.field];
+  if (!label) throw new Error("400:Choose a valid field to change");
+  const newValue = boundedStr(input.newValue, "New value", input.field === "gstin" ? 20 : 160);
+  const note = typeof input.note === "string" && input.note.trim()
+    ? boundedStr(input.note, "Note", 500)
+    : undefined;
+  // intentionally does NOT mutate the organization — re-review gate
+  await audit(s.userId, "account.change-request", "organization", String(s.orgId!), {
+    field: input.field, newValue, note,
+  });
+  await notifyAdmins(
+    `${s.orgName ?? "A buyer organization"} requested a change to its ${label} — re-review required.`,
+    "/admin/approvals"
+  );
+}
+
+/* ---------- reorder (re-add a past order's lines to the cart) ---------- */
+
+export async function reorderToCart(orderId: string): Promise<ReorderResult> {
+  const s = await approvedBuyer();
+  if (!s) throw new Error("401");
+  const [o] = await db
+    .select({ id: schema.orders.id })
+    .from(schema.orders)
+    .where(and(eq(schema.orders.id, orderId), eq(schema.orders.orgId, s.orgId!)));
+  if (!o) throw new Error("404");
+  const lines = await db.select().from(schema.orderLines).where(eq(schema.orderLines.orderId, o.id));
+
+  let added = 0;
+  const skipped: { sku: string; reason: string }[] = [];
+  for (const l of lines) {
+    const [p] = await db
+      .select({ sku: schema.products.sku, active: schema.products.active, configurable: schema.products.configurable })
+      .from(schema.products)
+      .where(eq(schema.products.sku, l.sku));
+    if (!p || !p.active) {
+      skipped.push({ sku: l.sku, reason: "No longer available" });
+      continue;
+    }
+    try {
+      // reuse the SAME validated cart path (pricing, qty bounds and the
+      // configurable-product rules all re-apply) — never a raw insert
+      const qty = Math.min(MAX_LINE_QTY, Math.max(1, l.qty));
+      await addCartLine(l.sku, qty, l.config ?? undefined);
+      added++;
+    } catch {
+      skipped.push({
+        sku: l.sku,
+        reason: p.configurable ? "Configuration no longer available" : "Could not be re-added",
+      });
+    }
+  }
+  await audit(s.userId, "order.reorder", "order", orderId, { added, skipped: skipped.length });
+  return { added, skipped };
 }

@@ -33,7 +33,7 @@ export const REQUIREMENTS: SupplierRequirement[] = [
   {
     id: "REQ-2026-0091",
     title: "Adjustable training hurdles — set of 6 heights",
-    category: "Athletics", qty: "120 units", destination: "ProSmash warehouse",
+    category: "Athletics", qty: "120 units", destination: "Smash Pro warehouse",
     published: "11 Nov 2026", closes: "today 18:00", closesToday: true,
     status: "open", statusLabel: "Open · not quoted",
     spec: [
@@ -42,7 +42,7 @@ export const REQUIREMENTS: SupplierRequirement[] = [
       ["Standard", "School & academy training grade"],
       ["Quantity", "120 units"],
       ["Required by", "20 Dec 2026"],
-      ["Deliver to", "ProSmash warehouse"],
+      ["Deliver to", "Smash Pro warehouse"],
     ],
     requiredBy: "20 Dec 2026",
     attachments: [{ file: "hurdle-spec-drawing.pdf", meta: "PDF · 2 pages" }],
@@ -50,14 +50,14 @@ export const REQUIREMENTS: SupplierRequirement[] = [
   {
     id: "REQ-2026-0089",
     title: "Rubber-coated dumbbell sets — 5–30 kg pairs",
-    category: "Gym & Fitness", qty: "40 sets", destination: "ProSmash warehouse",
+    category: "Gym & Fitness", qty: "40 sets", destination: "Smash Pro warehouse",
     closes: "19 Nov",
     status: "quoted-revision", statusLabel: "Quoted · revision requested",
   },
   {
     id: "REQ-2026-0087",
     title: "English Willow Bats — Grade 2, short handle",
-    category: "Cricket", qty: "500", destination: "ProSmash warehouse",
+    category: "Cricket", qty: "500", destination: "Smash Pro warehouse",
     closes: "closed 13 Nov",
     status: "awarded", statusLabel: "Awarded to you",
     poId: "PO-2026-00412",
@@ -65,7 +65,7 @@ export const REQUIREMENTS: SupplierRequirement[] = [
   {
     id: "REQ-2026-0084",
     title: "Competition shot puts — 4 kg / 7.26 kg",
-    category: "Athletics", qty: "60", destination: "ProSmash warehouse",
+    category: "Athletics", qty: "60", destination: "Smash Pro warehouse",
     closes: "closed 09 Nov",
     status: "closed", statusLabel: "Closed",
   },
@@ -86,16 +86,16 @@ export const QUOTES: SupplierQuote[] = [
     ],
     thread: [
       {
-        from: "prosmash", meta: "PROSMASH · 12 Nov 2026, 15:04 · re: v1",
+        from: "smash pro", meta: "SMASH PRO · 12 Nov 2026, 15:04 · re: v1",
         text: "Thanks for the quote. The quantity and pricing work, but 45-day lead time is beyond our requirement window. Can you improve it?",
       },
       {
         from: "you", meta: "YOU · 12 Nov 2026, 17:40",
         text: "We can commit to 30 days if the PO is released by 25 Nov — revised offer submitted as v2.",
       },
-      { from: "system", meta: "", text: "ProSmash requested a revision · 13 Nov 2026, 10:12 · re: v2" },
+      { from: "system", meta: "", text: "Smash Pro requested a revision · 13 Nov 2026, 10:12 · re: v2" },
       {
-        from: "prosmash", meta: "PROSMASH · 13 Nov 2026, 10:12 · re: v2",
+        from: "smash pro", meta: "SMASH PRO · 13 Nov 2026, 10:12 · re: v2",
         text: "30 days noted. One more ask: can you hold validity to 20 Dec? Please revise validity only — price and lead time stand.",
       },
     ],
@@ -158,7 +158,7 @@ export const PAYMENT_RECORDS = [
 ];
 
 export const SUPPLY_ITEMS: SupplyItem[] = [
-  { name: "English Willow Bat — Grade 2, SH", category: "Cricket", capacity: "800", lead: "21 days", cost: 3980, proposal: "₹4,080.00 proposed · awaiting ProSmash decision" },
+  { name: "English Willow Bat — Grade 2, SH", category: "Cricket", capacity: "800", lead: "21 days", cost: 3980, proposal: "₹4,080.00 proposed · awaiting Smash Pro decision" },
   { name: "Kashmir Willow Bat — Match, FS", category: "Cricket", capacity: "1,500", lead: "14 days", cost: 1310 },
   { name: "Practice Net — 60×10 ft HDPE", category: "Cricket", capacity: "200", lead: "10 days", cost: 2900 },
   { name: "Adjustable Training Hurdles — 6 ht", category: "Athletics", capacity: "600", lead: "18 days", cost: 2240 },
@@ -169,11 +169,11 @@ export const COST_PROPOSALS: CostProposal[] = [
   {
     title: "English Willow Bat G2 — ₹3,980.00 → ₹4,080.00",
     detail: "Submitted 12 Nov 2026 · reason: willow input cost increase · requested effective: next PO",
-    statusLabel: "Awaiting ProSmash decision",
+    statusLabel: "Awaiting Smash Pro decision",
   },
   {
     title: "Practice Net — ₹3,050.00 → ₹2,900.00",
-    detail: "Submitted 02 Oct 2026 · accepted by ProSmash 05 Oct 2026",
+    detail: "Submitted 02 Oct 2026 · accepted by Smash Pro 05 Oct 2026",
     statusLabel: "Accepted", accepted: true,
   },
 ];

@@ -121,7 +121,7 @@ export interface AdminQuoteView {
   status: string;
   statusLabel: string;
   versions: AdminQuoteVersion[];
-  messages: { from: "prosmash" | "supplier" | "system"; meta: string; body: string }[];
+  messages: { from: "smash pro" | "supplier" | "system"; meta: string; body: string }[];
 }
 
 export interface AdminRequirementRow {
@@ -153,7 +153,7 @@ export interface AdminPoRow {
   lineQty: number;
   unit: number;
   value: number;
-  fulfilment: "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";
+  fulfilment: "issued" | "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";
   fulfilmentLabel: string;
   received: number;
   outstanding: number;
@@ -190,4 +190,125 @@ export interface AdminReport {
   procurement: { poValueTotal: number; outstandingToSuppliers: number; posOpen: number };
   orgs: { buyersActive: number; suppliersActive: number; pending: number };
   topCategories: { slug: string; name: string; value: number }[];
+}
+
+/* ============================================================
+   Enhancements (B5+): audit viewer, organization management,
+   bulk catalogue/pricing ops, supplier performance, payment
+   reconciliation, extended analytics and CSV exports. All
+   read-model types stay two-decimal RUPEES at this boundary.
+   Pending OBD items remain ABSENT (no invoices/commission/
+   settlement/gateway/GST-rate figures — amounts only).
+   ============================================================ */
+
+/* ---------- audit log viewer (read-only, append-only source) ---------- */
+
+export interface AuditLogRow {
+  id: number;
+  actorEmail: string | null;
+  actorRole: string | null;
+  action: string;
+  entity: string;
+  entityId: string;
+  /** compact, human-readable summary of the detail jsonb (or null) */
+  detail: string | null;
+  at: string; // display timestamp
+}
+
+export interface AuditLogPage {
+  rows: AuditLogRow[];
+  /** total rows matching the active filter (drives "load more") */
+  total: number;
+  limit: number;
+  offset: number;
+  /** distinct entity types present, for the filter control */
+  entities: string[];
+}
+
+/* ---------- organization management (active/suspended lifecycle) ---------- */
+
+export interface AdminOrgFullRow {
+  id: number;
+  kind: "buyer" | "supplier";
+  status: "pending" | "active" | "suspended" | "rejected";
+  name: string;
+  orgType: string;
+  city: string;
+  gstin: string;
+  contactName: string;
+  email: string;
+  directApproved: boolean;
+  submitted: string;
+  /** buyers: orders placed */
+  orderCount: number;
+  /** suppliers: POs issued */
+  poCount: number;
+  /** buyers: total order value · suppliers: total PO value (incl. GST, rupees) */
+  totalValue: number;
+}
+
+/* ---------- supplier performance (read-only analytics) ---------- */
+
+export interface SupplierPerformanceRow {
+  orgId: number;
+  name: string;
+  quotesSubmitted: number;
+  quotesAwarded: number;
+  /** 0..100, whole percent of submitted quotations awarded */
+  winRate: number;
+  posIssued: number;
+  posClosed: number;
+  posInFlight: number;
+  /** direct POs with a delivery proof on record (or closed) */
+  proofsOnRecord: number;
+  /** direct POs still awaiting a delivery proof */
+  awaitingProof: number;
+  poValueTotal: number;
+  outstanding: number;
+}
+
+/* ---------- payment reconciliation ---------- */
+
+export interface ReconciliationRow {
+  orderId: string;
+  orgName: string;
+  method: string;
+  status: string;
+  statusLabel: string;
+  orderTotal: number;
+  declaredAmount: number | null;
+  /** declared amount differs from the order total */
+  mismatch: boolean;
+  confirmedAt: string | null;
+  verifiedBy: string | null;
+}
+
+export interface Reconciliation {
+  rows: ReconciliationRow[];
+  summary: {
+    confirmedCount: number;
+    confirmedTotal: number;
+    awaitingCount: number;
+    awaitingTotal: number;
+    failedCount: number;
+    failedTotal: number;
+    mismatchCount: number;
+  };
+}
+
+/* ---------- business analytics (extended report aggregation) ---------- */
+
+export interface AdminAnalytics {
+  orders: {
+    count: number;
+    gmv: number;
+    byStatus: { label: string; count: number; value: number }[];
+  };
+  /** order volume & value grouped by placed-month (chronological) */
+  monthlyTrend: { month: string; count: number; value: number }[];
+  topCategories: { slug: string; name: string; value: number }[];
+  topBuyers: { orgId: number; name: string; orders: number; value: number }[];
+  topSuppliers: { orgId: number; name: string; pos: number; value: number }[];
+  /** PO fulfilment by current stage (counts sum to total POs) */
+  fulfilmentFunnel: { label: string; count: number }[];
 }

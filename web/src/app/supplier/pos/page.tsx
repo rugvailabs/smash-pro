@@ -4,9 +4,10 @@ import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 import { Dest } from "@/components/supplier-shell";
+import { SupplierAckActions } from "@/components/supplier-ack-actions";
 import { getPOs } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
-import type { PoFulfilment } from "@/lib/types";
+import type { ChipTone } from "@/components/buyer-ui";
 
 /* Purchase orders — SUP-009 · Workflow N. PO destination is admin-set:
    warehouse or direct-to-buyer (OBD-19 Option C — suppliers can never
@@ -14,9 +15,12 @@ import type { PoFulfilment } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Purchase orders" };
 
-const TONE: Record<PoFulfilment, "info" | "warn" | "ok"> = {
-  acknowledged: "info", "awaiting-proof": "warn", "delivered-proof": "ok", closed: "ok",
-};
+function tone(f: string): ChipTone {
+  if (f === "issued") return "neu";
+  if (f === "acknowledged") return "info";
+  if (f === "awaiting-proof") return "warn";
+  return "ok"; // delivered-proof | closed
+}
 
 export default function PosPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)
@@ -32,7 +36,7 @@ async function PosContentList() {
 
   return (
     <main>
-      <PageHead title="Purchase orders" sub="Awarded orders from ProSmash · terms exactly as quoted" />
+      <PageHead title="Purchase orders" sub="Awarded orders from Smash Pro · terms exactly as quoted" />
 
       {/* desktop table */}
       <div className="hidden overflow-x-auto rounded-[2px] border border-n200 bg-chalk md:block">
@@ -53,20 +57,24 @@ async function PosContentList() {
                 <td className="px-3.5 py-2.5"><Dest direct={p.destination === "direct"} /></td>
                 <td className="num px-3.5 py-2.5">{p.lineQty} × {p.lineName.split(" — ")[0]}</td>
                 <td className="px-3.5 py-2.5">{p.issued}</td>
-                <td className="px-3.5 py-2.5"><Chip tone={TONE[p.fulfilment]}>{p.fulfilmentLabel}</Chip></td>
+                <td className="px-3.5 py-2.5"><Chip tone={tone(p.fulfilment)}>{p.fulfilmentLabel}</Chip></td>
                 <td className="num px-3.5 py-2.5 text-right font-semibold text-ink">{inr(p.value)}</td>
                 <td className="px-3.5 py-2.5">
-                  <Link
-                    href={p.fulfilment === "awaiting-proof" ? `/supplier/pos/${p.id}/proof` : `/supplier/pos/${p.id}`}
-                    className={
-                      "inline-flex h-8 items-center rounded-[2px] px-3 text-[13px] font-semibold " +
-                      (p.fulfilment === "awaiting-proof"
-                        ? "bg-ember-deep text-white hover:bg-ember-press"
-                        : "border border-n400 bg-chalk text-ink hover:border-ink")
-                    }
-                  >
-                    {p.fulfilment === "awaiting-proof" ? "Proof" : "Open"}
-                  </Link>
+                  {(p.fulfilment as string) === "issued" ? (
+                    <SupplierAckActions poId={p.id} size="sm" />
+                  ) : (
+                    <Link
+                      href={p.fulfilment === "awaiting-proof" ? `/supplier/pos/${p.id}/proof` : `/supplier/pos/${p.id}`}
+                      className={
+                        "inline-flex h-8 items-center rounded-[2px] px-3 text-[13px] font-semibold " +
+                        (p.fulfilment === "awaiting-proof"
+                          ? "bg-ember-deep text-white hover:bg-ember-press"
+                          : "border border-n400 bg-chalk text-ink hover:border-ink")
+                      }
+                    >
+                      {p.fulfilment === "awaiting-proof" ? "Proof" : "Open"}
+                    </Link>
+                  )}
                 </td>
               </tr>
             ))}
@@ -85,7 +93,7 @@ async function PosContentList() {
             </div>
             <div className="py-1 text-[13px] text-n600">{p.lineQty} × {p.lineName.split(" — ")[0]} · issued {p.issued}</div>
             <div className="flex items-center justify-between gap-3 py-1">
-              <Chip tone={TONE[p.fulfilment]}>{p.fulfilmentLabel}</Chip>
+              <Chip tone={tone(p.fulfilment)}>{p.fulfilmentLabel}</Chip>
               <span className="num text-sm font-semibold text-ink">{inr(p.value)}</span>
             </div>
           </Link>
@@ -93,7 +101,7 @@ async function PosContentList() {
       </div>
 
       <NoteFlag className="mt-2.5">
-        destination is set by prosmash per po (obd-19) · partial shipments
+        destination is set by smash pro per po (obd-19) · partial shipments
         &amp; dispatch-document requirements pending confirmation · values
         illustrative
       </NoteFlag>

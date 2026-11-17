@@ -62,7 +62,7 @@ async function RequirementContent({ params }: { params: Promise<{ id: string }> 
           <Panel className="px-4 py-3">
             {r.spec.map(([k, v]) => <KV key={k} k={k}>{v}</KV>)}
           </Panel>
-          <Sect>Attachments from ProSmash</Sect>
+          <Sect>Attachments from Smash Pro</Sect>
           <Panel>
             {(r.attachments ?? []).map((a) => (
               <DocRow key={a.file} file={a.file} meta={a.meta}
@@ -87,7 +87,7 @@ async function RequirementContent({ params }: { params: Promise<{ id: string }> 
             Submit quotation
           </Link>
           <NoteFlag className="mt-2.5">
-            quoting after closure only on prosmash request — policy pending ·
+            quoting after closure only on smash pro request — policy pending ·
             partial-quantity quotes pending
           </NoteFlag>
         </div>

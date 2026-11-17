@@ -3,7 +3,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 /* ============================================================
-   ProSmash schema (ADR-0003). Conventions:
+   Smash Pro schema (ADR-0003). Conventions:
    - money = integer paise (`*_paise`); UI renders two-decimal ₹
    - GST amounts only; `hsn` stays NULL until OBD-20/OBD-11 resolve
    - business refs (ORD-/PO-/REQ-) are text primary keys
@@ -224,7 +224,7 @@ export const quotationVersions = pgTable("quotation_versions", {
 export const negotiationMessages = pgTable("negotiation_messages", {
   id: serial("id").primaryKey(),
   quotationId: integer("quotation_id").notNull().references(() => quotations.id),
-  fromRole: text("from_role").notNull(), // 'prosmash' | 'you' | 'system'
+  fromRole: text("from_role").notNull(), // 'smash pro' | 'you' | 'system'
   meta: text("meta").notNull().default(""),
   body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -274,6 +274,8 @@ export const supplyItems = pgTable("supply_items", {
   lead: text("lead").notNull(),
   costPaise: integer("cost_paise").notNull(),
   proposal: text("proposal"),
+  /** supplier-managed availability (PHASE 2 — product availability mgmt) */
+  available: boolean("available").notNull().default(true),
 });
 
 export const costProposals = pgTable("cost_proposals", {

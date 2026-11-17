@@ -19,6 +19,7 @@ const NAV: { group: string; items: { href: string; label: string }[] }[] = [
     items: [
       { href: "/admin", label: "Dashboard" },
       { href: "/admin/approvals", label: "Approvals" },
+      { href: "/admin/organizations", label: "Organizations" },
       { href: "/admin/sourcing", label: "Sourcing" },
       { href: "/admin/pos", label: "Purchase orders" },
     ],
@@ -28,6 +29,7 @@ const NAV: { group: string; items: { href: string; label: string }[] }[] = [
     items: [
       { href: "/admin/orders", label: "Orders" },
       { href: "/admin/payments", label: "Payments" },
+      { href: "/admin/reconciliation", label: "Reconciliation" },
       { href: "/admin/complaints", label: "Complaints" },
     ],
   },
@@ -39,7 +41,15 @@ const NAV: { group: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/requests", label: "Buyer requests" },
     ],
   },
-  { group: "Insight", items: [{ href: "/admin/reports", label: "Reports" }] },
+  {
+    group: "Insight",
+    items: [
+      { href: "/admin/reports", label: "Reports" },
+      { href: "/admin/analytics", label: "Analytics" },
+      { href: "/admin/suppliers", label: "Suppliers" },
+      { href: "/admin/audit", label: "Audit log" },
+    ],
+  },
 ];
 
 function AdminNav() {
@@ -50,7 +60,7 @@ function AdminNav() {
   return (
     <nav aria-label="Operations console" className="shrink-0 lg:w-[232px]">
       <div className="hidden pb-1 font-mono text-[10px] uppercase tracking-[.08em] text-ember-deep lg:block">
-        ProSmash · Operations
+        Smash Pro · Operations
       </div>
       {/* mobile: horizontal strip · desktop: side rail */}
       <div className="flex gap-1 overflow-x-auto border-b border-n200 bg-chalk px-1 lg:block lg:border-b-0 lg:bg-transparent lg:px-0">
@@ -103,11 +113,11 @@ export function AdminGate() {
           Operations console
         </div>
         <h1 className="mb-2 mt-2 font-display text-2xl font-bold tracking-tight text-ink">
-          This console is for the ProSmash operations team
+          This console is for the Smash Pro operations team
         </h1>
         <p className="mb-5 text-sm text-n600">
           Supplier approvals, sourcing, order and payment verification run
-          here. Access is limited to ProSmash Super Admin accounts — buyer and
+          here. Access is limited to Smash Pro Super Admin accounts — buyer and
           supplier workspaces have their own sign-ins.
         </p>
         <div className="flex flex-wrap gap-3">

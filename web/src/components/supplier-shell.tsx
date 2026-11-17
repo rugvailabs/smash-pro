@@ -90,6 +90,7 @@ export function SupplierNav() {
       ],
     },
     { group: "Money", items: [{ href: "/supplier/payments", label: "Payments" }] },
+    { group: "Insight", items: [{ href: "/supplier/report", label: "Reporting" }] },
     { group: "Catalogue", items: [{ href: "/supplier/catalog", label: "My catalogue" }] },
     { group: "Account", items: [{ href: "/supplier/profile", label: "Profile" }] },
   ];

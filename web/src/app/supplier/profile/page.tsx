@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Chip, DocRow, KV, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
+import { SupplierBusinessEdit, SupplierCategoryRequest } from "@/components/supplier-profile-edit";
 import { getSupplierProfile, getSupplyItems } from "@/lib/supplier-api";
 
 /* Supplier profile — SUP-003 · ADM-020 AC5. Direct-shipment eligibility:
@@ -24,8 +25,6 @@ export default function SupplierProfilePage() {
 async function SupplierProfileContent() {
   const [p, items] = await Promise.all([getSupplierProfile(), getSupplyItems()]);
 
-  const btnSec = "inline-flex h-10 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink";
-
   return (
     <main>
       <PageHead
@@ -43,12 +42,10 @@ async function SupplierProfileContent() {
             <KV k="Contact">{p.contact}</KV>
             <KV k="Email">{p.email}</KV>
             <KV k="Works address">{p.worksAddress}</KV>
-            <div className="pt-3.5">
-              <a href="#" className={btnSec} title="Edit flow arrives with account management">Edit business details</a>
-            </div>
+            <SupplierBusinessEdit contactName={p.contact} />
           </Panel>
           <NoteFlag className="mt-2">
-            edits to legal name / gstin / bank details route to prosmash
+            edits to legal name / gstin / bank details route to smash pro
             re-review before taking effect · exact sensitive-field list pending
           </NoteFlag>
 
@@ -69,16 +66,14 @@ async function SupplierProfileContent() {
           <Sect>Categories — drive requirement matching</Sect>
           <Panel className="px-5 py-4">
             <KV k="Approved">{p.categories.join(" · ")}</KV>
-            <div className="pt-3">
-              <a href="#" className="text-[13px] font-semibold text-ember-deep hover:underline">Request a category change</a>
-            </div>
+            <SupplierCategoryRequest categories={p.categories} />
           </Panel>
           <NoteFlag className="mt-2">
             category changes take effect on future requirement matching after
-            prosmash review
+            smash pro review
           </NoteFlag>
 
-          <Sect>Direct-shipment eligibility — set by ProSmash</Sect>
+          <Sect>Direct-shipment eligibility — set by Smash Pro</Sect>
           <Panel className="px-5 py-4">
             <KV k="Supplier approval"><Chip tone="ok">Approved</Chip></KV>
             <KV k="Enabled products"><span className="num">{p.directEnabled.length} of {items.length} catalogue items</span></KV>
@@ -89,7 +84,7 @@ async function SupplierProfileContent() {
           </Panel>
           <NoteFlag className="mt-2">
             view-only — both the supplier approval and per-product enablement
-            are controlled by prosmash (obd-19 option c); there is no way to
+            are controlled by smash pro (obd-19 option c); there is no way to
             change them here · evaluation criteria ◇ proposed
           </NoteFlag>
 

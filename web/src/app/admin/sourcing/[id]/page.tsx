@@ -104,7 +104,7 @@ function QuoteCard({
         </div>
       )}
 
-      {/* private thread — prosmash right-aligned, supplier left, system centred */}
+      {/* private thread — smash pro right-aligned, supplier left, system centred */}
       <div className="flex-1 border-t border-n100 px-3.5 py-3">
         <div className="mb-1.5 font-mono text-[10px] uppercase tracking-wide text-n400">
           Thread — private to {q.supplierName}
@@ -123,7 +123,7 @@ function QuoteCard({
                   key={i}
                   className={
                     "max-w-[88%] rounded-[2px] border border-n200 px-3 py-2 text-[13px] " +
-                    (m.from === "prosmash" ? "ml-auto bg-paper" : "bg-chalk")
+                    (m.from === "smash pro" ? "ml-auto bg-paper" : "bg-chalk")
                   }
                 >
                   <div className="mb-0.5 font-mono text-[10px] uppercase tracking-wide text-n600">{m.meta}</div>
@@ -181,7 +181,7 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
           <Panel className="px-4 py-2">
             <KV k="Category">{catLabel(req.catSlug)}</KV>
             <KV k="Quantity">{req.qty}</KV>
-            <KV k="Destination">{req.destination === "direct" ? "Direct to buyer" : "ProSmash warehouse"}</KV>
+            <KV k="Destination">{req.destination === "direct" ? "Direct to buyer" : "Smash Pro warehouse"}</KV>
             <KV k="Published">{req.published ?? "—"}</KV>
             <KV k="Quotes close">{req.closes}</KV>
             <KV k="Required by">{req.requiredBy ?? "—"}</KV>

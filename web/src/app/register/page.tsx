@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { RegisterForm } from "@/components/auth-forms";
 
 /* Buyer registration — Workflow H: organization created in pending status;
-   approval is reviewed by ProSmash (ADM-002). */
+   approval is reviewed by Smash Pro (ADM-002). */
 
 export const metadata: Metadata = { title: "Register your institution" };
 

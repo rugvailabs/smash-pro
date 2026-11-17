@@ -57,7 +57,7 @@ async function QuotesContent() {
     <main>
       <PageHead
         title="Quotations"
-        sub="Your submitted quotations — versioned offers and their negotiation threads with ProSmash"
+        sub="Your submitted quotations — versioned offers and their negotiation threads with Smash Pro"
       />
       {quotes.length ? (
         <Panel>{quotes.map((q) => <Row key={q.reqId} q={q} />)}</Panel>

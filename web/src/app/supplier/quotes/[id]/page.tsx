@@ -4,13 +4,14 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Banner, Chip, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
 import { NegotiationComposer } from "@/components/negotiation-composer";
+import { SupplierRevisionForm, SupplierWithdraw } from "@/components/supplier-revision-form";
 import { getQuote } from "@/lib/supplier-api";
 import { PanelSkeleton } from "@/components/skeletons";
 import { inr } from "@/lib/format";
 
 /* Quotation detail + negotiation — SUP-007/008 · Workflows E/F. Own
    quotation only — competing quotations and other suppliers are NEVER
-   visible. Private thread with ProSmash; formal revision requests appear
+   visible. Private thread with Smash Pro; formal revision requests appear
    as system markers. Messages immutable. */
 
 export async function generateMetadata({
@@ -35,7 +36,8 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
   const q = await getQuote(decodeURIComponent(id).toUpperCase());
   if (!q) notFound();
 
-  const btnSec = "inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink";
+  const currentVersion = q.versions.find((v) => v.current)?.v ?? q.versions[0]?.v ?? "v1";
+  const closed = /withdrawn|awarded|not selected|closed/i.test(q.statusLabel);
 
   return (
     <main>
@@ -48,14 +50,7 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
             <Chip tone="warn">{q.statusLabel}</Chip>
           </span>
         }
-        actions={
-          <>
-            <a href="#" className={btnSec}>Withdraw quotation</a>
-            <span className="inline-flex h-11 cursor-not-allowed items-center rounded-[2px] bg-n200 px-4 text-sm font-semibold text-n400" aria-disabled>
-              Submit revision (prototype)
-            </span>
-          </>
-        }
+        actions={closed ? undefined : <SupplierWithdraw reqId={q.reqId} />}
       />
 
       <div className="grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
@@ -64,7 +59,7 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
           <Panel>
             <div className="flex flex-wrap items-center gap-3 border-b border-n200 px-4 py-3">
               <b className="font-display text-base font-semibold text-ink">Your offer</b>
-              <span className="font-mono text-[11px] text-n600">v2 · current</span>
+              <span className="font-mono text-[11px] text-n600">{currentVersion} · current</span>
               <span className="ml-auto"><Chip tone="warn">{q.statusLabel}</Chip></span>
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:grid-cols-5">
@@ -87,7 +82,17 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
             </div>
           </Panel>
 
-          <Sect>Negotiation with ProSmash</Sect>
+          {!closed && (
+            <>
+              <Sect>Revise or withdraw</Sect>
+              <SupplierRevisionForm
+                reqId={q.reqId}
+                current={{ unit: q.unit, quantity: q.quantity, lead: q.lead, validTill: q.validTill, terms: q.terms }}
+              />
+            </>
+          )}
+
+          <Sect>Negotiation with Smash Pro</Sect>
           <Panel className="p-4">
             <div className="space-y-3">
               {q.thread.map((m, i) =>
@@ -133,7 +138,7 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
           <NoteFlag className="mt-2">every revision is a new immutable version — nothing is overwritten</NoteFlag>
           <Banner tone="info" className="mt-3.5">
             <b className="text-ink">Private thread.</b> This negotiation is
-            between Meerut Sports Works and ProSmash only. Other suppliers and
+            between Meerut Sports Works and Smash Pro only. Other suppliers and
             their offers are never visible to you — or yours to them.
           </Banner>
         </div>

@@ -143,7 +143,7 @@ export function QuoteForm({ reqId }: { reqId: string }) {
         <Banner tone="info" className="mt-3">
           <b className="text-ink">Revisions are versioned.</b> You can revise
           this quotation while the requirement is open — every version is kept
-          on record and visible to you and ProSmash.
+          on record and visible to you and Smash Pro.
         </Banner>
       </div>
     </div>

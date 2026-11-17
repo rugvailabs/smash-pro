@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useRole } from "@/components/providers";
 import { SearchBox } from "@/components/search-box";
+import { MegaMenuMobile } from "@/components/mega-menu";
+import { PublicNavMobile } from "@/components/public-nav";
 import type { Role } from "@/lib/types";
 
 /* ============================================================
@@ -29,9 +31,9 @@ function itemsFor(role: Role): { href: string; label: string; match: string }[] 
       { href: "/supplier/profile", label: "Eligibility & profile", match: "/supplier/profile" },
     ];
   }
+  // Catalogue is the MegaMenuMobile accordion, injected after "Shop" in render.
   const base = [
     { href: "/", label: "Shop", match: "/__home" },
-    { href: "/catalog?cat=cricket", label: "Catalogue", match: "/catalog" },
   ];
   if (role === "buyer") {
     return [
@@ -96,7 +98,7 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
       <div className="absolute inset-0 bg-ink/40" onClick={onClose} aria-hidden />
       <div ref={panelRef} className="absolute inset-y-0 left-0 flex w-[min(360px,88vw)] flex-col bg-ink">
         <div className="flex h-16 items-center justify-between px-5">
-          <span className="stretch-xp font-display text-[19px] font-extrabold tracking-wide text-chalk">PROSMASH</span>
+          <span className="stretch-xp font-display text-[19px] font-extrabold tracking-wide text-chalk">SMASH PRO</span>
           <button
             data-drawer-close
             onClick={onClose}
@@ -112,22 +114,32 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           <SearchBox variant="drawer" onNavigate={onClose} />
         </div>
         <nav aria-label="Site sections" className="min-h-0 flex-1 overflow-y-auto">
-          {items.map((i) => (
-            <Link
-              key={i.label}
-              href={i.href}
-              onClick={onClose}
-              aria-current={isOn(i.match) ? "page" : undefined}
-              className={
-                "flex h-[52px] items-center px-5 font-display text-lg font-semibold " +
-                (isOn(i.match)
-                  ? "bg-ink2 text-chalk shadow-[inset_3px_0_0_var(--color-ember)]"
-                  : "text-white/80 hover:text-white")
-              }
-            >
-              {i.label}
-            </Link>
-          ))}
+          {role === "visitor" || role === "pending" ? (
+            /* public: the redesigned 5-group accordion nav */
+            <PublicNavMobile onNavigate={onClose} />
+          ) : (
+            items.map((i) => (
+              <Fragment key={i.label}>
+                <Link
+                  href={i.href}
+                  onClick={onClose}
+                  aria-current={isOn(i.match) ? "page" : undefined}
+                  className={
+                    "flex h-[52px] items-center px-5 font-display text-lg font-semibold " +
+                    (isOn(i.match)
+                      ? "bg-ink2 text-chalk shadow-[inset_3px_0_0_var(--color-ember)]"
+                      : "text-white/80 hover:text-white")
+                  }
+                >
+                  {i.label}
+                </Link>
+                {/* Catalogue accordion sits right after Shop — buyers only now */}
+                {i.match === "/__home" && role === "buyer" && (
+                  <MegaMenuMobile onNavigate={onClose} />
+                )}
+              </Fragment>
+            ))
+          )}
         </nav>
         <div className="border-t border-white/10 p-5">
           {role === "visitor" ? (

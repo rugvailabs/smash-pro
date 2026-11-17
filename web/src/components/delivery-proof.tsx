@@ -60,7 +60,7 @@ export function DeliveryProof({ po }: { po: SupplierPO }) {
     <>
       {submitted ? (
         <Banner tone="ok" className="mb-5">
-          <b className="text-ink">Delivery proof on record.</b> ProSmash has
+          <b className="text-ink">Delivery proof on record.</b> Smash Pro has
           now requested the recipient&rsquo;s confirmation — proof first,
           always.
         </Banner>
@@ -68,7 +68,7 @@ export function DeliveryProof({ po }: { po: SupplierPO }) {
         <Banner tone="warn" className="mb-5">
           <b className="text-ink">Upload delivery proof to close this
           shipment.</b> The recipient&rsquo;s confirmation is requested by
-          ProSmash only after your proof is on record — proof first, always.
+          Smash Pro only after your proof is on record — proof first, always.
         </Banner>
       )}
 
@@ -157,13 +157,13 @@ export function DeliveryProof({ po }: { po: SupplierPO }) {
                 {submitted ? <Chip tone="ok">On record</Chip> : <Chip tone="warn">Not yet submitted</Chip>}
               </KV>
               <KV k="Recipient confirmation">
-                {submitted ? <Chip tone="info">Requested by ProSmash</Chip> : <Chip tone="neu">Waits for proof</Chip>}
+                {submitted ? <Chip tone="info">Requested by Smash Pro</Chip> : <Chip tone="neu">Waits for proof</Chip>}
               </KV>
             </div>
           </Panel>
           <Banner tone="info" className="mt-3.5">
-            <b className="text-ink">ProSmash owns the delivery relationship.</b>{" "}
-            If the recipient raises any delivery issue, ProSmash coordinates it
+            <b className="text-ink">Smash Pro owns the delivery relationship.</b>{" "}
+            If the recipient raises any delivery issue, Smash Pro coordinates it
             with you — never handle delivery complaints directly.
           </Banner>
           <NoteFlag className="mt-2.5">

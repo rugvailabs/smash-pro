@@ -5,7 +5,7 @@ import { Chip, NoteFlag } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/empty-state";
 import { AdminGate } from "@/components/admin-shell";
-import { AdminHead, AdminTable, DestTag, statusTone, tdCls, trCls } from "@/components/admin-ui";
+import { AdminHead, AdminTable, DestTag, ExportCsvLink, statusTone, tdCls, trCls } from "@/components/admin-ui";
 import { getAdminCounts, getOrdersAdmin } from "@/lib/admin-api";
 import { inr } from "@/lib/format";
 
@@ -34,6 +34,7 @@ async function AdminOrdersContent() {
       <AdminHead
         title="Orders"
         sub={<>{orders.length} orders · buyer commerce ledger — advance, payment and complaints per order</>}
+        actions={<ExportCsvLink kind="orders" />}
       />
 
       {orders.length === 0 ? (

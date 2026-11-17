@@ -42,7 +42,7 @@ async function ProofContent({ params }: { params: Promise<{ id: string }> }) {
           </span>
         }
         titleAside={<Dest direct />}
-        sub="Dispatched 13 Nov 2026 · dispatch was released after ProSmash confirmed the buyer's advance payment"
+        sub="Dispatched 13 Nov 2026 · dispatch was released after Smash Pro confirmed the buyer's advance payment"
       />
       <DeliveryProof po={po} />
     </main>

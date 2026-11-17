@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Chip, NoteFlag, Sect } from "@/components/buyer-ui";
+import { NoteFlag, Sect } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 import { AdminGate } from "@/components/admin-shell";
-import { AdminHead, AdminTable, catLabel, tdCls, trCls } from "@/components/admin-ui";
-import { ActiveToggle, StdPriceCell } from "@/components/admin-catalog-controls";
+import { AdminHead, ADMIN_CATEGORIES } from "@/components/admin-ui";
+import { BulkCatalog, CategoryDiscountForm } from "@/components/admin-bulk-catalog";
 import { ProductForm } from "@/components/admin-product-form";
 import { getAdminCounts, getProductsAdmin } from "@/lib/admin-api";
 
@@ -44,42 +44,16 @@ async function AdminCatalogContent() {
         }
       />
 
-      <AdminTable
-        minW={960}
-        maxH={620}
-        cols={[
-          { h: "SKU" }, { h: "Product" }, { h: "Category" }, { h: "Sub" },
-          { h: "Std price", right: true }, { h: "Photography" }, { h: "Active" },
-        ]}
-      >
-        {products.map((p) => (
-          <tr key={p.sku} className={trCls}>
-            <td className={`${tdCls} font-mono text-[12.5px] text-ink`}>{p.sku}</td>
-            <td className={tdCls}>
-              {p.name}
-              {p.configurable && (
-                <span className="ml-2 font-mono text-[9px] uppercase tracking-wide text-n400">config</span>
-              )}
-            </td>
-            <td className={tdCls}>{catLabel(p.catSlug)}</td>
-            <td className={tdCls}>{p.sub}</td>
-            <td className={`${tdCls} whitespace-nowrap text-right`}>
-              <StdPriceCell sku={p.sku} std={p.std} />
-            </td>
-            <td className={tdCls}>
-              {p.hasImg
-                ? <span className="font-mono text-[10px] uppercase tracking-wide text-n400">on file</span>
-                : <Chip tone="warn">No photo</Chip>}
-            </td>
-            <td className={tdCls}><ActiveToggle sku={p.sku} active={p.active} /></td>
-          </tr>
-        ))}
-      </AdminTable>
+      <BulkCatalog products={products} />
       <NoteFlag className="mt-2.5">
         standard listed prices are public (obd-03) — buyer discounts apply on
         top via price rules · deactivating hides the product from the
-        catalogue without deleting its record
+        catalogue without deleting its record · bulk and single-item controls
+        are both recorded (plt-003)
       </NoteFlag>
+
+      <Sect>Category default discount</Sect>
+      <CategoryDiscountForm categories={ADMIN_CATEGORIES} />
 
       <div className="mt-8 grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
         <div className="min-w-0">

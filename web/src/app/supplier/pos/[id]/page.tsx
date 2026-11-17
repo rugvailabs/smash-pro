@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, Sect } from "@/components/buyer-ui";
 import { Dest } from "@/components/supplier-shell";
+import { SupplierAckActions } from "@/components/supplier-ack-actions";
+import { SupplierDispatchForm } from "@/components/supplier-dispatch-form";
 import { getPO } from "@/lib/supplier-api";
 import { PanelSkeleton } from "@/components/skeletons";
 import { inr } from "@/lib/format";
@@ -49,14 +51,12 @@ async function PoContent({ params }: { params: Promise<{ id: string }> }) {
           )
         }
         actions={
-          po.fulfilment === "awaiting-proof" ? (
+          (po.fulfilment as string) === "issued" ? (
+            <SupplierAckActions poId={po.id} />
+          ) : po.fulfilment === "awaiting-proof" ? (
             <Link href={`/supplier/pos/${po.id}/proof`} className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press">
               Upload delivery proof
             </Link>
-          ) : po.fulfilment === "acknowledged" ? (
-            <span className="inline-flex h-11 cursor-not-allowed items-center rounded-[2px] bg-n200 px-5 text-sm font-semibold text-n400" aria-disabled>
-              Update dispatch (prototype)
-            </span>
           ) : undefined
         }
       />
@@ -76,7 +76,7 @@ async function PoContent({ params }: { params: Promise<{ id: string }> }) {
 
           <Sect>Fulfilment</Sect>
           <Panel className="px-4 py-3">
-            <KV k="Destination">{po.destination === "direct" ? "Direct to recipient" : "ProSmash warehouse"}</KV>
+            <KV k="Destination">{po.destination === "direct" ? "Direct to recipient" : "Smash Pro warehouse"}</KV>
             {po.dispatchBy && <KV k="Dispatch by">{po.dispatchBy}</KV>}
             {po.acknowledgedAt && <KV k="Acknowledged">{po.acknowledgedAt}</KV>}
             {po.shipment && (
@@ -85,7 +85,11 @@ async function PoContent({ params }: { params: Promise<{ id: string }> }) {
             {po.dispatchedQty && <KV k="Dispatched qty"><span className="num">{po.dispatchedQty}</span></KV>}
             {po.receivedQty && <KV k="Received at warehouse"><span className="num">{po.receivedQty}</span></KV>}
             <KV k="Status">
-              <Chip tone={po.fulfilment === "awaiting-proof" ? "warn" : po.fulfilment === "acknowledged" ? "info" : "ok"}>
+              <Chip tone={
+                (po.fulfilment as string) === "issued" ? "neu"
+                : po.fulfilment === "awaiting-proof" ? "warn"
+                : po.fulfilment === "acknowledged" ? "info" : "ok"
+              }>
                 {po.fulfilmentLabel}
               </Chip>
             </KV>
@@ -93,8 +97,15 @@ async function PoContent({ params }: { params: Promise<{ id: string }> }) {
           <NoteFlag className="mt-2">
             partial shipments &amp; dispatch documents (invoice, e-way bill)
             pending confirmation · discrepancies at goods receipt are resolved
-            with prosmash on record
+            with smash pro on record
           </NoteFlag>
+
+          {po.fulfilment === "acknowledged" && po.destination === "direct" && (
+            <>
+              <Sect>Record dispatch</Sect>
+              <SupplierDispatchForm poId={po.id} lineQty={po.lineQty} />
+            </>
+          )}
 
           {po.terms && (
             <>

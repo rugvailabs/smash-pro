@@ -6,7 +6,7 @@ import { AdminShell } from "@/components/admin-shell";
    non-admin sessions and the page renders AdminGate instead of data. */
 
 export const metadata: Metadata = {
-  title: { default: "Operations", template: "%s · ProSmash Operations" },
+  title: { default: "Operations", template: "%s · Smash Pro Operations" },
 };
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -16,7 +16,7 @@ import {
      buyer@demo.prosmash.in     (St. Xavier's — approved buyer)
      supplier@demo.prosmash.in  (Meerut Sports Works — approved supplier)
      pending@demo.prosmash.in   (Model Public School — pending buyer)
-     admin@demo.prosmash.in     (ProSmash operations)
+     admin@demo.prosmash.in     (Smash Pro operations)
    ============================================================ */
 
 const paise = (r: number) => Math.round(r * 100);
@@ -98,18 +98,18 @@ export async function runSeed() {
     orgId: buyerOrg.id, email: "buyer@demo.prosmash.in", passwordHash: pw,
     name: "Head of Sports", role: "buyer",
   }).returning();
-  await db.insert(schema.users).values({
+  const [supplierUser] = await db.insert(schema.users).values({
     orgId: supplierOrg.id, email: "supplier@demo.prosmash.in", passwordHash: pw,
     name: "Sales Head", role: "supplier",
-  });
+  }).returning();
   await db.insert(schema.users).values({
     orgId: pendingOrg.id, email: "pending@demo.prosmash.in", passwordHash: pw,
     name: "Office Administrator", role: "buyer",
   });
-  await db.insert(schema.users).values({
+  const [adminUser] = await db.insert(schema.users).values({
     orgId: null, email: "admin@demo.prosmash.in", passwordHash: pw,
-    name: "ProSmash Operations", role: "admin",
-  });
+    name: "Smash Pro Operations", role: "admin",
+  }).returning();
 
   /* buyer org data */
   await db.insert(schema.addresses).values(
@@ -242,6 +242,28 @@ export async function runSeed() {
   await db.insert(schema.supplierPaymentRecords).values(
     PAYMENT_RECORDS.map((r) => ({ supplierOrgId: supplierOrg.id, title: r.title, meta: r.meta }))
   );
+
+  // one freshly-issued PO awaiting supplier acknowledgement (PHASE 2 — the
+  // acknowledge → dispatch lifecycle is demoable without running full sourcing)
+  await db.insert(schema.purchaseOrders).values({
+    id: "PO-2026-00433", supplierOrgId: supplierOrg.id, destination: "direct",
+    issued: "18 Nov 2026", lineName: "Rubber-coated dumbbell sets — 5–30 kg pairs",
+    lineQty: 40, unitPaise: paise(21400), valuePaise: paise(856000),
+    fulfilment: "issued", fulfilmentLabel: "Issued · awaiting acknowledgement",
+    paymentTerms: "40% advance, balance on delivery",
+    receivedPaise: 0, outstandingPaise: paise(856000), payStatusLabel: "Advance pending",
+    dispatchBy: "30 days from acknowledgement",
+  });
+
+  // demo in-app notifications (PHASE 2 — one unread per role so the bell shows)
+  await db.insert(schema.notifications).values([
+    { userId: buyerUser.id, body: "Delivery proof received for ORD-2026-01144 — please confirm receipt.", href: "/orders/ORD-2026-01144" },
+    { userId: buyerUser.id, body: "Payment proof for ORD-2026-01153 is under verification by Smash Pro.", href: "/orders/ORD-2026-01153" },
+    { userId: supplierUser.id, body: "New purchase order PO-2026-00433 issued — acknowledge to proceed.", href: "/supplier/pos/PO-2026-00433" },
+    { userId: supplierUser.id, body: "Smash Pro requested a revision on your quotation for REQ-2026-0089.", href: "/supplier/quotes/REQ-2026-0089" },
+    { userId: adminUser.id, body: "Model Public School registration is awaiting approval.", href: "/admin/approvals" },
+    { userId: adminUser.id, body: "NEFT payment proof on ORD-2026-01153 is awaiting verification.", href: "/admin/payments" },
+  ]);
 
   await db.insert(schema.auditLog).values({
     actorUserId: null, action: "seed", entity: "database", entityId: "demo",

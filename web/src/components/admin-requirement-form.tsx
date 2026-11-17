@@ -79,7 +79,7 @@ export function RequirementForm() {
               onChange={set("destination")}
               className={inputCls}
             >
-              <option value="warehouse">ProSmash warehouse</option>
+              <option value="warehouse">Smash Pro warehouse</option>
               <option value="direct">Direct to buyer</option>
             </select>
             <NoteFlag className="mt-1">
