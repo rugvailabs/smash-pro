@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PaymentDemo } from "@/components/payment-demo";
-import { PageHead } from "@/components/buyer-ui";
+import { FlowRail, PageHead } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 
 /* Payment demonstration — states per OBD-21 (auto-verify vs proof + admin
@@ -33,6 +33,7 @@ async function PaymentContent({ searchParams }: { searchParams: Promise<{ method
           sub="Demonstration of the confirmed, verification-pending and failed payment states."
           crumb={<><Link href="/checkout" className="hover:underline">Checkout</Link> / <b className="text-ink">Payment</b></>}
         />
+        <FlowRail steps={["Cart", "Checkout", "Payment"]} current={2} />
         <PaymentDemo method={method} />
       </main>
     </RequireBuyer>

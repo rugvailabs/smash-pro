@@ -107,21 +107,19 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
         </table>
       </div>
 
-      {/* mobile cards */}
+      {/* mobile cards — two-line anatomy: identity line (id · placed),
+          then state line (chips left, amount right) */}
       <div className="space-y-3 md:hidden">
         {shown.map((o) => (
           <Link key={o.id} href={`/orders/${o.id}`} className="block rounded-[2px] border border-n200 bg-chalk p-4">
-            <div className="mb-1.5 flex items-center justify-between gap-3">
+            <div className="flex items-baseline justify-between gap-3">
               <span className="font-mono text-[12.5px] text-ink">{o.id}</span>
+              <span className="text-[12.5px] text-n600">{o.placed}</span>
+            </div>
+            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
               <Chip tone={STATUS_TONE[o.status]}>{o.statusLabel}</Chip>
-            </div>
-            <div className="flex items-center justify-between gap-3 py-1 text-[13px]">
-              <span className="text-n600">Payment</span>
               <Chip tone={PAY_TONE[o.payment.status]}>{o.payment.statusLabel}</Chip>
-            </div>
-            <div className="flex items-center justify-between gap-3 py-1 text-[13px]">
-              <span className="text-n600">Amount</span>
-              <span className="num font-semibold text-ink">{inr(o.total)}</span>
+              <span className="num ml-auto text-[15px] font-semibold text-ink">{inr(o.total)}</span>
             </div>
           </Link>
         ))}

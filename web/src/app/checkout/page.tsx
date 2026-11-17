@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { CheckoutView } from "@/components/checkout-view";
-import { PageHead } from "@/components/buyer-ui";
+import { FlowRail, PageHead } from "@/components/buyer-ui";
 import { getInstitution } from "@/lib/buyer-api";
 
 /* Checkout — review delivery, taxes and payment, then pay 100% in advance. */
@@ -19,6 +19,7 @@ export default async function CheckoutPage() {
           sub="Review delivery, taxes and payment — then pay 100% in advance."
           crumb={<><Link href="/cart" className="hover:underline">Cart</Link> / <b className="text-ink">Checkout</b></>}
         />
+        <FlowRail steps={["Cart", "Checkout", "Payment"]} current={1} />
         <CheckoutView addresses={inst.addresses} />
       </main>
     </RequireBuyer>

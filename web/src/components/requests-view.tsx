@@ -15,6 +15,36 @@ import type { BuyerRequest } from "@/lib/types";
 
 const TONE: Record<string, ChipTone> = { "in-review": "info", available: "ok", declined: "bad" };
 
+/** C9 mini-timeline: the request's journey, derived only from the existing
+ *  status — status transparency is this feature's whole value (Workflow K). */
+function RequestTrail({ r }: { r: BuyerRequest }) {
+  const reviewDone = r.status !== "in-review";
+  const steps = [
+    { label: `Submitted ${r.submitted}`, text: "text-n600", dot: "bg-ok" },
+    { label: "Sourcing review", text: reviewDone ? "text-n600" : "font-medium text-ink", dot: reviewDone ? "bg-ok" : "bg-ember-deep" },
+    r.status === "available"
+      ? { label: "Available in catalogue", text: "text-ok", dot: "bg-ok" }
+      : r.status === "declined"
+      ? { label: "Declined · reason on record", text: "text-bad", dot: "bg-bad" }
+      : { label: "Outcome", text: "text-n400", dot: "bg-n200" },
+  ];
+  const items: React.ReactNode[] = [];
+  steps.forEach((s, i) => {
+    if (i > 0) items.push(<span key={`r${i}`} aria-hidden className="h-px w-4 shrink-0 bg-n200" />);
+    items.push(
+      <span key={s.label} className={`flex shrink-0 items-center gap-1.5 whitespace-nowrap ${s.text}`}>
+        <span aria-hidden className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
+        {s.label}
+      </span>
+    );
+  });
+  return (
+    <div className="flex w-full items-center gap-2 overflow-x-auto pt-2 font-mono text-[10px] uppercase tracking-wide">
+      {items}
+    </div>
+  );
+}
+
 const CATEGORIES = [
   "Cricket", "Football", "Basketball", "Volleyball", "Badminton", "Tennis",
   "Athletics", "Gym & Fitness", "Indoor Games", "Outdoor Games", "Sportswear", "Accessories",
@@ -30,12 +60,14 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
 
   return (
     <div className="grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
-      <div>
+      {/* min-w-0: grid items default to min-width auto, so the trail's
+          nowrap min-content would otherwise widen the page (no-clip rule) */}
+      <div className="min-w-0">
         <Sect>My requests</Sect>
         <Panel>
           {requests.map((r) => (
             <div key={r.id} className="flex flex-wrap items-center gap-3 border-b border-n100 px-4 py-3.5 last:border-b-0">
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[220px] flex-1">
                 <div className="text-sm font-medium text-ink">{r.title}</div>
                 <div className="text-[13px] text-n600">
                   <span className="font-mono text-xs">{r.id}</span> · {r.category} ·{" "}
@@ -49,6 +81,7 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
                   View product
                 </Link>
               )}
+              <RequestTrail r={r} />
             </div>
           ))}
         </Panel>
@@ -58,7 +91,7 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
         </NoteFlag>
       </div>
 
-      <div>
+      <div className="min-w-0">
         <Sect>New request</Sect>
         <Panel className="p-5">
           <NoteFlag className="mb-3.5">

@@ -106,6 +106,33 @@ export function GstCard({
   );
 }
 
+/** Multi-step flow rail (library §8): numbered steps in mono — check for
+ *  done, Ember Deep numeral for the current step, muted for upcoming.
+ *  Used across the cart → checkout → payment purchase flow. */
+export function FlowRail({ steps, current, label = "Checkout progress" }: { steps: string[]; current: number; label?: string }) {
+  const items: React.ReactNode[] = [];
+  steps.forEach((s, i) => {
+    if (i > 0) items.push(<span key={`rule-${i}`} aria-hidden className="h-px w-5 shrink-0 bg-n200 sm:w-8" />);
+    const state = i < current ? "done" : i === current ? "cur" : "next";
+    items.push(
+      <span
+        key={s}
+        aria-current={state === "cur" ? "step" : undefined}
+        className={
+          "flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[13px] " +
+          (state === "cur" ? "font-semibold text-ink" : state === "done" ? "text-n600" : "text-n400")
+        }
+      >
+        <span className={"num font-mono text-[11px] " + (state === "cur" ? "text-ember-deep" : state === "done" ? "text-ok" : "text-n400")}>
+          {state === "done" ? "✓" : String(i + 1).padStart(2, "0")}
+        </span>
+        {s}
+      </span>
+    );
+  });
+  return <nav aria-label={label} className="mb-5 flex items-center gap-2 overflow-x-auto sm:gap-3">{items}</nav>;
+}
+
 /** Horizontal order-progress rail (library status-rail pattern). */
 export function Rail({ steps }: { steps: RailStep[] }) {
   return (

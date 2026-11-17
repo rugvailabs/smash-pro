@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { CartView } from "@/components/cart-view";
+import { FlowRail } from "@/components/buyer-ui";
 
 /* Cart — client cart lines over localStorage; checkout arrives in Phase C. */
 
@@ -13,9 +14,10 @@ export default function CartPage() {
         <Link href="/" className="hover:underline">Home</Link> / <b className="text-ink">Cart</b>
       </div>
       <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[30px]">Your order</h1>
-      <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
+      <p className="mb-4 mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
         preview cart · sample data · all amounts illustrative
       </p>
+      <FlowRail steps={["Cart", "Checkout", "Payment"]} current={0} />
       <CartView />
     </main>
   );

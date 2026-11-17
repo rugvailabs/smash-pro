@@ -61,7 +61,7 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
   }
 
   return (
-    <div className="grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
+    <div className="grid items-start gap-7 pb-20 lg:grid-cols-[7fr_5fr] lg:pb-0">
       <div>
         <Sect>1 · Delivery address</Sect>
         <div className="space-y-2.5">
@@ -132,9 +132,10 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
         {/* single shared GST block (library §16) — identical at checkout,
             payment and order detail */}
         <GstCard subtotal={subtotal} gst={gst} shipping={DEMO_SHIPPING} total={total} />
+        {/* desktop action — the sticky bar carries it below lg (one primary per view) */}
         <button
           onClick={() => router.push(`/checkout/payment?method=${method}`)}
-          className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
+          className="mt-3.5 hidden h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press lg:inline-flex"
         >
           Pay {inr(total)}
         </button>
@@ -147,6 +148,23 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
           GST rate labels pending OBD-20/OBD-11 · frontend demonstration — no
           real payment
         </NoteFlag>
+      </div>
+
+      {/* sticky mobile summary bar — total + the one advancing action
+          (DESIGN-STANDARDS §4); right inset clears the WhatsApp float */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-n200 bg-chalk shadow-raised lg:hidden">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3 py-2.5 pl-4 pr-20">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Total payable (incl. GST)</div>
+            <div className="num font-display text-[17px] font-bold leading-tight text-ink">{inr(total)}</div>
+          </div>
+          <button
+            onClick={() => router.push(`/checkout/payment?method=${method}`)}
+            className="inline-flex h-11 shrink-0 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
+          >
+            Pay now
+          </button>
+        </div>
       </div>
     </div>
   );

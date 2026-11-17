@@ -41,7 +41,7 @@ export function CartView() {
   }
 
   return (
-    <div className="mt-6 grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
+    <div className="mt-6 grid items-start gap-7 pb-20 lg:grid-cols-[7fr_5fr] lg:pb-0">
       <div className="border border-n200 bg-chalk">
         {priced.map(({ l, p, unit, total }) => (
           <div key={l.key} className="flex flex-wrap items-center gap-3.5 border-b border-n100 p-4 last:border-b-0">
@@ -93,15 +93,16 @@ export function CartView() {
             <span className="num font-display text-[21px] font-bold text-ink">{inr(total)}</span>
           </div>
         </div>
+        {/* desktop action — the sticky bar carries it below lg (one primary per view) */}
         {role === "buyer" ? (
           <Link
             href="/checkout"
-            className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
+            className="mt-3.5 hidden h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press lg:inline-flex"
           >
             Proceed to checkout
           </Link>
         ) : (
-          <a className="mt-3.5 inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white" href="#">
+          <a className="mt-3.5 hidden h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white lg:inline-flex" href="#">
             Register to order
           </a>
         )}
@@ -112,6 +113,27 @@ export function CartView() {
           <b className="text-ink">100% advance payment.</b> Orders dispatch
           after full payment is confirmed — ordering requires an approved buyer
           account.
+        </div>
+      </div>
+
+      {/* sticky mobile summary bar — the primary action stays reachable
+          without scrolling back (DESIGN-STANDARDS §4); right inset clears
+          the WhatsApp float */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-n200 bg-chalk shadow-raised lg:hidden">
+        <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3 py-2.5 pl-4 pr-20">
+          <div className="min-w-0">
+            <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Order value</div>
+            <div className="num font-display text-[17px] font-bold leading-tight text-ink">{inr(total)}</div>
+          </div>
+          {role === "buyer" ? (
+            <Link href="/checkout" className="inline-flex h-11 shrink-0 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white">
+              Proceed to checkout
+            </Link>
+          ) : (
+            <a href="#" className="inline-flex h-11 shrink-0 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white">
+              Register to order
+            </a>
+          )}
         </div>
       </div>
     </div>
