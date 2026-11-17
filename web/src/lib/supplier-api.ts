@@ -1,52 +1,59 @@
-import {
-  COST_PROPOSALS, PAYMENT_RECORDS, POS, QUOTES, REQUIREMENTS, SUPPLIER, SUPPLY_ITEMS,
-} from "@/data/supplier";
 import type {
   CostProposal, SupplierPO, SupplierProfile, SupplierQuote, SupplierRequirement, SupplyItem,
 } from "@/lib/types";
+import {
+  costProposalsForSession, paymentRecordsForSession, poForSession, posForSession,
+  profileForSession, quoteForSession, quotesForSession, requirementForSession,
+  requirementsForSession, supplyItemsForSession,
+} from "@/server/supplier";
 
-/** API BOUNDARY — supplier workspace. Async signatures so components never
- *  assume local data; backend integration replaces these bodies only.
- *  The future server returns only role-permitted fields (PLT-001 AC2):
- *  requirements matched to the supplier's approved categories, own
- *  quotations only, and Minimum Delivery Information on direct POs. */
+/** API BOUNDARY — now backed by the real backend (integration point I4).
+ *  The server scopes every query to the session's supplier organization
+ *  and matches requirements to approved categories only (PLT-001 AC2);
+ *  competing quotations and buyer identities are structurally absent. */
 
 export async function getSupplierProfile(): Promise<SupplierProfile> {
-  return SUPPLIER;
+  const p = await profileForSession();
+  return (
+    p ?? {
+      name: "", legalName: "", type: "", gstin: "", contact: "", email: "",
+      worksAddress: "", categories: [], documents: [], directApproved: false, directEnabled: [],
+    }
+  );
 }
 
 export async function getRequirements(): Promise<SupplierRequirement[]> {
-  return REQUIREMENTS;
+  return requirementsForSession();
 }
 
 export async function getRequirement(id: string): Promise<SupplierRequirement | undefined> {
-  return REQUIREMENTS.find((r) => r.id === id);
+  return requirementForSession(id);
 }
 
 export async function getQuotes(): Promise<SupplierQuote[]> {
-  return QUOTES;
+  return quotesForSession();
 }
 
 export async function getQuote(reqId: string): Promise<SupplierQuote | undefined> {
-  return QUOTES.find((q) => q.reqId === reqId);
+  return quoteForSession(reqId);
 }
 
 export async function getPOs(): Promise<SupplierPO[]> {
-  return POS;
+  return posForSession();
 }
 
 export async function getPO(id: string): Promise<SupplierPO | undefined> {
-  return POS.find((p) => p.id === id);
+  return poForSession(id);
 }
 
 export async function getSupplyItems(): Promise<SupplyItem[]> {
-  return SUPPLY_ITEMS;
+  return supplyItemsForSession();
 }
 
 export async function getCostProposals(): Promise<CostProposal[]> {
-  return COST_PROPOSALS;
+  return costProposalsForSession();
 }
 
 export async function getPaymentRecords() {
-  return PAYMENT_RECORDS;
+  return paymentRecordsForSession();
 }

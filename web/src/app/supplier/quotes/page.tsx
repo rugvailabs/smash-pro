@@ -1,7 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead, Panel } from "@/components/buyer-ui";
 import { EmptyState } from "@/components/empty-state";
+import { PanelSkeleton } from "@/components/skeletons";
 import { getQuotes } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
 import type { SupplierQuote } from "@/lib/types";
@@ -39,7 +41,16 @@ function Row({ q }: { q: SupplierQuote }) {
   );
 }
 
-export default async function QuotesPage() {
+export default function QuotesPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
+      <QuotesContent />
+    </Suspense>
+  );
+}
+
+async function QuotesContent() {
   const quotes = await getQuotes();
 
   return (

@@ -1,24 +1,74 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Banner, Chip, DocRow, GstCard, KV, NoteFlag, Panel, PanelHead, Rail, Sect } from "@/components/buyer-ui";
+import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
 import type { Order } from "@/lib/types";
 
 /* ============================================================
-   Order detail + delivery confirmation + delivery-issue entry.
-   Direct-shipment orders: the confirmation request appears only
-   after supplier proof upload (OBD-19 Option A, proof-first). The
-   buyer sees NO supplier identity (access boundary §3) — the
-   shipment is presented as ProSmash's. Non-response/dispute
+   Order detail + delivery confirmation + delivery-issue entry —
+   now REAL (integration point I3): confirmation and complaint
+   submissions write server-side records. Direct-shipment orders:
+   the confirmation request appears only after supplier proof
+   upload (OBD-19 Option A, proof-first). The buyer sees NO
+   supplier identity (access boundary §3). Non-response/dispute
    handling pending OBD-19 ◇. Invoice download is a design
-   reference only (OBD-11 pending). Data illustrative.
+   reference only (OBD-11 pending).
    ============================================================ */
 
 export function OrderDetail({ order }: { order: Order }) {
+  const router = useRouter();
+  const { toast } = useToast();
   const [confirmed, setConfirmed] = useState(Boolean(order.receiptConfirmed));
   const [issueOpen, setIssueOpen] = useState(false);
+  const [issueText, setIssueText] = useState("");
+  const [issueSent, setIssueSent] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const confirmReceipt = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/confirm-receipt`, { method: "POST" });
+      if (res.ok) {
+        setConfirmed(true);
+        toast("Receipt confirmed — on record with the delivery proof.");
+        router.refresh();
+      } else {
+        toast("The confirmation didn't go through — please try again.");
+      }
+    } catch {
+      toast("The confirmation didn't go through — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const submitIssue = async () => {
+    const body = issueText.trim();
+    if (!body || busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/complaint`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ body }),
+      });
+      if (res.ok) {
+        setIssueSent(true);
+        toast("Report received — ProSmash will coordinate the resolution.");
+      } else {
+        toast("The report didn't go through — please try again.");
+      }
+    } catch {
+      toast("The report didn't go through — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const needsConfirm = order.direct && order.deliveryProofOnRecord && !confirmed;
   const paid = order.payment.status === "confirmed";
@@ -40,10 +90,11 @@ export function OrderDetail({ order }: { order: Order }) {
               received it in order.
             </span>
             <button
-              onClick={() => setConfirmed(true)}
-              className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white hover:bg-ember-press"
+              onClick={() => void confirmReceipt()}
+              disabled={busy}
+              className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white hover:bg-ember-press disabled:bg-n200 disabled:text-n400"
             >
-              Confirm delivery receipt
+              {busy ? "Confirming…" : "Confirm delivery receipt"}
             </button>
           </span>
         </Banner>
@@ -52,7 +103,7 @@ export function OrderDetail({ order }: { order: Order }) {
         <Banner tone="ok" className="mb-5">
           <b className="text-ink">Receipt confirmed.</b> Thank you — your
           confirmation is on record with the delivery proof, and ProSmash has
-          been notified. <span className="font-mono text-[10px] uppercase text-n600">demo interaction — resets on reload</span>
+          been notified.
         </Banner>
       )}
 
@@ -112,20 +163,31 @@ export function OrderDetail({ order }: { order: Order }) {
               we are your single point of contact and will coordinate the
               resolution.
             </p>
-            {issueOpen ? (
+            {issueSent ? (
+              <Banner tone="ok">
+                <b className="text-ink">Report received.</b> ProSmash will
+                investigate and coordinate the resolution — you will not be
+                referred to any third party.
+              </Banner>
+            ) : issueOpen ? (
               <div>
                 <label className="mb-1.5 block text-[13px] font-medium text-ink" htmlFor="issue">What went wrong?</label>
                 <textarea
                   id="issue" rows={3}
+                  value={issueText}
+                  onChange={(e) => setIssueText(e.target.value)}
                   placeholder="e.g. Two cartons arrived damaged; contents intact…"
                   className="mb-3 w-full rounded-[2px] border border-n400 bg-chalk p-3 text-sm text-ink placeholder:text-n400"
                 />
-                <button className="inline-flex h-10 cursor-not-allowed items-center rounded-[2px] bg-n200 px-4 text-sm font-semibold text-n400" aria-disabled>
-                  Submit report (prototype)
+                <button
+                  onClick={() => void submitIssue()}
+                  disabled={!issueText.trim() || busy}
+                  className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
+                >
+                  {busy ? "Submitting…" : "Submit report"}
                 </button>
                 <NoteFlag className="mt-2">
-                  visual prototype — submission non-functional · liability,
-                  recovery &amp; compensation policies pending obd-19 ◇
+                  liability, recovery &amp; compensation policies pending obd-19 ◇
                 </NoteFlag>
               </div>
             ) : (

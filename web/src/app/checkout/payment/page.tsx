@@ -2,19 +2,22 @@ import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
-import { PaymentDemo } from "@/components/payment-demo";
+import { PaymentResult } from "@/components/payment-demo";
+import { EmptyState } from "@/components/empty-state";
 import { FlowRail, PageHead } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
+import { getOrder } from "@/lib/buyer-api";
 
-/* Payment demonstration — states per OBD-21 (auto-verify vs proof + admin
-   verification vs failed/retry). Frontend demo only. */
+/* Payment result for a just-placed REAL order (?order=ORD-…) — states per
+   OBD-21 (demo auto-confirm for online methods; proof + admin verification
+   for offline). */
 
 export const metadata: Metadata = { title: "Payment" };
 
 export default function PaymentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ method?: string }>;
+  searchParams: Promise<{ order?: string }>;
 }) {
   return (
     <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
@@ -23,18 +26,29 @@ export default function PaymentPage({
   );
 }
 
-async function PaymentContent({ searchParams }: { searchParams: Promise<{ method?: string }> }) {
-  const { method = "upi" } = await searchParams;
+async function PaymentContent({ searchParams }: { searchParams: Promise<{ order?: string }> }) {
+  const { order: orderId = "" } = await searchParams;
+  const order = orderId ? await getOrder(orderId.toUpperCase()) : undefined;
+
   return (
     <RequireBuyer>
       <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10">
         <PageHead
           title="Payment"
-          sub="Demonstration of the confirmed, verification-pending and failed payment states."
+          sub={order ? `Payment status for ${order.id}.` : "Payment status."}
           crumb={<><Link href="/checkout" className="hover:underline">Checkout</Link> / <b className="text-ink">Payment</b></>}
         />
         <FlowRail steps={["Cart", "Checkout", "Payment"]} current={2} />
-        <PaymentDemo method={method} />
+        {order ? (
+          <PaymentResult order={order} />
+        ) : (
+          <EmptyState
+            message="No order to show."
+            hint="Place an order from checkout to see its payment status here."
+            actionLabel="Go to checkout"
+            actionHref="/checkout"
+          />
+        )}
       </main>
     </RequireBuyer>
   );

@@ -44,7 +44,7 @@ async function QuoteContent({ params }: { params: Promise<{ id: string }> }) {
         title={<>Quotation — <span className="font-mono text-lg tracking-normal">{r.id}</span></>}
         sub={`${r.title.split(" — ")[0]} × ${r.qty.split(" ")[0]} · deadline today 18:00 IST`}
       />
-      <QuoteForm />
+      <QuoteForm reqId={r.id} />
     </main>
   );
 }

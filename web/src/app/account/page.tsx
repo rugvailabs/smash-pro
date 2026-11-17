@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { Chip, DocRow, KV, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 import { getInstitution } from "@/lib/buyer-api";
 
 /* Institution profile — BUY-009. Sensitive-field edits route to admin
@@ -11,7 +13,16 @@ import { getInstitution } from "@/lib/buyer-api";
 
 export const metadata: Metadata = { title: "Institution profile" };
 
-export default async function AccountPage() {
+export default function AccountPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+      <AccountContent />
+    </Suspense>
+  );
+}
+
+async function AccountContent() {
   const inst = await getInstitution();
 
   const btnSec = "inline-flex h-10 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink";

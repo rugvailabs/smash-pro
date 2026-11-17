@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { PRODUCTS } from "@/data/products";
 import { useCart } from "@/components/providers";
 import { Banner, GstCard, NoteFlag, Panel, Sect } from "@/components/buyer-ui";
 import { inr } from "@/lib/format";
@@ -12,44 +11,54 @@ import type { Address } from "@/lib/types";
 /* ============================================================
    Checkout — OBD-08 (100% advance), OBD-20 (GST breakdown; rates
    per HSN pending — amounts unlabelled sample values), OBD-21
-   (methods + verification paths), OBD-19 ◇ (shipping payer
-   presentation pending — shown as a plain line). Connected to the
-   live demo cart. Frontend demonstration only — nothing is charged.
+   (methods; online methods auto-confirm in the DEMO — no gateway
+   is selected, ADR-0006), OBD-19 ◇ (shipping payer presentation
+   pending — shown as a plain line). Placing the order is REAL:
+   it creates the order server-side from the server cart (I3).
    ============================================================ */
 
 const METHODS = [
-  { key: "upi", name: "UPI", note: "Verified automatically on payment" },
-  { key: "card", name: "Card / Net Banking", note: "Verified automatically via gateway" },
-  { key: "neft", name: "NEFT / RTGS or Cheque", note: "Upload payment proof — dispatch after admin verification" },
+  { key: "UPI", name: "UPI", note: "Confirmed automatically in this demo (gateway pending OBD-21)" },
+  { key: "Card", name: "Card / Net Banking", note: "Confirmed automatically in this demo (gateway pending OBD-21)" },
+  { key: "NEFT", name: "NEFT / RTGS or Cheque", note: "Upload payment proof — dispatch after admin verification" },
 ] as const;
 
-/** Illustrative GST portion of a GST-inclusive total (sample values only —
- *  real itemised GST awaits rates per product HSN, OBD-20/OBD-11). */
-export function demoGstSplit(itemsInclGst: number) {
-  const gst = Math.round(itemsInclGst * 0.1067 * 100) / 100;
-  return { subtotal: Math.round((itemsInclGst - gst) * 100) / 100, gst };
-}
-
-export const DEMO_SHIPPING = 1200;
-
 export function CheckoutView({ addresses }: { addresses: Address[] }) {
-  const { lines } = useCart();
+  const { lines, summary } = useCart();
   const router = useRouter();
   const [addr, setAddr] = useState(0);
-  const [method, setMethod] = useState<(typeof METHODS)[number]["key"]>("upi");
+  const [method, setMethod] = useState<(typeof METHODS)[number]["key"]>("UPI");
+  const [placing, setPlacing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const priced = lines
-    .map((l) => {
-      const p = PRODUCTS.find((x) => x.sku === l.sku);
-      return p ? { l, p, unit: p.buyer + l.delta, total: (p.buyer + l.delta) * l.qty } : null;
-    })
-    .filter((x): x is NonNullable<typeof x> => x !== null);
+  const placeOrder = async () => {
+    if (placing) return;
+    setPlacing(true);
+    setError(null);
+    try {
+      const shipTo = addresses[addr]
+        ? `${addresses[addr].label}, ${addresses[addr].detail.split("·")[0].trim()}`
+        : "Primary address";
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ shipTo, method }),
+      });
+      const data = (await res.json()) as { orderId?: string; error?: string };
+      if (!res.ok || !data.orderId) {
+        setError(data.error ?? "The order could not be placed.");
+        return;
+      }
+      router.push(`/checkout/payment?order=${data.orderId}`);
+      router.refresh();
+    } catch {
+      setError("The order could not be placed.");
+    } finally {
+      setPlacing(false);
+    }
+  };
 
-  const itemsIncl = priced.reduce((s, x) => s + x.total, 0);
-  const { subtotal, gst } = demoGstSplit(itemsIncl);
-  const total = itemsIncl + DEMO_SHIPPING;
-
-  if (!priced.length) {
+  if (!lines.length) {
     return (
       <Panel className="p-10 text-center">
         <p className="mb-4 text-[15px] text-ink">Nothing to check out — your order is empty.</p>
@@ -90,17 +99,17 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
 
         <Sect>2 · Order lines</Sect>
         <Panel>
-          {priced.map(({ l, p, unit, total }) => (
+          {lines.map((l) => (
             <div key={l.key} className="flex flex-wrap items-center gap-3 border-b border-n100 px-4 py-3 last:border-b-0">
               <div className="min-w-0 flex-1">
-                <div className="text-sm font-medium text-ink">{p.name}</div>
+                <div className="text-sm font-medium text-ink">{l.name}</div>
                 <div className="text-[13px] text-n600">
-                  SKU <span className="font-mono text-xs">{p.sku}</span> ·{" "}
-                  <span className="num">{l.qty} × {inr(unit)}</span>
+                  SKU <span className="font-mono text-xs">{l.sku}</span> ·{" "}
+                  <span className="num">{l.qty} × {inr(l.unit)}</span>
                   {l.config && <> · {l.config.string} · {l.config.tension} · Grip {l.config.grip}</>}
                 </div>
               </div>
-              <div className="num text-sm font-semibold text-ink">{inr(total)}</div>
+              <div className="num text-sm font-semibold text-ink">{inr(l.total)}</div>
             </div>
           ))}
         </Panel>
@@ -131,13 +140,17 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
       <div className="lg:sticky lg:top-[132px]">
         {/* single shared GST block (library §16) — identical at checkout,
             payment and order detail */}
-        <GstCard subtotal={subtotal} gst={gst} shipping={DEMO_SHIPPING} total={total} />
+        <GstCard subtotal={summary.subtotalExGst} gst={summary.gst} shipping={summary.shipping} total={summary.total} />
+        {error && (
+          <Banner tone="bad" className="mt-3.5">{error}</Banner>
+        )}
         {/* desktop action — the sticky bar carries it below lg (one primary per view) */}
         <button
-          onClick={() => router.push(`/checkout/payment?method=${method}`)}
-          className="mt-3.5 hidden h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press lg:inline-flex"
+          onClick={() => void placeOrder()}
+          disabled={placing}
+          className="mt-3.5 hidden h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400 lg:inline-flex"
         >
-          Pay {inr(total)}
+          {placing ? "Placing order…" : <>Place order &amp; pay {inr(summary.total)}</>}
         </button>
         <Banner tone="info" className="mt-3.5">
           <b className="text-ink">100% advance payment.</b> Dispatch follows
@@ -145,8 +158,8 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
         </Banner>
         <NoteFlag className="mt-2.5">
           amounts illustrative · shipping payer presentation pending OBD-19 ◇ ·
-          GST rate labels pending OBD-20/OBD-11 · frontend demonstration — no
-          real payment
+          GST rate labels pending OBD-20/OBD-11 · demo environment — no money
+          moves (gateway pending OBD-21)
         </NoteFlag>
       </div>
 
@@ -156,13 +169,14 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
         <div className="mx-auto flex max-w-[1280px] items-center justify-between gap-3 py-2.5 pl-4 pr-20">
           <div className="min-w-0">
             <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Total payable (incl. GST)</div>
-            <div className="num font-display text-[17px] font-bold leading-tight text-ink">{inr(total)}</div>
+            <div className="num font-display text-[17px] font-bold leading-tight text-ink">{inr(summary.total)}</div>
           </div>
           <button
-            onClick={() => router.push(`/checkout/payment?method=${method}`)}
-            className="inline-flex h-11 shrink-0 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
+            onClick={() => void placeOrder()}
+            disabled={placing}
+            className="inline-flex h-11 shrink-0 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press disabled:bg-n200 disabled:text-n400"
           >
-            Pay now
+            {placing ? "Placing…" : "Place order"}
           </button>
         </div>
       </div>

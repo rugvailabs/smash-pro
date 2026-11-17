@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Chip, NoteFlag, Panel, Sect, type ChipTone } from "@/components/buyer-ui";
+import { useToast } from "@/components/toast";
 import type { BuyerRequest } from "@/lib/types";
 
 /* ============================================================
-   Product requests — BUY-007 (Workflow K) remains an approved
-   requirement, but per owner direction this SCREEN is a VISUAL
-   PROTOTYPE: submission and attachment upload are non-functional
-   preview interactions; no live request/enquiry workflow exists
-   or is implied. D12 (public enquiry) remains pending review.
+   Product requests — BUY-007 (Workflow K), now REAL (I3):
+   submission creates a request record for ProSmash sourcing
+   review. Attachment upload remains metadata-only (ADR-0005).
+   D12 (PUBLIC enquiry) is unrelated and remains pending review —
+   this is the approved signed-in buyer workflow.
    ============================================================ */
 
 const TONE: Record<string, ChipTone> = { "in-review": "info", available: "ok", declined: "bad" };
@@ -51,9 +53,43 @@ const CATEGORIES = [
 ];
 
 export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
+  const router = useRouter();
+  const { toast } = useToast();
   const [form, setForm] = useState({ name: "", cat: "Athletics", qty: "", date: "", spec: "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm({ ...form, [k]: e.target.value });
+
+  const canSubmit = form.name.trim().length > 0 && Number(form.qty) >= 1 && !busy;
+
+  const submit = async () => {
+    if (!canSubmit) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/requests", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          title: form.name.trim(), category: form.cat, qty: Number(form.qty),
+          neededBy: form.date.trim() || undefined, spec: form.spec.trim() || undefined,
+        }),
+      });
+      const data = (await res.json()) as { id?: string; error?: string };
+      if (!res.ok || !data.id) {
+        setError(data.error ?? "The request could not be submitted.");
+        return;
+      }
+      toast(`Request ${data.id} submitted for sourcing review.`);
+      setForm({ name: "", cat: "Athletics", qty: "", date: "", spec: "" });
+      router.refresh();
+    } catch {
+      setError("The request could not be submitted.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const input = "h-10 w-full rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink placeholder:text-n400";
   const label = "mb-1.5 block text-[13px] font-medium text-ink";
@@ -95,9 +131,8 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
         <Sect>New request</Sect>
         <Panel className="p-5">
           <NoteFlag className="mb-3.5">
-            visual prototype — submission &amp; upload are non-functional preview
-            interactions · request/enquiry workflow pending business-requirements
-            review (d12)
+            submission is live — requests go to prosmash sourcing review
+            (buy-007) · attachment upload records metadata only (adr-0005)
           </NoteFlag>
           <div className="mb-3.5">
             <label className={label} htmlFor="rq-name">Product (required)</label>
@@ -133,16 +168,19 @@ export function RequestsView({ requests }: { requests: BuyerRequest[] }) {
               <NoteFlag className="mt-1.5">non-functional prototype</NoteFlag>
             </div>
           </div>
+          {error && (
+            <p className="mb-2.5 border-l-[3px] border-bad bg-bad-t px-3 py-2 text-[13px] text-ink">{error}</p>
+          )}
           <button
-            className="inline-flex h-11 w-full cursor-not-allowed items-center justify-center rounded-[2px] bg-n200 px-5 text-sm font-semibold text-n400"
-            aria-disabled
+            onClick={() => void submit()}
+            disabled={!canSubmit}
+            className="inline-flex h-11 w-full items-center justify-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
           >
-            Submit request (prototype)
+            {busy ? "Submitting…" : "Submit request"}
           </button>
           <p className="mt-2.5 text-[13px] text-n600">
-            Design intent: requests go to the ProSmash team for sourcing review
-            and may be declined with a reason. This preview does not send
-            anything.
+            Requests go to the ProSmash team for sourcing review and may be
+            declined with a reason.
           </p>
         </Panel>
       </div>

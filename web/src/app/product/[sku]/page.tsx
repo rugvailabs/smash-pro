@@ -54,8 +54,11 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
       </div>
 
       <div className="grid gap-9 lg:grid-cols-[6fr_5fr]">
-        {/* gallery — thumbnail rail appears when Set A frames arrive */}
-        <ProductGallery name={p.name} images={p.gallery?.length ? [p.img, ...p.gallery] : [p.img]} />
+        {/* gallery — thumbnail rail appears when Set A frames arrive.
+            Sticky on desktop so the image keeps the tall info column company. */}
+        <div className="lg:sticky lg:top-20 lg:self-start">
+          <ProductGallery name={p.name} images={p.gallery?.length ? [p.img, ...p.gallery] : [p.img]} />
+        </div>
 
         {/* info */}
         <div>

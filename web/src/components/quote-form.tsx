@@ -1,19 +1,25 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Banner, KV, NoteFlag, Panel, PanelHead } from "@/components/buyer-ui";
+import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
 
 /* ============================================================
-   Quotation submission — SUP-006 · Workflow E step 1. Fields are
-   the APPROVED quotation fields only: unit price, quantity, lead
-   time, validity, requested payment terms, notes + attachments.
-   No quote-discount field exists in the approved model.
-   Submission is a prototype interaction; the offer summary is a
-   live calculation.
+   Quotation submission — SUP-006 · Workflow E step 1, now REAL
+   (integration point I4): submission creates an immutable
+   quotation version server-side. Fields are the APPROVED
+   quotation fields only: unit price, quantity, lead time,
+   validity, requested payment terms, notes + attachments
+   (attachments remain metadata-only, ADR-0005).
    ============================================================ */
 
-export function QuoteForm() {
+export function QuoteForm({ reqId }: { reqId: string }) {
+  const router = useRouter();
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
     price: "2340", qty: "120", lead: "18 days from PO",
     valid: "05 Dec 2026", terms: "50% advance, balance on delivery",
@@ -21,6 +27,39 @@ export function QuoteForm() {
   });
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm({ ...form, [k]: e.target.value });
+
+  const submit = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/supplier/quotes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          reqId,
+          unit: parseFloat(form.price) || 0,
+          quantity: form.qty,
+          lead: form.lead,
+          validTill: form.valid,
+          terms: form.terms,
+          note: form.notes.trim() || undefined,
+        }),
+      });
+      const data = (await res.json()) as { version?: number; error?: string };
+      if (!res.ok || !data.version) {
+        setError(data.error ?? "The quotation could not be submitted.");
+        return;
+      }
+      toast(`Quotation v${data.version} submitted on ${reqId}.`);
+      router.push(`/supplier/quotes/${reqId}`);
+      router.refresh();
+    } catch {
+      setError("The quotation could not be submitted.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const price = parseFloat(form.price) || 0;
   const qty = parseInt(form.qty) || 0;
@@ -33,7 +72,8 @@ export function QuoteForm() {
     <div className="grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
       <Panel className="p-5">
         <NoteFlag className="mb-3.5">
-          visual prototype — submission &amp; upload are non-functional preview interactions
+          submission is live — every version is kept on record (sup-007) ·
+          attachment upload records metadata only (adr-0005)
         </NoteFlag>
         <div className="grid gap-3.5 sm:grid-cols-2">
           <div>
@@ -72,9 +112,16 @@ export function QuoteForm() {
             </div>
           </div>
         </div>
+        {error && (
+          <p className="mt-3.5 border-l-[3px] border-bad bg-bad-t px-3 py-2 text-[13px] text-ink">{error}</p>
+        )}
         <div className="mt-4 flex gap-3">
-          <button className="inline-flex h-11 cursor-not-allowed items-center rounded-[2px] bg-n200 px-5 text-sm font-semibold text-n400" aria-disabled>
-            Submit quotation (prototype)
+          <button
+            onClick={() => void submit()}
+            disabled={busy || !(parseFloat(form.price) > 0) || !(parseInt(form.qty) > 0)}
+            className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
+          >
+            {busy ? "Submitting…" : "Submit quotation"}
           </button>
           <button className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-5 text-sm font-semibold text-ink hover:border-ink">
             Save draft

@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 import { Dest } from "@/components/supplier-shell";
 import { getPOs, getSupplierProfile } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
@@ -11,7 +13,16 @@ import { inr } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Supplier Workspace" };
 
-export default async function SupplierDashboard() {
+export default function SupplierDashboard() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
+      <SupplierDashboardContent />
+    </Suspense>
+  );
+}
+
+async function SupplierDashboardContent() {
   const [profile, pos] = await Promise.all([getSupplierProfile(), getPOs()]);
   const active = pos.filter((p) => p.fulfilment === "acknowledged" || p.fulfilment === "awaiting-proof");
 

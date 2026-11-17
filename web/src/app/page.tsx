@@ -1,8 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getCategories, getFeatured } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
+import { Bone } from "@/components/skeletons";
 
 /* Home — hero, category grid, featured pricing, how-it-works, supplier band.
    T3a: public full press — display type on the approved scale (33/42/56),
@@ -56,7 +58,29 @@ const STEPS: [string, string][] = [
   ["One counterparty", "ProSmash manages fulfilment and stays your single point of contact for delivery."],
 ];
 
-export default async function HomePage() {
+export default function HomePage() {
+  // session-aware pricing makes this route dynamic — the shell streams
+  // behind a layout-true skeleton (library §14)
+  return (
+    <Suspense
+      fallback={
+        <main aria-busy="true">
+          <Bone className="h-[320px] w-full rounded-none md:h-[420px]" />
+          <div className="mx-auto max-w-[1280px] px-4 py-12 md:px-10">
+            <Bone className="mb-6 h-8 w-72" />
+            <div className="grid grid-cols-2 gap-px md:grid-cols-4">
+              {Array.from({ length: 8 }).map((_, i) => <Bone key={i} className="h-24 w-full rounded-none" />)}
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+async function HomeContent() {
   const [categories, featured] = await Promise.all([getCategories(), getFeatured()]);
 
   return (
@@ -90,9 +114,9 @@ export default async function HomePage() {
               Shop the catalogue
             </Link>
             <RoleGate show={["visitor", "pending"]}>
-              <a href="#" className="inline-flex h-12 items-center rounded-[2px] border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:border-white">
+              <Link href="/register" className="inline-flex h-12 items-center rounded-[2px] border border-white/40 px-6 text-sm font-semibold text-white transition-colors hover:border-white">
                 Register your institution
-              </a>
+              </Link>
             </RoleGate>
           </div>
         </div>
@@ -178,9 +202,9 @@ export default async function HomePage() {
               </p>
               <div className="flex flex-wrap gap-3.5">
                 <RoleGate show={["visitor", "pending"]}>
-                  <a href="#" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
+                  <Link href="/register/supplier" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
                     Register as a supplier
-                  </a>
+                  </Link>
                 </RoleGate>
                 <RoleGate show={["supplier"]}>
                   <Link href="/supplier" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">

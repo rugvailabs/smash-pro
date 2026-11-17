@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useCart, useIsClient, useRole } from "@/components/providers";
 import { SearchBox } from "@/components/search-box";
 import { NavDrawer } from "@/components/nav-drawer";
@@ -18,18 +18,21 @@ const ROLE_LABELS: Record<Role, string> = {
   pending: "Registered buyer (pending)",
   buyer: "Approved buyer",
   supplier: "Supplier",
+  admin: "ProSmash admin",
 };
 
 export function PreviewRibbon() {
-  const { role, setRole } = useRole();
+  const { role, setRole, email } = useRole();
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-n900 px-5 py-1.5 font-mono text-[11px] tracking-wide text-white/75 md:px-10">
-      <b className="font-medium text-white">DESIGN PREVIEW</b>
-      <span>sample data · illustrative prices</span>
+      <b className="font-medium text-white">DEMO</b>
+      {/* compact one-liner on phones; full explainer from sm: up */}
+      <span className="sm:hidden">sample data · illustrative prices</span>
+      <span className="hidden sm:inline">sample data · illustrative prices · real accounts &amp; backend</span>
       <label className="flex items-center gap-2">
-        Preview as:
+        Demo account:
         <select
-          aria-label="Preview account state"
+          aria-label="Demo account"
           className="rounded-[2px] border border-white/25 bg-ink2 px-1.5 py-0.5 font-mono text-[11px] text-white"
           value={role}
           onChange={(e) => setRole(e.target.value as Role)}
@@ -39,6 +42,7 @@ export function PreviewRibbon() {
           ))}
         </select>
       </label>
+      {email && <span className="hidden sm:inline">{email}</span>}
       <a className="underline-offset-2 hover:underline md:ml-auto" href="/img/LICENSES.md">
         image credits
       </a>
@@ -47,9 +51,10 @@ export function PreviewRibbon() {
 }
 
 export function SiteHeader() {
-  const { role: liveRole } = useRole();
+  const { role: liveRole, orgName, signOut } = useRole();
   const { count } = useCart();
   const pathname = usePathname();
+  const router = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Render the visitor-neutral header until hydrated: this component hydrates
   // inside a Suspense boundary, possibly after the stored role has loaded, so
@@ -91,30 +96,40 @@ export function SiteHeader() {
           >
             PROSMASH
           </Link>
-          {/* Commerce search is buyer-side chrome — suppliers work their own
-              queue and never search the sales catalogue. */}
-          {role !== "supplier" && <SearchBox />}
+          {/* Commerce search is buyer-side chrome — suppliers and the admin
+              console work their own queues, never the sales catalogue. */}
+          {role !== "supplier" && role !== "admin" && <SearchBox />}
           <div className="ml-auto flex items-center gap-4 md:gap-5">
-            {(role === "visitor" || role === "pending") && (
-              <a className="hidden text-sm font-medium text-white md:block" href="#" title="Sign-in arrives with account screens">
+            {role === "visitor" && (
+              <Link className="hidden text-sm font-medium text-white md:block" href="/signin">
                 Sign in
-              </a>
+              </Link>
             )}
             {role === "visitor" && (
-              <a className="hidden h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:inline-flex" href="#">
+              <Link className="hidden h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:inline-flex" href="/register">
                 Register
-              </a>
+              </Link>
             )}
             {role !== "visitor" && (
               <span className="hidden items-center gap-2 text-[13px] font-medium text-white lg:inline-flex">
-                {role === "supplier" ? "Meerut Sports Works" : "St. Xavier's High School"}
+                {role === "admin"
+                  ? "ProSmash Operations"
+                  : orgName ?? (role === "supplier" ? "Supplier account" : "Buyer account")}
                 <span className="rounded-[2px] border border-white/25 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-white/55">
-                  {role === "supplier" ? "SUPPLIER" : role === "buyer" ? "BUYER" : "UNDER REVIEW"}
+                  {role === "admin" ? "ADMIN" : role === "supplier" ? "SUPPLIER" : role === "buyer" ? "BUYER" : "UNDER REVIEW"}
                 </span>
               </span>
             )}
-            {/* The cart (and its badge) is buyer commerce — never supplier chrome. */}
-            {role !== "supplier" && (
+            {role !== "visitor" && (
+              <button
+                onClick={() => void signOut().then(() => router.push("/"))}
+                className="hidden text-[13px] font-medium text-white/70 underline-offset-2 hover:text-white hover:underline md:block"
+              >
+                Sign out
+              </button>
+            )}
+            {/* The cart (and its badge) is buyer commerce — never supplier or admin chrome. */}
+            {role !== "supplier" && role !== "admin" && (
               <Link href="/cart" className="relative inline-flex items-center gap-2 text-sm font-medium text-white">
                 Cart
                 <span className="min-w-5 rounded-[2px] bg-ember-deep px-1.5 py-px text-center font-mono text-[11px]">
@@ -131,8 +146,8 @@ export function SiteHeader() {
       {/* Tab strip is desktop/tablet navigation; the drawer owns phones. */}
       <nav aria-label="Site sections" className="sticky top-16 z-30 hidden border-b border-n200 bg-chalk md:block">
         <div className="mx-auto flex max-w-[1280px] gap-1 overflow-x-auto px-4 md:px-10">
-          {tab("/", role === "supplier" ? "Home" : "Shop", "/__home")}
-          {role !== "supplier" && tab("/catalog?cat=cricket", "Catalogue", "/catalog")}
+          {tab("/", role === "supplier" || role === "admin" ? "Home" : "Shop", "/__home")}
+          {role !== "supplier" && role !== "admin" && tab("/catalog?cat=cricket", "Catalogue", "/catalog")}
           {(role === "visitor" || role === "pending") && (
             <>
               {tab("/#how", "How it works", "/#how")}
@@ -157,6 +172,7 @@ export function SiteHeader() {
               </Link>
             </>
           )}
+          {role === "admin" && tab("/admin", "Operations Console", "/admin")}
         </div>
       </nav>
 
@@ -214,7 +230,7 @@ export function SiteFooter() {
           <ul className="space-y-2">
             <li><Link className={item} href="/#how">How it works</Link></li>
             {(role === "visitor" || role === "pending") && (
-              <li><a className={item} href="#">Register as a buyer</a></li>
+              <li><Link className={item} href="/register">Register as a buyer</Link></li>
             )}
             {role === "buyer" && (
               <li><Link className={item} href="/dashboard">Your dashboard</Link></li>
@@ -229,7 +245,7 @@ export function SiteFooter() {
           <ul className="space-y-2">
             <li><Link className={item} href="/#supply">Why supply to ProSmash</Link></li>
             {(role === "visitor" || role === "pending") && (
-              <li><a className={item} href="#">Register as a supplier</a></li>
+              <li><Link className={item} href="/register/supplier">Register as a supplier</Link></li>
             )}
             {role === "supplier" && (
               <li><Link className={item} href="/supplier">Supplier Workspace</Link></li>

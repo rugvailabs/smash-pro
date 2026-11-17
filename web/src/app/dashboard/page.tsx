@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
+import { PanelSkeleton } from "@/components/skeletons";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, type ChipTone } from "@/components/buyer-ui";
 import { getInstitution, getOrders, getRequests } from "@/lib/buyer-api";
 import { inr } from "@/lib/format";
@@ -9,6 +11,15 @@ import type { Order } from "@/lib/types";
 /* Buyer dashboard — action items, recent orders, account summary. */
 
 export const metadata: Metadata = { title: "Dashboard" };
+
+export default function DashboardPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+      <DashboardContent />
+    </Suspense>
+  );
+}
 
 const STATUS_TONE: Record<string, ChipTone> = {
   placed: "info", processing: "info", dispatched: "info",
@@ -33,7 +44,7 @@ function OrderRow({ o }: { o: Order }) {
   );
 }
 
-export default async function DashboardPage() {
+async function DashboardContent() {
   const [orders, requests, inst] = await Promise.all([getOrders(), getRequests(), getInstitution()]);
   const active = orders.filter((o) => !["delivered", "cancelled"].includes(o.status));
   const confirmPending = orders.find((o) => o.status === "confirm-receipt");

@@ -21,7 +21,9 @@ export function PriceBlock({ p, size = "card" }: { p: Product; size?: "card" | "
     "num font-display font-bold tracking-tight text-ink " + (big ? "text-[31px]" : "text-lg");
   const gst = <small className="font-body text-xs font-normal text-n600"> incl. GST</small>;
 
-  if (role === "buyer") {
+  // The applicable price exists only when the server priced this product
+  // for an approved buyer session (price isolation at the boundary).
+  if (role === "buyer" && p.buyer !== undefined) {
     return (
       <div>
         <div className="font-mono text-[10px] uppercase tracking-widest text-ember-deep">Your price</div>
@@ -52,14 +54,29 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
       className="group flex flex-col overflow-hidden rounded-[2px] border border-n200 bg-chalk transition-colors hover:border-n400 max-[479px]:flex-row"
     >
       <div className="relative aspect-[4/3] w-full bg-n100 max-[479px]:m-3 max-[479px]:h-24 max-[479px]:w-24 max-[479px]:shrink-0 max-[479px]:self-start max-[479px]:rounded-[2px] max-[479px]:aspect-square overflow-hidden">
-        <Image
-          src={p.img}
-          alt={`${p.name} — representative image`}
-          fill
-          priority={priority}
-          sizes="(max-width: 479px) 96px, (max-width: 640px) 50vw, (max-width: 1100px) 33vw, 300px"
-          className="object-cover"
-        />
+        {p.img ? (
+          <Image
+            src={p.img}
+            alt={`${p.name} — representative image`}
+            fill
+            priority={priority}
+            sizes="(max-width: 479px) 96px, (max-width: 640px) 50vw, (max-width: 1100px) 33vw, 300px"
+            className="object-cover"
+          />
+        ) : (
+          /* Library §4: labelled placeholder frame — no substitute imagery. */
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
+            }}
+          >
+            <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">
+              awaiting approved photography
+            </span>
+          </div>
+        )}
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-4 max-[479px]:py-3 max-[479px]:pl-0 max-[479px]:pr-3">
         <span className="font-mono text-[11px] uppercase tracking-widest text-n600">{p.sub}</span>
@@ -101,9 +118,9 @@ export function AddToOrder({ p }: { p: Product }) {
 
   if (role !== "buyer") {
     return (
-      <a className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press" href="#">
+      <Link className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press" href="/register">
         Register to order
-      </a>
+      </Link>
     );
   }
   return (
@@ -117,8 +134,9 @@ export function AddToOrder({ p }: { p: Product }) {
         <button
           className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
           onClick={() => {
-            add(p.sku, qty);
-            toast(`Added to your order — ${qty} units. Open the cart to review.`);
+            add(p.sku, qty)
+              .then(() => toast(`Added to your order — ${qty} units. Open the cart to review.`))
+              .catch(() => toast("Couldn't add to your order — please try again."));
           }}
         >
           Add to order

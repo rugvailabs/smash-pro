@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Chip, DocRow, KV, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 import { getSupplierProfile, getSupplyItems } from "@/lib/supplier-api";
 
 /* Supplier profile — SUP-003 · ADM-020 AC5. Direct-shipment eligibility:
@@ -10,7 +12,16 @@ import { getSupplierProfile, getSupplyItems } from "@/lib/supplier-api";
 
 export const metadata: Metadata = { title: "Supplier profile" };
 
-export default async function SupplierProfilePage() {
+export default function SupplierProfilePage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
+      <SupplierProfileContent />
+    </Suspense>
+  );
+}
+
+async function SupplierProfileContent() {
   const [p, items] = await Promise.all([getSupplierProfile(), getSupplyItems()]);
 
   const btnSec = "inline-flex h-10 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink";

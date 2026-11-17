@@ -2,8 +2,7 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useRole } from "@/components/providers";
-import { suggest, type Suggestion } from "@/lib/suggest";
+import { fetchSuggestions, type Suggestion } from "@/lib/suggest";
 
 /* ============================================================
    Header search with autocomplete (library §3): grouped panel —
@@ -34,15 +33,32 @@ export function SearchBox({
   variant?: "header" | "drawer";
   onNavigate?: () => void;
 }) {
-  const { role } = useRole();
   const router = useRouter();
   const listId = useId();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
+  const [items, setItems] = useState<Suggestion[]>([]);
   const rootRef = useRef<HTMLFormElement>(null);
 
-  const items = useMemo(() => suggest(q, role), [q, role]);
+  // debounced server suggestions (integration point I2)
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      if (q.trim().length < 2) {
+        setItems([]);
+        return;
+      }
+      void fetchSuggestions(q, ctrl.signal)
+        .then(setItems)
+        .catch(() => {});
+    }, 150);
+    return () => {
+      clearTimeout(t);
+      ctrl.abort();
+    };
+  }, [q]);
+
   const showPanel = open && items.length > 0;
 
   // close on outside click

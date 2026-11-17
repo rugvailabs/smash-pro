@@ -1,22 +1,33 @@
-import { INSTITUTION, ORDERS, REQUESTS } from "@/data/buyer";
 import type { BuyerRequest, Institution, Order } from "@/lib/types";
+import {
+  institutionForSession, orderForSession, ordersForSession, requestsForSession,
+} from "@/server/buyer";
 
-/** API BOUNDARY — buyer commerce. Async signatures so components never
- *  assume local data; backend integration replaces these bodies only.
- *  The future server returns only role-permitted fields (PLT-001 AC2). */
+/** API BOUNDARY — now backed by the real backend (integration point I3).
+ *  Every function scopes to the session's organization server-side
+ *  (PLT-001): without an approved buyer session these return empty — the
+ *  UI's role gates handle presentation, the server handles isolation. */
 
 export async function getOrders(): Promise<Order[]> {
-  return ORDERS;
+  return ordersForSession();
 }
 
 export async function getOrder(id: string): Promise<Order | undefined> {
-  return ORDERS.find((o) => o.id === id);
+  return orderForSession(id);
 }
 
 export async function getRequests(): Promise<BuyerRequest[]> {
-  return REQUESTS;
+  return requestsForSession();
 }
 
 export async function getInstitution(): Promise<Institution> {
-  return INSTITUTION;
+  const inst = await institutionForSession();
+  // Role-gated pages render the gate for non-buyers; this empty shape is
+  // never shown (and contains nothing).
+  return (
+    inst ?? {
+      name: "", city: "", legalName: "", orgType: "", gstin: "", contact: "",
+      email: "", buyerCategory: "", addresses: [], documents: [],
+    }
+  );
 }

@@ -1,19 +1,60 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Banner, Chip, KV, NoteFlag, Panel, PanelHead, Sect } from "@/components/buyer-ui";
+import { useToast } from "@/components/toast";
 import type { SupplierPO } from "@/lib/types";
 
 /* ============================================================
-   Delivery proof — SUP-009 AC3 · OBD-19. The delivery panel shows
-   EXACTLY the decided Minimum Delivery Information set — nothing
-   else about the buyer or order. Proof-first (Option A): the
-   recipient's confirmation is requested only after proof upload.
-   Submission is a demo interaction (no file is transmitted).
+   Delivery proof — SUP-009 AC3 · OBD-19, now REAL (integration
+   point I4): submission records the proof METADATA (ADR-0005 —
+   file bytes are not retained in this phase) and flips the PO to
+   delivered-proof server-side. The delivery panel shows EXACTLY
+   the decided Minimum Delivery Information set — nothing else.
+   Proof-first (Option A): the recipient's confirmation is
+   requested only after proof is on record.
    ============================================================ */
 
 export function DeliveryProof({ po }: { po: SupplierPO }) {
+  const router = useRouter();
+  const { toast } = useToast();
   const [submitted, setSubmitted] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Staged file NAME only — bytes are not read or transmitted (ADR-0005).
+  // No default: proof can only be submitted for a genuinely chosen file.
+  const [staged, setStaged] = useState<string | null>(null);
+
+  const stage = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (f) { setStaged(f.name); setError(null); }
+  };
+
+  const submit = async () => {
+    if (busy || !staged) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/supplier/pos/${po.id}/proof`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ filename: staged }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+        toast(`Delivery proof recorded on ${po.id}.`);
+        router.refresh();
+      } else {
+        const data = (await res.json().catch(() => null)) as { error?: string } | null;
+        setError(data?.error ?? "The proof could not be recorded — please try again.");
+      }
+    } catch {
+      setError("The proof could not be recorded — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return (
     <>
@@ -21,7 +62,7 @@ export function DeliveryProof({ po }: { po: SupplierPO }) {
         <Banner tone="ok" className="mb-5">
           <b className="text-ink">Delivery proof on record.</b> ProSmash has
           now requested the recipient&rsquo;s confirmation — proof first,
-          always. <span className="font-mono text-[10px] uppercase text-n600">demo interaction — resets on reload</span>
+          always.
         </Banner>
       ) : (
         <Banner tone="warn" className="mb-5">
@@ -52,24 +93,54 @@ export function DeliveryProof({ po }: { po: SupplierPO }) {
               <>
                 <div className="rounded-[2px] border border-dashed border-n400 bg-paper px-4 py-6 text-center text-sm text-n600">
                   Drag your proof of delivery here, or <b className="text-ink">browse</b>
-                  <NoteFlag className="mt-1.5">accepted: pod, delivery photos, signed receipt · non-functional prototype</NoteFlag>
+                  <NoteFlag className="mt-1.5">accepted: pod, delivery photos, signed receipt · metadata only is retained (adr-0005)</NoteFlag>
+                </div>
+                <div className="mt-2.5 flex flex-wrap gap-2.5">
+                  <label className="inline-flex h-10 cursor-pointer items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink md:hidden">
+                    Take photo
+                    <input
+                      type="file" accept="image/*" capture="environment"
+                      className="hidden" onChange={stage}
+                    />
+                  </label>
+                  <label className="inline-flex h-10 cursor-pointer items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink">
+                    Choose file
+                    <input
+                      type="file" accept="image/*,.pdf"
+                      className="hidden" onChange={stage}
+                    />
+                  </label>
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-3 border-t border-n100 pt-3 text-sm">
-                  <span className="font-mono text-[12.5px] text-ink">pod-lr-90233-signed.jpg</span>
-                  <span className="text-xs text-n600">staged (demo)</span>
-                  <span className="ml-auto"><Chip tone="neu">Ready to submit</Chip></span>
+                  {staged ? (
+                    <>
+                      <span className="font-mono text-[12.5px] text-ink">{staged}</span>
+                      <span className="text-xs text-n600">staged</span>
+                      <span className="ml-auto"><Chip tone="neu">Ready to submit</Chip></span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[13px] text-n600">No file chosen yet</span>
+                      <span className="ml-auto"><Chip tone="warn">Choose a file first</Chip></span>
+                    </>
+                  )}
                 </div>
+                {error && (
+                  <Banner tone="bad" className="mt-3">{error}</Banner>
+                )}
                 <button
-                  onClick={() => setSubmitted(true)}
-                  className="mt-3 inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press"
+                  onClick={() => void submit()}
+                  disabled={busy || !staged}
+                  aria-disabled={busy || !staged}
+                  className="mt-3 inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
                 >
-                  Submit proof (demo)
+                  {busy ? "Recording…" : "Submit proof"}
                 </button>
               </>
             ) : (
               <div className="flex flex-wrap items-center gap-3 text-sm">
-                <span className="font-mono text-[12.5px] text-ink">pod-lr-90233-signed.jpg</span>
-                <span className="text-xs text-n600">submitted just now (demo)</span>
+                <span className="font-mono text-[12.5px] text-ink">{staged}</span>
+                <span className="text-xs text-n600">submitted just now</span>
                 <span className="ml-auto"><Chip tone="ok">On record</Chip></span>
               </div>
             )}

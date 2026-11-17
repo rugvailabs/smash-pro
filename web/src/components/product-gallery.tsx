@@ -10,9 +10,33 @@ import { useState } from "react";
    Set A photography populates it with zero code change.
    ============================================================ */
 
-export function ProductGallery({ name, images }: { name: string; images: string[] }) {
+export function ProductGallery({ name, images }: { name: string; images: (string | undefined)[] }) {
   const [idx, setIdx] = useState(0);
-  const main = images[Math.min(idx, images.length - 1)];
+  // SKUs without approved imagery pass no frames — render the labelled
+  // placeholder frame (library §4 rule); never substitute stock photography.
+  const frames = images.filter((src): src is string => Boolean(src));
+
+  if (frames.length === 0) {
+    return (
+      <div>
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2px] border border-n200 bg-n100">
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
+            }}
+          >
+            <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">
+              awaiting approved photography
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const main = frames[Math.min(idx, frames.length - 1)];
 
   return (
     <div>
@@ -27,13 +51,13 @@ export function ProductGallery({ name, images }: { name: string; images: string[
           className="object-cover"
         />
       </div>
-      {images.length > 1 && (
+      {frames.length > 1 && (
         <div className="edge-fade-x mt-2.5 flex gap-2 overflow-x-auto" role="group" aria-label="Product images">
-          {images.map((src, i) => (
+          {frames.map((src, i) => (
             <button
               key={src}
               onClick={() => setIdx(i)}
-              aria-label={`Image ${i + 1} of ${images.length}`}
+              aria-label={`Image ${i + 1} of ${frames.length}`}
               aria-pressed={i === idx}
               className={
                 "relative h-16 w-16 shrink-0 overflow-hidden rounded-[2px] border bg-n100 " +

@@ -114,8 +114,11 @@ export function RacquetConfigurator({ p }: { p: Product }) {
               aria-disabled={!complete}
               onClick={() => {
                 if (!complete) return;
-                add(p.sku, qty, { string: sel.string!, tension: sel.tension!, grip: sel.grip! }, delta);
-                toast(`Added — ${qty} racquets, ${sel.string} @ ${sel.tension}, grip ${sel.grip}.`);
+                // surcharge is computed server-side from the config — the
+                // delta here is display copy only
+                add(p.sku, qty, { string: sel.string!, tension: sel.tension!, grip: sel.grip! })
+                  .then(() => toast(`Added — ${qty} racquets, ${sel.string} @ ${sel.tension}, grip ${sel.grip}.`))
+                  .catch(() => toast("Couldn't add to your order — please try again."));
               }}
               className={
                 "inline-flex h-11 items-center rounded-[2px] px-5 text-sm font-semibold transition-colors " +
@@ -128,7 +131,7 @@ export function RacquetConfigurator({ p }: { p: Product }) {
             </button>
           </>
         ) : (
-          <a className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press" href="#">
+          <a className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press" href="/register">
             Register to order
           </a>
         )}

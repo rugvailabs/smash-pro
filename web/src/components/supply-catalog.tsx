@@ -20,8 +20,10 @@ export function SupplyCatalog({ items, proposals }: { items: SupplyItem[]; propo
 
   return (
     <>
+      {/* dense supplier table: scrolls inside its own container on narrow
+          screens — the page itself never scrolls horizontally */}
       <div className="hidden overflow-x-auto rounded-[2px] border border-n200 bg-chalk md:block">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full min-w-[880px] border-collapse text-sm">
           <thead>
             <tr>
               {["Item", "Category", "Capacity / month", "Lead time", "Current cost to ProSmash", "Cost proposal"].map((h, i) => (

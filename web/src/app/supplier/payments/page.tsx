@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Chip, DocRow, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 import { getPaymentRecords, getPOs } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
 
@@ -11,7 +13,16 @@ import { inr } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Supplier payments" };
 
-export default async function SupplierPaymentsPage() {
+export default function SupplierPaymentsPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
+      <SupplierPaymentsContent />
+    </Suspense>
+  );
+}
+
+async function SupplierPaymentsContent() {
   const [pos, records] = await Promise.all([getPOs(), getPaymentRecords()]);
   const active = pos.filter((p) => p.fulfilment !== "closed");
   const invoiced = active.reduce((s, p) => s + p.value, 0);
@@ -41,8 +52,10 @@ export default async function SupplierPaymentsPage() {
       </div>
 
       <Sect>Per purchase order</Sect>
+      {/* dense supplier table: scrolls inside its own container on narrow
+          screens — the page itself never scrolls horizontally */}
       <div className="hidden overflow-x-auto rounded-[2px] border border-n200 bg-chalk md:block">
-        <table className="w-full border-collapse text-sm">
+        <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr>
               {["PO", "Terms (as quoted)", "PO value", "Received", "Outstanding", "Status"].map((h, i) => (

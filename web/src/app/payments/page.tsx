@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
+import { PanelSkeleton } from "@/components/skeletons";
 import { Banner, Chip, NoteFlag, PageHead, type ChipTone } from "@/components/buyer-ui";
 import { getOrders } from "@/lib/buyer-api";
 import { inr } from "@/lib/format";
@@ -14,7 +16,16 @@ const PAY_TONE: Record<string, ChipTone> = {
   confirmed: "ok", "awaiting-verification": "warn", failed: "bad", "cancelled-unpaid": "bad",
 };
 
-export default async function PaymentsPage() {
+export default function PaymentsPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+      <PaymentsContent />
+    </Suspense>
+  );
+}
+
+async function PaymentsContent() {
   const orders = await getOrders();
 
   return (

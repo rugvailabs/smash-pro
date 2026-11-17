@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 import { getRequirements, getSupplierProfile } from "@/lib/supplier-api";
 import type { SupplierRequirement } from "@/lib/types";
 
@@ -46,7 +48,16 @@ function Row({ r }: { r: SupplierRequirement }) {
   );
 }
 
-export default async function RequirementsPage() {
+export default function RequirementsPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
+      <RequirementsContent />
+    </Suspense>
+  );
+}
+
+async function RequirementsContent() {
   const [reqs, profile] = await Promise.all([getRequirements(), getSupplierProfile()]);
   const open = reqs.filter((r) => r.status === "open" || r.status === "quoted-revision");
   const closed = reqs.filter((r) => r.status === "awarded" || r.status === "closed");

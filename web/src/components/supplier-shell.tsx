@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRole } from "@/components/providers";
 
 /* ============================================================
@@ -63,28 +63,41 @@ function SupplierGate() {
   );
 }
 
-const NAV: { group: string; items: { href: string; label: string; count?: number }[] }[] = [
-  {
-    group: "Work",
-    items: [
-      { href: "/supplier", label: "Dashboard" },
-      { href: "/supplier/requirements", label: "Requirements", count: 2 },
-      { href: "/supplier/quotes", label: "Quotations", count: 1 },
-      { href: "/supplier/pos", label: "Purchase orders", count: 2 },
-    ],
-  },
-  { group: "Money", items: [{ href: "/supplier/payments", label: "Payments" }] },
-  { group: "Catalogue", items: [{ href: "/supplier/catalog", label: "My catalogue" }] },
-  { group: "Account", items: [{ href: "/supplier/profile", label: "Profile" }] },
-];
+interface WorkspaceCounts { requirements: number; quotations: number; pos: number }
 
 export function SupplierNav() {
   const pathname = usePathname();
+  // Nav counts come from the session-scoped API (integration point I4);
+  // badges appear once loaded — the same source the pages render from.
+  const [counts, setCounts] = useState<WorkspaceCounts | null>(null);
+  useEffect(() => {
+    let alive = true;
+    void fetch("/api/supplier/counts")
+      .then((r) => (r.ok ? (r.json() as Promise<WorkspaceCounts | null>) : null))
+      .then((c) => { if (alive) setCounts(c); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [pathname]);
+
+  const NAV: { group: string; items: { href: string; label: string; count?: number }[] }[] = [
+    {
+      group: "Work",
+      items: [
+        { href: "/supplier", label: "Dashboard" },
+        { href: "/supplier/requirements", label: "Requirements", count: counts?.requirements },
+        { href: "/supplier/quotes", label: "Quotations", count: counts?.quotations },
+        { href: "/supplier/pos", label: "Purchase orders", count: counts?.pos },
+      ],
+    },
+    { group: "Money", items: [{ href: "/supplier/payments", label: "Payments" }] },
+    { group: "Catalogue", items: [{ href: "/supplier/catalog", label: "My catalogue" }] },
+    { group: "Account", items: [{ href: "/supplier/profile", label: "Profile" }] },
+  ];
   const isOn = (href: string) =>
     href === "/supplier" ? pathname === "/supplier" : pathname.startsWith(href);
 
   return (
-    <nav aria-label="Supplier workspace" className="shrink-0 lg:w-[200px]">
+    <nav aria-label="Supplier workspace" className="shrink-0 lg:w-[232px]">
       {/* mobile: horizontal strip · desktop: side rail */}
       <div className="flex gap-1 overflow-x-auto border-b border-n200 bg-chalk px-1 lg:block lg:border-b-0 lg:bg-transparent lg:px-0">
         {NAV.map((g) => (
@@ -97,9 +110,9 @@ export function SupplierNav() {
                 key={i.href}
                 href={i.href}
                 className={
-                  "flex shrink-0 items-center gap-2 whitespace-nowrap rounded-[2px] px-3 py-2.5 text-sm font-medium lg:w-full " +
+                  "flex min-h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-[2px] px-3 py-2 text-sm font-medium lg:w-full " +
                   (isOn(i.href)
-                    ? "bg-chalk text-ink shadow-[inset_2px_0_0_var(--color-ember)] lg:border lg:border-n200"
+                    ? "bg-chalk text-ink shadow-[inset_3px_0_0_var(--color-ember)] lg:border lg:border-n200"
                     : "text-n800 hover:text-ink")
                 }
               >
@@ -132,7 +145,7 @@ export function SupplierShell({ children }: { children: React.ReactNode }) {
       <div hidden={!allowed}>
         <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-4 pb-16 pt-5 md:px-10 lg:flex-row lg:gap-8">
           {/* usePathname (active item) needs a Suspense boundary to prerender */}
-          <Suspense fallback={<nav className="shrink-0 lg:w-[200px]" />}>
+          <Suspense fallback={<nav className="shrink-0 lg:w-[232px]" />}>
             <SupplierNav />
           </Suspense>
           <div className="min-w-0 flex-1">{children}</div>

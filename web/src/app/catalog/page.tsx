@@ -92,9 +92,9 @@ async function CatalogContent({
               <b className="text-ink">Standard prices shown, GST-inclusive.</b>{" "}
               Registered institutions see their own price on approval.
             </span>
-            <a className="font-semibold text-ember-deep hover:underline" href="#">
+            <Link className="font-semibold text-ember-deep hover:underline" href="/register">
               Register to view your price →
-            </a>
+            </Link>
           </div>
         </RoleGate>
 

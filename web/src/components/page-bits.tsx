@@ -11,6 +11,7 @@ export function CatalogSubtitle() {
     pending: "Standard listed prices, GST-inclusive — your pricing activates on approval.",
     buyer: "Your institutional prices are shown — GST-inclusive.",
     supplier: "Public catalogue at standard listed prices.",
+    admin: "Public catalogue at standard listed prices.",
   };
   return <p className="mt-0.5 text-sm text-n600">{copy[role]}</p>;
 }
@@ -21,8 +22,8 @@ export function DetailConvertNote() {
     return (
       <p className="mt-1.5 text-[13px] text-n800">
         Institutional pricing —{" "}
-        <a href="#" className="font-medium text-ember-deep hover:underline">Register to view your price</a> or{" "}
-        <a href="#" className="font-medium text-ember-deep hover:underline">sign in</a>.
+        <a href="/register" className="font-medium text-ember-deep hover:underline">Register to view your price</a> or{" "}
+        <a href="/signin" className="font-medium text-ember-deep hover:underline">sign in</a>.
       </p>
     );
   }

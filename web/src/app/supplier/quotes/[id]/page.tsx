@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { Banner, Chip, NoteFlag, PageHead, Panel, Sect } from "@/components/buyer-ui";
+import { NegotiationComposer } from "@/components/negotiation-composer";
 import { getQuote } from "@/lib/supplier-api";
 import { PanelSkeleton } from "@/components/skeletons";
 import { inr } from "@/lib/format";
@@ -108,15 +109,7 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
                 )
               )}
             </div>
-            <div className="mt-4 flex gap-2.5">
-              <input
-                type="text" placeholder="Write a message to ProSmash" aria-label="Message"
-                className="h-10 flex-1 rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink placeholder:text-n400"
-              />
-              <button className="inline-flex h-10 cursor-not-allowed items-center rounded-[2px] bg-n200 px-4 text-sm font-semibold text-n400" aria-disabled>
-                Send (prototype)
-              </button>
-            </div>
+            <NegotiationComposer reqId={q.reqId} />
           </Panel>
         </div>
 

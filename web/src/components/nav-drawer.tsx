@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useRole } from "@/components/providers";
 import { SearchBox } from "@/components/search-box";
 import type { Role } from "@/lib/types";
@@ -16,6 +16,12 @@ import type { Role } from "@/lib/types";
    ============================================================ */
 
 function itemsFor(role: Role): { href: string; label: string; match: string }[] {
+  if (role === "admin") {
+    return [
+      { href: "/", label: "Home", match: "/__home" },
+      { href: "/admin", label: "Operations Console", match: "/admin" },
+    ];
+  }
   if (role === "supplier") {
     return [
       { href: "/", label: "Home", match: "/__home" },
@@ -45,8 +51,9 @@ function itemsFor(role: Role): { href: string; label: string; match: string }[] 
 }
 
 export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { role } = useRole();
+  const { role, orgName, signOut } = useRole();
   const pathname = usePathname();
+  const router = useRouter();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Esc close + focus trap + body scroll lock
@@ -123,21 +130,27 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
           ))}
         </nav>
         <div className="border-t border-white/10 p-5">
-          {role === "visitor" || role === "pending" ? (
+          {role === "visitor" ? (
             <div className="flex items-center gap-4">
-              <a href="#" className="text-sm font-medium text-white" title="Sign-in arrives with account screens">Sign in</a>
-              {role === "visitor" && (
-                <a href="#" className="inline-flex h-11 flex-1 items-center justify-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white">
-                  Register
-                </a>
-              )}
+              <Link href="/signin" onClick={onClose} className="text-sm font-medium text-white">Sign in</Link>
+              <Link href="/register" onClick={onClose} className="inline-flex h-11 flex-1 items-center justify-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white">
+                Register
+              </Link>
             </div>
           ) : (
-            <div className="text-[13px] font-medium text-white/80">
-              {role === "supplier" ? "Meerut Sports Works" : "St. Xavier's High School"}
-              <span className="ml-2 rounded-[2px] border border-white/25 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-white/55">
-                {role === "supplier" ? "SUPPLIER" : "BUYER"}
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="min-w-0 flex-1 text-[13px] font-medium text-white/80">
+                <span className="block truncate">{orgName ?? "Your account"}</span>
+                <span className="mt-1 inline-block rounded-[2px] border border-white/25 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-white/55">
+                  {role === "admin" ? "ADMIN" : role === "supplier" ? "SUPPLIER" : role === "buyer" ? "BUYER" : "UNDER REVIEW"}
+                </span>
+              </div>
+              <button
+                onClick={() => { onClose(); void signOut().then(() => router.push("/")); }}
+                className="shrink-0 text-sm font-medium text-white/80 underline-offset-2 hover:text-white hover:underline"
+              >
+                Sign out
+              </button>
             </div>
           )}
         </div>

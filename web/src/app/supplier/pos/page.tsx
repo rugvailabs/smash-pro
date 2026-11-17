@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Chip, NoteFlag, PageHead } from "@/components/buyer-ui";
+import { PanelSkeleton } from "@/components/skeletons";
 import { Dest } from "@/components/supplier-shell";
 import { getPOs } from "@/lib/supplier-api";
 import { inr } from "@/lib/format";
@@ -16,7 +18,16 @@ const TONE: Record<PoFulfilment, "info" | "warn" | "ok"> = {
   acknowledged: "info", "awaiting-proof": "warn", "delivered-proof": "ok", closed: "ok",
 };
 
-export default async function PosPage() {
+export default function PosPage() {
+  // session-scoped data → stream behind a skeleton (Cache Components)
+  return (
+    <Suspense fallback={<main><PanelSkeleton /></main>}>
+      <PosContentList />
+    </Suspense>
+  );
+}
+
+async function PosContentList() {
   const pos = await getPOs();
 
   return (
