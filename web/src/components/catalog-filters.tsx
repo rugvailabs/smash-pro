@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { PRICE_BANDS, SORTS } from "@/lib/filter-defs";
 
 /* ============================================================
    Catalogue filter bar (library §10) — URL-driven so the server
@@ -9,21 +10,9 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
    Applied filters render as removable tokens with "Clear all".
    Three controls fit one wrapping row at every width; the drawer
    collapse pattern activates when the filter set grows.
+   Definitions live in lib/filter-defs.ts (server-safe — see the
+   note there; this file is "use client").
    ============================================================ */
-
-export const PRICE_BANDS: Record<string, { label: string; min: number; max: number }> = {
-  "lt1000": { label: "Under ₹1,000", min: 0, max: 999.99 },
-  "1000-2500": { label: "₹1,000 – ₹2,500", min: 1000, max: 2500 },
-  "2500-5000": { label: "₹2,500 – ₹5,000", min: 2500, max: 5000 },
-  "gt5000": { label: "Over ₹5,000", min: 5000.01, max: Infinity },
-};
-
-export const SORTS: Record<string, string> = {
-  relevance: "Relevance",
-  "price-asc": "Price: low to high",
-  "price-desc": "Price: high to low",
-  name: "Name A–Z",
-};
 
 export function CatalogFilters({ types }: { types: string[] }) {
   const router = useRouter();

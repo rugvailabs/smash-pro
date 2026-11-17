@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { searchProducts } from "@/lib/catalog";
+import { getCategories, searchProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
+import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/empty-state";
 
@@ -25,10 +26,13 @@ export default function SearchPage({
 
 async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q = "" } = await searchParams;
-  const results = await searchProducts(q);
+  const [results, categories] = await Promise.all([searchProducts(q), getCategories()]);
 
   return (
     <main>
+      {/* same catalogue anatomy — search is a view of the catalogue,
+          not a separate tool (no active category) */}
+      <CategoryStrip categories={categories} />
       <div className="border-b border-n200 bg-chalk">
         <div className="mx-auto max-w-[1280px] px-4 py-4.5 md:px-10 md:py-6">
           <div className="mb-1 text-[13px] text-n600">

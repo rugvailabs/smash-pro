@@ -16,6 +16,9 @@ export interface Product {
   sub: string;
   /** Path under /img — interim CC-licensed imagery (see /img/LICENSES.md). */
   img: string;
+  /** Optional additional gallery frames (Set A photography populates this;
+   *  the PDP thumbnail rail renders only when more than one frame exists). */
+  gallery?: string[];
   meta: string;
   /** Standard listed price, GST-inclusive (OBD-03/OBD-20). */
   std: number;

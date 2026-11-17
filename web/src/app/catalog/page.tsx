@@ -5,7 +5,9 @@ import { getCategories, getCategory, getProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { CatalogSubtitle } from "@/components/page-bits";
-import { CatalogFilters, PRICE_BANDS } from "@/components/catalog-filters";
+import { CatalogFilters } from "@/components/catalog-filters";
+import { PRICE_BANDS } from "@/lib/filter-defs";
+import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
 
 /* Catalogue — category strip, role-aware page head, filter toolbar, grid. */
@@ -54,22 +56,8 @@ async function CatalogContent({
 
   return (
     <main>
-      {/* category strip */}
-      <nav aria-label="Sport categories" className="flex overflow-x-auto border-b border-n200 bg-paper">
-        {categories.map((c) => (
-          <Link
-            key={c.slug}
-            href={`/catalog?cat=${c.slug}`}
-            className={
-              "shrink-0 border-r border-n200 px-5 py-3.5 first:border-l " +
-              (c.slug === cat ? "shadow-[inset_0_-2px_0_var(--color-ember)]" : "")
-            }
-          >
-            <span className="block whitespace-nowrap font-display text-sm font-semibold text-ink">{c.name}</span>
-            <span className="num font-mono text-[10px] text-n600">{c.count}</span>
-          </Link>
-        ))}
-      </nav>
+      {/* category strip — shared §5 component with active rule + edge fade */}
+      <CategoryStrip categories={categories} active={cat} />
 
       {/* page head */}
       <div className="border-b border-n200 bg-chalk">

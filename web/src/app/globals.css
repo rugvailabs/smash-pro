@@ -76,6 +76,16 @@ body {
 /* focus visibility (WCAG 2.2 AA) */
 :focus-visible { outline: 2px solid var(--color-ember-deep); outline-offset: 2px; }
 
+/* Horizontal scroll affordance (library §5) — the row fades at its scroll
+   edges below xl (where it can overflow) so cut-off content never looks
+   accidental. A mask, not a fill — the no-gradient rule governs fills. */
+@media (max-width: 1279px) {
+  .edge-fade-x {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 24px, #000 calc(100% - 24px), transparent 100%);
+  }
+}
+
 /* skeleton bones (library §14) — layout-true loading placeholders */
 .bone {
   background: var(--color-n100);

@@ -1,13 +1,14 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { getCategory, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { AddToOrder, BuyerAvailability, PriceBlock, ProductGrid } from "@/components/product";
+import { ProductGallery } from "@/components/product-gallery";
 import { RacquetConfigurator } from "@/components/configurator";
 import { DetailConvertNote } from "@/components/page-bits";
 import { DetailSkeleton } from "@/components/skeletons";
+import { NoteFlag } from "@/components/buyer-ui";
 
 /* Product detail — gallery, role-aware pricing, specs; racquets route
    through the mandatory stringing/tension/grip configurator. */
@@ -53,22 +54,8 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
       </div>
 
       <div className="grid gap-9 lg:grid-cols-[6fr_5fr]">
-        {/* gallery */}
-        <div>
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[2px] border border-n200 bg-n100">
-            <Image
-              src={p.img}
-              alt={`${p.name} — representative image`}
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 640px"
-              className="object-cover"
-            />
-          </div>
-          <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
-            representative image · cc-licensed · replaced by approved product photography
-          </p>
-        </div>
+        {/* gallery — thumbnail rail appears when Set A frames arrive */}
+        <ProductGallery name={p.name} images={p.gallery?.length ? [p.img, ...p.gallery] : [p.img]} />
 
         {/* info */}
         <div>
@@ -93,6 +80,14 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
 
           {p.configurable ? <RacquetConfigurator p={p} /> : <AddToOrder p={p} />}
 
+          {/* certainty block — confirmed rules only (managed fulfilment,
+              OBD-08 advance payment); no dates or SLAs are promised */}
+          <div className="mt-5 border-y border-n100 py-3 text-[13px] text-n600">
+            <p><b className="font-medium text-ink">Fulfilled by ProSmash</b> — one counterparty for order, delivery and resolution.</p>
+            <p className="mt-1">Dispatch follows confirmed payment — 100% advance, no credit facilities.</p>
+            <NoteFlag className="mt-1.5">delivery timelines pending fulfilment confirmation (obd-19 ◇)</NoteFlag>
+          </div>
+
           <div className="mb-2 mt-6 font-mono text-[11px] uppercase tracking-[.08em] text-n600">
             Specifications
           </div>
@@ -100,12 +95,37 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
             <tbody>
               {p.specs.map(([k, v]) => (
                 <tr key={k} className="border-b border-n100">
-                  <th className="w-[38%] py-2.5 pr-4 text-left align-top font-medium text-n600">{k}</th>
+                  <th className="w-[35%] py-2.5 pr-4 text-left align-top font-medium text-n600">{k}</th>
                   <td className="num py-2.5 text-ink">{v}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+
+          {/* assistance at the decision point — PRESENTATION ONLY. This is
+              not an enquiry intake: no form, no lead storage, no admin queue
+              (D12 boundary — pending business-requirements approval). It
+              points at the existing WhatsApp affordance only. */}
+          <div className="mt-6 rounded-[2px] border border-n200 bg-chalk p-4">
+            <div className="font-mono text-[11px] uppercase tracking-[.08em] text-n600">Stuck on a question?</div>
+            <div className="mt-1 text-sm font-semibold text-ink">Ask the ProSmash sourcing team</div>
+            <p className="mt-1 max-w-[52ch] text-[13px] text-n600">
+              Specifications, quantities, alternatives or institutional
+              requirements — talk to the team that sources this catalogue.
+            </p>
+            <a
+              href="https://wa.me/910000000000"
+              target="_blank"
+              rel="noopener"
+              className="mt-3 inline-flex h-10 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink"
+            >
+              WhatsApp the sourcing team
+            </a>
+            <NoteFlag className="mt-2">
+              assistance presentation only — enquiry intake pending business
+              approval (d12) · whatsapp number placeholder
+            </NoteFlag>
+          </div>
         </div>
       </div>
 
