@@ -46,22 +46,24 @@ export function PriceBlock({ p, size = "card" }: { p: Product; size?: "card" | "
 }
 
 export function ProductCard({ p, priority = false }: { p: Product; priority?: boolean }) {
-  // Library §4: vertical card from 480px up; below 480px a compact
-  // horizontal row — 96px square image left, content right.
+  // One premium vertical card used at every width (consistent presentation):
+  // large image area on a refined neutral ground with a subtle hover zoom,
+  // clamped name/meta for uniform heights, role-aware price block pinned to
+  // the base. No ratings / stock / delivery / discount claims anywhere.
   return (
     <Link
       href={`/product/${p.sku}`}
-      className="group flex flex-col overflow-hidden rounded-[2px] border border-n200 bg-chalk transition-colors hover:border-n400 max-[479px]:flex-row"
+      className="group flex flex-col overflow-hidden rounded-[3px] border border-n200 bg-chalk transition-colors duration-200 hover:border-n400"
     >
-      <div className="relative aspect-[4/3] w-full bg-n100 max-[479px]:m-3 max-[479px]:h-24 max-[479px]:w-24 max-[479px]:shrink-0 max-[479px]:self-start max-[479px]:rounded-[2px] max-[479px]:aspect-square overflow-hidden">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-n100">
         {p.img ? (
           <Image
             src={p.img}
             alt={`${p.name} — representative image`}
             fill
             priority={priority}
-            sizes="(max-width: 479px) 96px, (max-width: 640px) 50vw, (max-width: 1100px) 33vw, 300px"
-            className="object-cover"
+            sizes="(max-width: 479px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 300px"
+            className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
           />
         ) : (
           /* Library §4: labelled placeholder frame — no substitute imagery. */
@@ -77,18 +79,18 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
             </span>
           </div>
         )}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col p-4 max-[479px]:py-3 max-[479px]:pl-0 max-[479px]:pr-3">
-        <span className="font-mono text-[11px] uppercase tracking-widest text-n600">{p.sub}</span>
-        <div className="mt-1 text-[15px] font-semibold leading-tight text-ink group-hover:underline group-hover:underline-offset-2">
-          {p.name}
-        </div>
-        <div className="mt-0.5 text-[13px] text-n600">{p.meta}</div>
         {p.configurable && (
-          <span className="mt-1.5 self-start rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-info">
-            Strung to order — configure
+          <span className="absolute left-2 top-2 rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-info">
+            Configure to order
           </span>
         )}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col p-3.5 md:p-4">
+        <span className="truncate font-mono text-[10.5px] uppercase tracking-widest text-n600">{p.sub}</span>
+        <div className="mt-1 line-clamp-2 text-[14px] font-semibold leading-snug text-ink group-hover:underline group-hover:underline-offset-2 md:text-[15px]">
+          {p.name}
+        </div>
+        <div className="mt-0.5 line-clamp-1 text-[12.5px] text-n600">{p.meta}</div>
         <div className="mt-auto border-t border-n100 pt-3">
           <PriceBlock p={p} />
         </div>
@@ -99,10 +101,11 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
 
 /** priorityCount: eager-load the first N card images — used only where the
  *  grid is above the fold (the catalogue LCP); defaults to 0 so other grids
- *  keep lazy loading. */
+ *  keep lazy loading. Deliberate column steps: 2 (mobile) → 3 (tablet/laptop)
+ *  → 4 (desktop); min-w-0 on cards prevents any horizontal overflow. */
 export function ProductGrid({ items, priorityCount = 0 }: { items: Product[]; priorityCount?: number }) {
   return (
-    <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 min-[900px]:grid-cols-3 md:gap-4 xl:grid-cols-4">
       {items.map((p, i) => (
         <ProductCard key={p.sku} p={p} priority={i < priorityCount} />
       ))}

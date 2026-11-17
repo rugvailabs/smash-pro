@@ -14,7 +14,7 @@ import { PRICE_BANDS, SORTS } from "@/lib/filter-defs";
    note there; this file is "use client").
    ============================================================ */
 
-export function CatalogFilters({ types }: { types: string[] }) {
+export function CatalogFilters({ types, typeLabel = "Type" }: { types: string[]; typeLabel?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -39,15 +39,16 @@ export function CatalogFilters({ types }: { types: string[] }) {
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }, [params, pathname, router]);
 
-  const selectCls = "h-9 rounded-[2px] border border-n400 bg-chalk px-2.5 text-[13px] text-ink";
+  const selectCls =
+    "h-10 rounded-[2px] border border-n400 bg-chalk px-3 text-[13px] font-medium text-ink transition-colors hover:border-ink/40 focus:border-ink focus:outline-none";
   const tokens: { key: string; label: string }[] = [];
   if (type) tokens.push({ key: "type", label: type });
   if (price && PRICE_BANDS[price]) tokens.push({ key: "price", label: PRICE_BANDS[price].label });
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2.5">
-      <select aria-label="Type" className={selectCls} value={type} onChange={(e) => setParam("type", e.target.value)}>
-        <option value="">Type: All</option>
+      <select aria-label={typeLabel} className={selectCls} value={type} onChange={(e) => setParam("type", e.target.value)}>
+        <option value="">{typeLabel}: All</option>
         {types.map((t) => <option key={t} value={t}>{t}</option>)}
       </select>
       <select aria-label="Price" className={selectCls} value={price} onChange={(e) => setParam("price", e.target.value)}>
@@ -59,18 +60,19 @@ export function CatalogFilters({ types }: { types: string[] }) {
       </select>
       {tokens.length > 0 && (
         <span className="flex flex-wrap items-center gap-2">
+          <span aria-hidden className="h-5 w-px bg-n200 max-md:hidden" />
           {tokens.map((t) => (
             <button
               key={t.key}
               onClick={() => setParam(t.key, "")}
-              className="inline-flex h-7 items-center gap-1.5 rounded-[2px] border border-n200 bg-chalk px-2 text-xs text-ink hover:border-n400"
+              className="inline-flex h-7 items-center gap-1.5 rounded-full border border-n400 bg-paper px-2.5 text-xs font-medium text-ink transition-colors hover:border-ember-deep hover:text-ember-deep"
               aria-label={`Remove filter ${t.label}`}
             >
               {t.label}
-              <span aria-hidden className="text-n600">×</span>
+              <span aria-hidden className="text-[13px] leading-none">×</span>
             </button>
           ))}
-          <button onClick={clearAll} className="text-[13px] font-semibold text-ember-deep hover:underline">
+          <button onClick={clearAll} className="text-[13px] font-semibold text-ember-deep underline-offset-2 hover:underline">
             Clear all
           </button>
         </span>

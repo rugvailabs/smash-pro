@@ -9,6 +9,7 @@ import { CatalogFilters } from "@/components/catalog-filters";
 import { PRICE_BANDS } from "@/lib/filter-defs";
 import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
+import { CATEGORY_INTRO, defaultIntro, TYPE_FILTER_LABEL } from "@/lib/catalog-copy";
 
 /* Catalogue — category strip, role-aware page head, filter toolbar, grid. */
 
@@ -68,6 +69,9 @@ async function CatalogContent({
             <b className="text-ink">{title}</b>
           </div>
           <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[30px]">{title}</h1>
+          <p className="mt-1.5 max-w-[68ch] text-[14px] leading-relaxed text-n600 md:text-[15px]">
+            {category ? (CATEGORY_INTRO[cat] ?? defaultIntro) : defaultIntro}
+          </p>
           <CatalogSubtitle />
           <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
             prices &amp; counts illustrative · imagery representative (cc-licensed)
@@ -76,13 +80,14 @@ async function CatalogContent({
       </div>
 
       <div className="mx-auto max-w-[1280px] px-4 pb-16 md:px-10">
-        {/* toolbar — URL-driven filters (library §10) */}
-        <div className="flex flex-wrap items-center gap-2.5 py-4">
+        {/* toolbar — URL-driven filters (library §10): filters left, live count right */}
+        <div className="flex flex-col gap-3 border-b border-n100 py-4 md:flex-row md:items-center">
           <Suspense fallback={<span className="h-9" />}>
-            <CatalogFilters types={types} />
+            <CatalogFilters types={types} typeLabel={TYPE_FILTER_LABEL[cat] ?? "Type"} />
           </Suspense>
-          <span className="num ml-auto font-mono text-xs text-n600">
-            {products.length} of {category?.count ?? products.length} items shown · sample
+          <span className="num font-mono text-xs text-n600 md:ml-auto md:shrink-0">
+            <b className="text-ink">{products.length}</b>
+            {products.length !== (category?.count ?? products.length) && <> of {category?.count}</>} items · sample
           </span>
         </div>
 
