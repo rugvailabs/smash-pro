@@ -93,13 +93,18 @@ const SLIDES: Slide[] = [
   },
 ];
 
-const INTERVAL = 6000;
+const INTERVAL = 5000;
 
 export function HeroCarousel() {
   const { role } = useRole();
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
+  // The first slide mounts already active; without this it would render at the
+  // zoomed-in scale with nothing to animate from. Flipping `started` after the
+  // first paint lets slide 0's Ken-Burns zoom run from scale-100 on load, the
+  // same way every subsequent slide animates when it becomes active.
+  const [started, setStarted] = useState(false);
   const touchX = useRef<number | null>(null);
 
   useEffect(() => {
@@ -108,6 +113,11 @@ export function HeroCarousel() {
     set();
     mq.addEventListener("change", set);
     return () => mq.removeEventListener("change", set);
+  }, []);
+
+  useEffect(() => {
+    const r = requestAnimationFrame(() => setStarted(true));
+    return () => cancelAnimationFrame(r);
   }, []);
 
   const go = useCallback((n: number) => setIndex(() => (n + SLIDES.length) % SLIDES.length), []);
@@ -175,7 +185,9 @@ export function HeroCarousel() {
               style={{ objectPosition: s.pos }}
               className={
                 "object-cover " +
-                (!reduced && active ? "scale-[1.05] transition-transform duration-[6000ms] ease-out" : "scale-100")
+                (!reduced && active && started
+                  ? "scale-[1.08] transition-transform duration-[7000ms] ease-out"
+                  : "scale-100")
               }
             />
             {/* subtle ink scrims — only where copy sits (left on desktop, bottom on mobile) */}
