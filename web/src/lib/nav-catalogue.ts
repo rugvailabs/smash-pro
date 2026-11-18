@@ -43,11 +43,11 @@ export const CATEGORY_HERO: Record<string, string | null> = {
   badminton: "/img/badminton/racquet-tour-hero.jpg",
   tennis: "/img/tennis/tennis-balls-hero.jpg",
   athletics: "/img/athletics/hurdle-training-hero.jpg",
-  "gym-fitness": null, // no category image yet — renders the placeholder frame
+  "gym-fitness": "/img/gym-fitness/barbell-hero.jpg",
   "indoor-games": "/img/indoor-games/chess-set-hero.jpg",
   "outdoor-games": "/img/outdoor-games/roller-skates-hero.jpg",
   sportswear: "/img/sportswear/match-jersey-hero.jpg",
-  accessories: null, // no category image yet — renders the placeholder frame
+  accessories: "/img/accessories/duffel-bag-hero.jpg",
 };
 
 /** How many SKUs to surface as quick links under each subcategory. */

@@ -114,7 +114,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "CR-0922", name: "Boundary Cones — 23 cm, Set of 50",
-    cat: "cricket", sub: "Ground equipment",
+    cat: "cricket", sub: "Ground equipment", img: "/img/cricket/boundary-cones-hero.png",
     meta: "Flexible PVC · set of 50", std: 1250, buyer: 1062.5,
     specs: [
       ["Material", "Flexible PVC, bright finish"],
@@ -137,7 +137,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "FB-0112", name: "Football — Size 5, Stitched Training, Box of 6",
-    cat: "football", sub: "Balls",
+    cat: "football", sub: "Balls", img: "/img/football/training-football-hero.png",
     meta: "Hand-stitched PU · box of 6", std: 4740, buyer: 4029,
     specs: [
       ["Size", "5"],
@@ -167,7 +167,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "FB-0216", name: "Pop-up Training Goal — 1.8 m, Pair",
-    cat: "football", sub: "Goals & nets",
+    cat: "football", sub: "Goals & nets", img: "/img/football/popup-goal-hero.png",
     meta: "Spring-steel frame · pair with bag", std: 3240, buyer: 2754,
     specs: [
       ["Width", "1.8 m"],
@@ -177,7 +177,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "FB-0305", name: "Training Bibs — Mesh, Set of 12",
-    cat: "football", sub: "Training",
+    cat: "football", sub: "Training", img: "/img/football/training-bibs-hero.png",
     meta: "Polyester mesh · set of 12", std: 1680, buyer: 1428,
     specs: [
       ["Fabric", "Breathable polyester mesh"],
@@ -248,7 +248,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BB-0214", name: "Scoreboard — Manual Flip, Tabletop",
-    cat: "basketball", sub: "Court equipment",
+    cat: "basketball", sub: "Court equipment", img: "/img/basketball/scoreboard-hero.jpg",
     meta: "Tabletop flip scorer · 0–99", std: 1560, buyer: 1326,
     specs: [
       ["Display", "Flip cards, 0–99 both ends"],
@@ -299,7 +299,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "VB-0209", name: "Volleyball Posts — Telescopic Steel, Pair",
-    cat: "volleyball", sub: "Nets & posts",
+    cat: "volleyball", sub: "Nets & posts", img: "/img/volleyball/volleyball-posts-hero.jpg",
     meta: "Height-adjustable steel · pair", std: 9400, buyer: 7990,
     specs: [
       ["Material", "Powder-coated steel"],
@@ -318,7 +318,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "VB-0302", name: "Court Boundary Tape — 50 mm, Full Court",
-    cat: "volleyball", sub: "Court equipment",
+    cat: "volleyball", sub: "Court equipment", img: "/img/volleyball/boundary-tape-hero.jpg",
     meta: "Woven polyester · full-court set", std: 760, buyer: 646,
     specs: [
       ["Width", "50 mm"],
@@ -373,7 +373,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BD-2203", name: "Badminton Net — Competition, 6.1 m",
-    cat: "badminton", sub: "Nets & posts",
+    cat: "badminton", sub: "Nets & posts", img: "/img/badminton/badminton-net-hero.jpg",
     meta: "6.1 m · 19 mm nylon mesh", std: 820, buyer: 697,
     specs: [
       ["Length", "6.1 m"],
@@ -383,7 +383,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BD-2209", name: "Badminton Posts — Mobile Steel, Pair",
-    cat: "badminton", sub: "Nets & posts",
+    cat: "badminton", sub: "Nets & posts", img: "/img/badminton/badminton-posts-hero.jpg",
     meta: "1.55 m · weighted wheeled base · pair", std: 7200, buyer: 6120,
     specs: [
       ["Height", "1.55 m (net height)"],
@@ -415,7 +415,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "TN-0109", name: "Junior Racquet — 25 in, Set of 4",
-    cat: "tennis", sub: "Racquets",
+    cat: "tennis", sub: "Racquets", img: "/img/tennis/junior-racquet-hero.jpg",
     meta: "25 in junior · set of 4", std: 4360, buyer: 3706,
     specs: [
       ["Frame", "Aluminium"],
@@ -435,7 +435,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "TN-0210", name: "Tennis Balls — Pressureless Training, Bag of 60",
-    cat: "tennis", sub: "Balls",
+    cat: "tennis", sub: "Balls", img: "/img/tennis/pressureless-balls-hero.jpg",
     meta: "Pressureless · bag of 60", std: 5400, buyer: 4590,
     specs: [
       ["Type", "Pressureless, durable core"],
@@ -455,7 +455,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "TN-0402", name: "Court Squeegee — 90 cm Foam Roller",
-    cat: "tennis", sub: "Court equipment",
+    cat: "tennis", sub: "Court equipment", img: "/img/tennis/court-squeegee-hero.jpg",
     meta: "90 cm roller · aluminium handle", std: 1140, buyer: 969,
     specs: [
       ["Width", "90 cm"],
@@ -526,7 +526,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AT-0309", name: "Measuring Tape — 100 m, Open Reel",
-    cat: "athletics", sub: "Timing & measurement",
+    cat: "athletics", sub: "Timing & measurement", img: "/img/athletics/measuring-tape-hero.jpg",
     meta: "100 m fibreglass · open reel", std: 1480, buyer: 1258,
     specs: [
       ["Length", "100 m"],
@@ -600,7 +600,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "GF-0310", name: "Rubber Gym Tiles — 20 mm, Pack of 10",
-    cat: "gym-fitness", sub: "Mats & flooring",
+    cat: "gym-fitness", sub: "Mats & flooring", img: "/img/gym-fitness/gym-tiles-hero.jpg",
     meta: "500 × 500 mm · 20 mm · pack of 10", std: 6800, buyer: 5780,
     specs: [
       ["Tile", "500 × 500 mm"],
@@ -767,7 +767,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "SW-3008", name: "Training T-Shirts — Polyester, Pack of 10",
-    cat: "sportswear", sub: "Training wear",
+    cat: "sportswear", sub: "Training wear", img: "/img/sportswear/training-tshirts-hero.jpg",
     meta: "Quick-dry polyester · pack of 10", std: 2900, buyer: 2465,
     specs: [
       ["Fabric", "Quick-dry polyester, 140 gsm"],
@@ -787,7 +787,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "SW-3203", name: "Sports Socks — Cushioned Crew, Pack of 12",
-    cat: "sportswear", sub: "Socks & baselayers",
+    cat: "sportswear", sub: "Socks & baselayers", img: "/img/sportswear/sports-socks-hero.jpg",
     meta: "Cushioned sole · pack of 12", std: 1560, buyer: 1326,
     specs: [
       ["Build", "Cushioned sole, ribbed cuff"],
@@ -819,7 +819,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Accessories ---------------- */
   {
     sku: "AC-4002", name: "Drawstring Kit Bags — Pack of 20",
-    cat: "accessories", sub: "Bags",
+    cat: "accessories", sub: "Bags", img: "/img/accessories/drawstring-bags-hero.jpg",
     meta: "210D polyester · pack of 20", std: 2600, buyer: 2210,
     specs: [
       ["Material", "210D polyester"],
@@ -849,7 +849,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AC-4109", name: "Cooler Jug — 15 L, Team Sideline",
-    cat: "accessories", sub: "Hydration",
+    cat: "accessories", sub: "Hydration", img: "/img/accessories/cooler-jug-hero.jpg",
     meta: "15 L insulated · tap spout", std: 2250, buyer: 1912.5,
     specs: [
       ["Capacity", "15 L"],

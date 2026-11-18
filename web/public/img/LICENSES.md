@@ -99,3 +99,37 @@ first in line for replacement under the ASSET-ACQUISITION-PLAN.
 | accessories/whistles-hero.jpg | Referee Whistles — Metal (AC-4203) | 1992 Referee whistles for football | Laslovarga | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:1992_Referee_whistles_for_football_Laslovarga_(7).jpg |
 | accessories/first-aid-kit-hero.jpg | First Aid Kit — 42-Piece (AC-4209) | A first aid box | Contributers2020 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:A_first_aid_box.jpg |
 | accessories/ball-pump-hero.jpg | Ball Pump — Dual-Action (AC-4215) | Handluftpumpe10a | Ilmtaler | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Handluftpumpe10a.jpg |
+
+
+## Owner-supplied Smash Pro brand assets (2026-11-18)
+
+> Provided directly by the owner — Smash Pro branded product images (not Commons). These supersede the placeholder for their SKUs.
+
+| File | Representative of (SKU) | Source |
+|---|---|---|
+| cricket/boundary-cones-hero.png | Boundary Cones — 23 cm, Set of 50 (CR-0922) | Owner-supplied Smash Pro brand asset |
+| football/training-football-hero.png | Football — Size 5, Stitched Training, Box of 6 (FB-0112) | Owner-supplied Smash Pro brand asset |
+| football/popup-goal-hero.png | Pop-up Training Goal — 1.8 m, Pair (FB-0216) | Owner-supplied Smash Pro brand asset |
+| football/training-bibs-hero.png | Training Bibs — Mesh, Set of 12 (FB-0305) | Owner-supplied Smash Pro brand asset |
+
+
+## Milestone 4 — representative (relaxed-match) CC images (2026-11-18)
+
+> Owner requested full catalogue coverage, accepting loosely-representative images for the last hard-to-source products. Wikimedia Commons, permissive licences only. These are contextual/representative rather than exact product shots and are first in line for replacement by owner-approved SKU photography. (BB-0302 ball carry net remains on the placeholder — nothing relatable exists on Commons. tennis/junior-racquet-hero.jpg reuses the same source photo as tennis/graphite-racquet-hero.jpg — flagged for a distinct replacement.)
+
+| File | Representative of (SKU) | Source title | Creator | Licence | Source page |
+|---|---|---|---|---|---|
+| basketball/scoreboard-hero.jpg | Scoreboard — Manual Flip (BB-0214) | Pizzitola Scoreboard after Stony Brook game in 2024 | Kenneth C. Zirkel | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Pizzitola_Scoreboard_after_Stony_Brook_game_in_2024.jpg |
+| volleyball/volleyball-posts-hero.jpg | Volleyball Posts — Telescopic Steel (VB-0209) | 2013 Armed Forces Indoor Volleyball Championship | Airman 1st Class Kyle Russell (USAF) | Public domain | https://commons.wikimedia.org/wiki/File:2013_Armed_Forces_Indoor_Volleyball_Championship_130508-F-US032-682.jpg |
+| volleyball/boundary-tape-hero.jpg | Court Boundary Tape (VB-0302) | Brooklyn Bridge Park Pier 2 Basketball Court | Tdorante10 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Brooklyn_Bridge_Park_td_(2019-08-23)_137_-_Pier_2,_Basketball_Court_3.jpg |
+| badminton/badminton-net-hero.jpg | Badminton Net — Competition (BD-2203) | Badminton Peter Gade | Wikimedia contributor (see source) | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Badminton_Peter_Gade.jpg |
+| badminton/badminton-posts-hero.jpg | Badminton Posts — Mobile Steel (BD-2209) | Badminton court view | Darakshanehaluddin | CC0 | https://commons.wikimedia.org/wiki/File:Badminton_court_view.jpg |
+| tennis/junior-racquet-hero.jpg | Junior Racquet — 25 in, Set of 4 (TN-0109) | Tennis Racket and Balls | Vladsinger | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Tennis_Racket_and_Balls.jpg |
+| tennis/pressureless-balls-hero.jpg | Tennis Balls — Pressureless Training (TN-0210) | Cmglee tennis balls | Cmglee | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Cmglee_tennis_balls.jpg |
+| tennis/court-squeegee-hero.jpg | Court Squeegee — 90 cm Roller (TN-0402) | Holtwhites Trinibis Cricket Club motorized pitch roller | Acabashi | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Holtwhites_Trinibis_Cricket_Club_Poweroll_Club_motorized_pitch_roller.jpg |
+| athletics/measuring-tape-hero.jpg | Measuring Tape — 100 m, Open Reel (AT-0309) | Lufkin Universal 50 ft tape measure | Junkyardsparkle | CC0 | https://commons.wikimedia.org/wiki/File:Lufkin_Universal_50_ft_tape_measure.jpg |
+| gym-fitness/gym-tiles-hero.jpg | Rubber Gym Tiles — 20 mm (GF-0310) | Rubber tiles | Shree Adinath Enterprises | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Rubber_tiles.jpg |
+| sportswear/training-tshirts-hero.jpg | Training T-Shirts — Pack of 10 (SW-3008) | White t-shirts at the HEMA, Winschoten (2019) | Donald Trung | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Dutch_flag_white_t-shirt_at_the_HEMA,_Winschoten_(2019).jpg |
+| sportswear/sports-socks-hero.jpg | Sports Socks — Cushioned Crew (SW-3203) | Socks, pair (AM 1996.75.13) | Auckland Museum | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Socks,_pair_(AM_1996.75.13).jpg |
+| accessories/drawstring-bags-hero.jpg | Drawstring Kit Bags — Pack of 20 (AC-4002) | Small gray drawstring textile bag | Fructibus | CC0 | https://commons.wikimedia.org/wiki/File:Small_gray_drawstring_textile_bag_-_9_x_11_cm_-_B.jpg |
+| accessories/cooler-jug-hero.jpg | Cooler Jug — 15 L, Team Sideline (AC-4109) | Clickon Water Dispenser | Kskhh | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Clickon_Water_Dispenser.jpg |
