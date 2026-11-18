@@ -156,6 +156,20 @@ const tile = (slug: string): NavTile => ({
 export const SPORT_TILES: readonly NavTile[] = SPORT_SLUGS.map(tile);
 export const EQUIPMENT_TILES: readonly NavTile[] = EQUIPMENT_SLUGS.map(tile);
 
+/** A small cross-category "popular products" list for the buyer catalogue
+ *  mega — names + product links only (NO pricing; prices are role-resolved at
+ *  the catalogue/PDP boundary, never surfaced here). Derived from the static
+ *  nav model so it costs nothing and never drifts from the catalogue. */
+export const CATALOGUE_POPULAR: readonly NavSku[] = (() => {
+  const spread = ["cricket", "badminton", "football", "basketball", "gym-fitness", "sportswear"];
+  const out: NavSku[] = [];
+  for (const slug of spread) {
+    const c = CATALOGUE_NAV.find((x) => x.slug === slug);
+    if (c?.popular[0]) out.push(c.popular[0]);
+  }
+  return out.slice(0, 5);
+})();
+
 export interface NavLink {
   label: string;
   href: string;

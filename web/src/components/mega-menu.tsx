@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { buildCatalogueNav, type NavCategory } from "@/lib/nav-catalogue";
+import {
+  buildCatalogueNav, SPORT_TILES, EQUIPMENT_TILES, CATALOGUE_POPULAR,
+} from "@/lib/nav-catalogue";
+import { SectionLabel, SportTile, EquipmentRow } from "@/components/public-nav";
 
 /* ============================================================
    Catalogue mega menu — buyer-facing navigation only.
@@ -23,9 +25,6 @@ import { buildCatalogueNav, type NavCategory } from "@/lib/nav-catalogue";
    ============================================================ */
 
 const NAV = buildCatalogueNav();
-
-const HATCH =
-  "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)";
 
 /* ---------- small mount/visible hook for enter+exit transitions ---------- */
 /* Keeps the panel mounted through its close transition. Reduced motion
@@ -63,19 +62,15 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
   const active = pathname.startsWith("/catalog");
 
   const [open, setOpen] = useState(false);
-  const [slug, setSlug] = useState<string>(NAV[0]?.slug ?? "");
   const [panelTop, setPanelTop] = useState<number>(111);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const catRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const openTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const panelId = useId();
   const { mounted, shown } = useRevealed(open);
-
-  const cat: NavCategory | undefined = NAV.find((c) => c.slug === slug) ?? NAV[0];
 
   const clearTimers = () => {
     if (openTimer.current) clearTimeout(openTimer.current);
@@ -143,31 +138,18 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
     onNavigate?.();
   };
 
-  const focusCat = (i: number) => {
-    const n = NAV.length;
-    const idx = ((i % n) + n) % n;
-    setSlug(NAV[idx].slug);
-    catRefs.current[idx]?.focus();
+  const openAndFocus = () => {
+    setOpen(true);
+    requestAnimationFrame(() =>
+      wrapRef.current?.querySelector<HTMLElement>("[data-panel-item]")?.focus()
+    );
   };
-
   const onTriggerKey = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
       e.preventDefault();
-      setOpen(true);
-      requestAnimationFrame(() => focusCat(0));
+      openAndFocus();
     } else if (e.key === "Escape") {
       close();
-    }
-  };
-
-  const onCatKey = (e: React.KeyboardEvent, i: number) => {
-    if (e.key === "ArrowDown") { e.preventDefault(); focusCat(i + 1); }
-    else if (e.key === "ArrowUp") { e.preventDefault(); focusCat(i - 1); }
-    else if (e.key === "Home") { e.preventDefault(); focusCat(0); }
-    else if (e.key === "End") { e.preventDefault(); focusCat(NAV.length - 1); }
-    else if (e.key === "ArrowRight") {
-      e.preventDefault();
-      wrapRef.current?.querySelector<HTMLElement>("[data-panel-first]")?.focus();
     }
   };
 
@@ -204,7 +186,7 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
         </svg>
       </button>
 
-      {mounted && cat && (
+      {mounted && (
         <div
           id={panelId}
           aria-label="Catalogue"
@@ -218,122 +200,58 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
                 (shown ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0")
               }
             >
-              <div className="grid grid-cols-[232px_1fr]">
-                {/* Left: the 12 categories */}
-                <ul className="border-r border-n200 py-2" role="menu" aria-label="Catalogue categories">
-                  {NAV.map((c, i) => {
-                    const on = c.slug === slug;
-                    return (
-                      <li key={c.slug} role="presentation">
-                        <Link
-                          ref={(el) => { catRefs.current[i] = el; }}
-                          href={c.href}
-                          role="menuitem"
-                          onClick={go}
-                          onPointerEnter={() => setSlug(c.slug)}
-                          onFocus={() => setSlug(c.slug)}
-                          onKeyDown={(e) => onCatKey(e, i)}
-                          className={
-                            "flex items-center justify-between gap-2 px-5 py-2 text-[14px] " +
-                            (on
-                              ? "bg-n100 font-semibold text-ink shadow-[inset_2px_0_0_var(--color-ember)]"
-                              : "font-medium text-n800 hover:bg-n100 hover:text-ink")
-                          }
-                        >
-                          {c.label}
-                          <svg viewBox="0 0 24 24" aria-hidden className="h-3.5 w-3.5 shrink-0 fill-none stroke-current opacity-60" strokeWidth="2">
-                            <path d="M9 6l6 6-6 6" />
-                          </svg>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
+              {/* Buyer-only reassurance: institutional pricing is live. No prices
+                  are shown here — applicable prices resolve at the catalogue/PDP
+                  boundary for THIS organisation only. */}
+              <div className="flex items-center justify-between gap-4 border-b border-n200 bg-paper px-6 py-2.5">
+                <span className="flex min-w-0 items-center gap-2 text-[13px] text-ink">
+                  <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-ok" />
+                  <b className="font-semibold">Your institutional pricing is active</b>
+                  <span className="hidden truncate text-n600 sm:inline">— your applicable prices show across the catalogue.</span>
+                </span>
+                <Link
+                  href="/catalog?cat=cricket"
+                  data-panel-item
+                  onClick={go}
+                  className="shrink-0 font-mono text-[11px] uppercase tracking-[.07em] text-ember-deep underline-offset-4 hover:underline"
+                >
+                  Browse full catalogue →
+                </Link>
+              </div>
 
-                {/* Right: the active category's detail */}
-                <div className="grid grid-cols-[1fr_280px] gap-8 p-7">
-                  <div className="min-w-0">
-                    <div className="mb-4 flex items-center justify-between gap-4">
-                      <h3 className="font-display text-[15px] font-bold text-ink">{cat.label}</h3>
-                      <Link
-                        href={cat.href}
-                        data-panel-first
-                        onClick={go}
-                        className="shrink-0 font-mono text-[11px] uppercase tracking-[.07em] text-ember-deep underline-offset-4 hover:underline"
-                      >
-                        View all {cat.label} →
-                      </Link>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-5 lg:grid-cols-3">
-                      {cat.subs.map((sub) => (
-                        <div key={sub.label} className="min-w-0">
-                          <Link
-                            href={sub.href}
-                            onClick={go}
-                            className="block font-mono text-[10px] uppercase tracking-[.08em] text-n600 underline-offset-2 hover:text-ink hover:underline"
-                          >
-                            {sub.label}
-                          </Link>
-                          <ul className="mt-2 space-y-1.5">
-                            {sub.skus.map((s) => (
-                              <li key={s.sku}>
-                                <Link
-                                  href={s.href}
-                                  onClick={go}
-                                  className="block truncate text-[13px] leading-snug text-n800 underline-offset-2 hover:text-ink hover:underline"
-                                  title={s.name}
-                                >
-                                  {s.name}
-                                </Link>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-
-                    {cat.popular.length > 0 && (
-                      <div className="mt-6 border-t border-n100 pt-4">
-                        <span className="font-mono text-[10px] uppercase tracking-[.08em] text-n400">Popular</span>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {cat.popular.map((s) => (
-                            <Link
-                              key={s.sku}
-                              href={s.href}
-                              onClick={go}
-                              className="rounded-[2px] border border-n200 px-2.5 py-1 text-[12px] text-n800 hover:border-n400 hover:text-ink"
-                              title={s.name}
-                            >
-                              {s.name.split(" — ")[0]}
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              <div className="grid grid-cols-[1fr_340px]">
+                {/* LEFT — Shop by Sport: image-led tiles (reused visitor tiles) */}
+                <div className="px-6 py-5">
+                  <SectionLabel title="Shop by Sport" href="/catalog?cat=cricket" go={go} />
+                  <div className="grid grid-cols-3 gap-x-3.5 gap-y-3.5">
+                    {SPORT_TILES.map((t) => <SportTile key={t.slug} t={t} onNavigate={go} />)}
                   </div>
+                </div>
 
-                  {/* Featured imagery (or placeholder frame) */}
-                  <Link href={cat.href} onClick={go} className="group relative hidden self-stretch overflow-hidden rounded-[2px] border border-n200 lg:block" aria-label={`View all ${cat.label}`}>
-                    {cat.hero ? (
-                      <Image
-                        src={cat.hero}
-                        alt={`${cat.label} — representative image`}
-                        fill
-                        sizes="280px"
-                        className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundImage: HATCH }}>
-                        <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">
-                          imagery pending
-                        </span>
-                      </div>
-                    )}
-                    <span className="absolute inset-x-0 bottom-0 bg-ink/70 px-3 py-2 font-mono text-[10px] uppercase tracking-[.07em] text-white">
-                      {cat.label}
-                    </span>
-                  </Link>
+                {/* RIGHT — Equipment rows + Popular products */}
+                <div className="flex flex-col border-l border-n200 bg-paper/40 px-6 py-5">
+                  <SectionLabel title="Shop by Equipment" href="/catalog?cat=gym-fitness" go={go} />
+                  <div className="flex flex-col">
+                    {EQUIPMENT_TILES.map((t) => <EquipmentRow key={t.slug} t={t} onNavigate={go} />)}
+                  </div>
+                  <div className="mt-5 border-t border-n100 pt-4">
+                    <h3 className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-[.14em] text-ember-deep">Popular products</h3>
+                    <ul className="space-y-1.5">
+                      {CATALOGUE_POPULAR.map((s) => (
+                        <li key={s.sku}>
+                          <Link
+                            href={s.href}
+                            data-panel-item
+                            onClick={go}
+                            title={s.name}
+                            className="block truncate text-[13px] text-n800 underline-offset-2 hover:text-ember-deep hover:underline"
+                          >
+                            {s.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
@@ -354,6 +272,11 @@ export function MegaMenuMobile({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div>
+      {/* buyer reassurance — institutional pricing is live (no prices shown) */}
+      <div className="flex items-center gap-2 border-b border-white/10 bg-ink2 px-5 py-2.5 text-[12.5px] text-white/80">
+        <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-ok" />
+        <span><b className="font-semibold text-white">Institutional pricing active</b> — your prices show across the catalogue.</span>
+      </div>
       {NAV.map((c) => {
         const expanded = openSlug === c.slug;
         const regionId = `${baseId}-${c.slug}`;

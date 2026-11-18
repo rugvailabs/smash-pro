@@ -36,7 +36,7 @@ const EQUIP_NOTE: Record<string, string> = {
 };
 
 /* small uppercase section label (Inter), ember — paired with a quiet "View all" */
-function SectionLabel({ title, href, go }: { title: string; href: string; go: () => void }) {
+export function SectionLabel({ title, href, go }: { title: string; href: string; go: () => void }) {
   return (
     <div className="mb-3 flex items-baseline justify-between gap-4">
       <h3 className="text-[10.5px] font-semibold uppercase tracking-[.14em] text-ember-deep">{title}</h3>
@@ -49,7 +49,7 @@ function SectionLabel({ title, href, go }: { title: string; href: string; go: ()
 
 /* LEFT group — compact sport tile: bordered image with the label set below
    it (navigation, not a gallery overlay). Subtle zoom + ink→ember on hover. */
-function SportTile({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
+export function SportTile({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
   return (
     <Link href={t.href} onClick={onNavigate} data-panel-item className="group block">
       <div className="relative aspect-[16/10] overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ink/25">
@@ -69,7 +69,7 @@ function SportTile({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
 }
 
 /* RIGHT group — elegant horizontal image-and-text row, hairline separated. */
-function EquipmentRow({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
+export function EquipmentRow({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
   return (
     <Link href={t.href} onClick={onNavigate} data-panel-item className="group flex items-center gap-3.5 border-b border-n100 py-3.5 last:border-b-0">
       <div className="relative h-[52px] w-[72px] shrink-0 overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ink/25">
