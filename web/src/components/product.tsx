@@ -14,21 +14,51 @@ import type { Product } from "@/lib/types";
    No discount % anywhere (OBD-20 pending).
    ============================================================ */
 
-export function PriceBlock({ p, size = "card" }: { p: Product; size?: "card" | "detail" }) {
+/** Discount percentage derived from the ACTUAL standard and applicable buyer
+ *  prices — never hardcoded. Returns null when there is no saving (buyer price
+ *  equals or exceeds standard). Rounded to one decimal, trailing .0 trimmed. */
+export function discountPct(std: number, buyer: number): number | null {
+  if (!(buyer < std) || std <= 0) return null;
+  return Math.round((1 - buyer / std) * 1000) / 10;
+}
+const offLabel = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(1)}% OFF`;
+
+/** Prominent Ember discount chip, e.g. "15% OFF". */
+export function DiscountBadge({ off, className = "" }: { off: number; className?: string }) {
+  return (
+    <span className={"inline-flex items-center rounded-[2px] bg-ember-deep px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase leading-none tracking-wide text-white " + className}>
+      {offLabel(off)}
+    </span>
+  );
+}
+
+export function PriceBlock({
+  p, size = "card", showBadge = true,
+}: { p: Product; size?: "card" | "detail"; showBadge?: boolean }) {
   const { role } = useRole();
   const big = size === "detail";
   const amountCls =
-    "num font-display font-bold tracking-tight text-ink " + (big ? "text-[31px]" : "text-lg");
+    "num font-display font-bold tracking-tight text-ink " + (big ? "text-[30px]" : "text-[19px]");
   const gst = <small className="font-body text-xs font-normal text-n600"> incl. GST</small>;
 
   // The applicable price exists only when the server priced this product
   // for an approved buyer session (price isolation at the boundary).
   if (role === "buyer" && p.buyer !== undefined) {
+    const off = discountPct(p.std, p.buyer);
     return (
       <div>
-        <div className="font-mono text-[10px] uppercase tracking-widest text-ember-deep">Your price</div>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-ember-deep">Your price</span>
+          {off !== null && showBadge && <DiscountBadge off={off} />}
+        </div>
         <div className={amountCls}>{inr(p.buyer)}{gst}</div>
-        <div className="num mt-0.5 text-xs text-n600">Standard {inr(p.std)}</div>
+        {off !== null ? (
+          <div className="num mt-0.5 text-[13px] text-n600">
+            Standard <span className="line-through decoration-n400">{inr(p.std)}</span>
+          </div>
+        ) : (
+          <div className="mt-0.5 text-[13px] text-n600">At the standard listed price</div>
+        )}
       </div>
     );
   }
@@ -49,7 +79,11 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
   // One premium vertical card used at every width (consistent presentation):
   // large image area on a refined neutral ground with a subtle hover zoom,
   // clamped name/meta for uniform heights, role-aware price block pinned to
-  // the base. No ratings / stock / delivery / discount claims anywhere.
+  // the base. The only discount shown is the real saving computed from the
+  // approved buyer's own price — no fabricated ratings / stock / delivery.
+  const { role } = useRole();
+  const off =
+    role === "buyer" && p.buyer !== undefined ? discountPct(p.std, p.buyer) : null;
   return (
     <Link
       href={`/product/${p.sku}`}
@@ -84,6 +118,7 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
             Configure to order
           </span>
         )}
+        {off !== null && <DiscountBadge off={off} className="absolute right-2 top-2 shadow-raised" />}
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-3.5 md:p-4">
         <span className="truncate font-mono text-[10.5px] uppercase tracking-widest text-n600">{p.sub}</span>
@@ -92,7 +127,9 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
         </div>
         <div className="mt-0.5 line-clamp-1 text-[12.5px] text-n600">{p.meta}</div>
         <div className="mt-auto border-t border-n100 pt-3">
-          <PriceBlock p={p} />
+          {/* the corner badge already carries the % on the card, so suppress
+              the inline one here to avoid a doubled badge */}
+          <PriceBlock p={p} showBadge={false} />
         </div>
       </div>
     </Link>
