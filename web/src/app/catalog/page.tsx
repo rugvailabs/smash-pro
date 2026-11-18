@@ -5,16 +5,22 @@ import { getCategories, getCategory, getProducts } from "@/lib/catalog";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { CatalogSubtitle } from "@/components/page-bits";
-import { CatalogFilters } from "@/components/catalog-filters";
+import { CategoryHero } from "@/components/category-hero";
+import { CatalogSidebar } from "@/components/catalog-sidebar";
+import { CatalogToolbar } from "@/components/catalog-toolbar";
 import { PRICE_BANDS } from "@/lib/filter-defs";
 import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
+import { CATEGORY_HERO } from "@/lib/nav-catalogue";
 import { CATEGORY_INTRO, defaultIntro, TYPE_FILTER_LABEL } from "@/lib/catalog-copy";
 
-/* Catalogue — category strip, role-aware page head, filter toolbar, grid. */
+/* Single-category listing — ONE shared component for all 12 categories:
+   premium category hero (category imagery + description), the image-card
+   category rail, a professional sidebar (price + equipment type), and the
+   responsive product grid. Pricing stays role-resolved at the API boundary:
+   approved buyers see their own applicable price/discount, visitors see the
+   standard listed price. No pricing rules or records are changed here. */
 
-// Static title: reading searchParams in generateMetadata would force the
-// whole route dynamic; the category name is already visible in-page.
 export const metadata: Metadata = { title: "Catalogue" };
 
 export default function CatalogPage({
@@ -22,7 +28,6 @@ export default function CatalogPage({
 }: {
   searchParams: Promise<{ cat?: string }>;
 }) {
-  // searchParams is awaited inside Suspense so the route shell can prerender
   return (
     <Suspense fallback={<GridSkeleton />}>
       <CatalogContent searchParams={searchParams} />
@@ -42,10 +47,11 @@ async function CatalogContent({
     getProducts(cat),
   ]);
   const title = category?.name ?? "Catalogue";
+  const intro = category ? (CATEGORY_INTRO[cat] ?? defaultIntro) : defaultIntro;
 
-  // Presentation filtering/sorting over the API-boundary result; the future
-  // backend takes these as query parameters. Price bands filter the public
-  // standard price (role prices are presentation states of the same item).
+  // Presentation filtering/sorting over the API-boundary result. Price bands
+  // filter the public standard listed price; applicable (buyer) prices are
+  // presentation states of the same item, resolved server-side per role.
   const types = [...new Set(all.map((p) => p.sub))];
   const band = price ? PRICE_BANDS[price] : undefined;
   let products = all.filter(
@@ -55,71 +61,67 @@ async function CatalogContent({
   else if (sort === "price-desc") products = [...products].sort((a, b) => b.std - a.std);
   else if (sort === "name") products = [...products].sort((a, b) => a.name.localeCompare(b.name));
 
+  const total = category?.count ?? all.length;
+
   return (
     <main>
-      {/* category strip — shared §5 component with active rule + edge fade */}
+      <CategoryHero title={title} description={intro} hero={CATEGORY_HERO[cat] ?? null} count={total} />
+
+      {/* image-led category rail (shared with search) */}
       <CategoryStrip categories={categories} active={cat} />
 
-      {/* page head */}
-      <div className="border-b border-n200 bg-chalk">
-        <div className="mx-auto max-w-[1280px] px-4 py-4.5 md:px-10 md:py-6">
-          <div className="mb-1 text-[13px] text-n600">
-            <Link href="/" className="hover:underline">Home</Link> /{" "}
-            <Link href="/catalog?cat=cricket" className="hover:underline">Catalogue</Link> /{" "}
-            <b className="text-ink">{title}</b>
-          </div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[30px]">{title}</h1>
-          <p className="mt-1.5 max-w-[68ch] text-[14px] leading-relaxed text-n600 md:text-[15px]">
-            {category ? (CATEGORY_INTRO[cat] ?? defaultIntro) : defaultIntro}
-          </p>
-          <CatalogSubtitle />
-          <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
-            prices &amp; counts illustrative · imagery representative (cc-licensed)
-          </p>
-        </div>
-      </div>
-
       <div className="mx-auto max-w-[1280px] px-4 pb-16 md:px-10">
-        {/* toolbar — URL-driven filters (library §10): filters left, live count right */}
-        <div className="flex flex-col gap-3 border-b border-n100 py-4 md:flex-row md:items-center">
-          <Suspense fallback={<span className="h-9" />}>
-            <CatalogFilters types={types} typeLabel={TYPE_FILTER_LABEL[cat] ?? "Type"} />
+        <div className="grid gap-x-8 gap-y-4 pt-6 lg:grid-cols-[232px_1fr]">
+          {/* LEFT — professional sidebar filters */}
+          <Suspense fallback={<div className="h-10" />}>
+            <CatalogSidebar types={types} typeLabel={TYPE_FILTER_LABEL[cat] ?? "Equipment"} />
           </Suspense>
-          <span className="num font-mono text-xs text-n600 md:ml-auto md:shrink-0">
-            <b className="text-ink">{products.length}</b>
-            {products.length !== (category?.count ?? products.length) && <> of {category?.count}</>} items · sample
-          </span>
+
+          {/* RIGHT — pricing context, toolbar, grid */}
+          <div className="min-w-0">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+              <CatalogSubtitle />
+              <p className="font-mono text-[10px] uppercase tracking-wide text-n400">
+                prices &amp; counts illustrative · imagery representative
+              </p>
+            </div>
+
+            <Suspense fallback={<div className="h-9" />}>
+              <CatalogToolbar shown={products.length} total={total} />
+            </Suspense>
+
+            <RoleGate show={["visitor"]}>
+              <div className="mt-4 flex flex-wrap items-center gap-3 border-l-[3px] border-ember-deep bg-chalk px-4 py-3 text-sm">
+                <span>
+                  <b className="text-ink">Standard prices shown, GST-inclusive.</b>{" "}
+                  Registered institutions see their own price on approval.
+                </span>
+                <Link className="font-semibold text-ember-deep hover:underline" href="/register">
+                  Register to view your price →
+                </Link>
+              </div>
+            </RoleGate>
+
+            <div className="mt-5">
+              {products.length ? (
+                <ProductGrid items={products} priorityCount={4} />
+              ) : all.length ? (
+                <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
+                  No <b className="text-ink">{title}</b> items match these filters.{" "}
+                  <Link href={`/catalog?cat=${cat}`} className="font-semibold text-ember-deep hover:underline">
+                    Clear filters
+                  </Link>
+                </div>
+              ) : (
+                <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
+                  Sample data for <b className="text-ink">{title}</b> hasn&rsquo;t been
+                  added to this preview yet — browse Cricket or Badminton for the
+                  populated examples.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
-
-        <RoleGate show={["visitor"]}>
-          <div className="mb-4 flex flex-wrap items-center gap-3 border-l-[3px] border-ember-deep bg-chalk px-4 py-3 text-sm">
-            <span>
-              <b className="text-ink">Standard prices shown, GST-inclusive.</b>{" "}
-              Registered institutions see their own price on approval.
-            </span>
-            <Link className="font-semibold text-ember-deep hover:underline" href="/register">
-              Register to view your price →
-            </Link>
-          </div>
-        </RoleGate>
-
-        {products.length ? (
-          // First grid row is the LCP on this route — eager-load it only.
-          <ProductGrid items={products} priorityCount={4} />
-        ) : all.length ? (
-          <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
-            No <b className="text-ink">{title}</b> items match these filters.{" "}
-            <Link href={`/catalog?cat=${cat}`} className="font-semibold text-ember-deep hover:underline">
-              Clear filters
-            </Link>
-          </div>
-        ) : (
-          <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
-            Sample data for <b className="text-ink">{title}</b> hasn&rsquo;t been
-            added to this preview yet — browse Cricket or Badminton for the
-            populated examples.
-          </div>
-        )}
       </div>
     </main>
   );

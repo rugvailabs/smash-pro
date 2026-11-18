@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { useCart, useRole } from "@/components/providers";
 import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
@@ -75,64 +75,149 @@ export function PriceBlock({
   );
 }
 
+/* Wishlist — client-only, persisted in localStorage (no backend, no DB
+   records). A tiny external store keeps every card's heart in sync and is
+   SSR-safe (server snapshot is always "not saved"). Nothing server-side
+   changes; the wishlist is a local convenience only. */
+const WISHLIST_KEY = "sp-wishlist";
+let wlSet: Set<string> | null = null;
+const wlListeners = new Set<() => void>();
+function wlLoad(): Set<string> {
+  if (wlSet) return wlSet;
+  try { wlSet = new Set(JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]") as string[]); }
+  catch { wlSet = new Set(); }
+  return wlSet;
+}
+function wlSubscribe(cb: () => void) { wlListeners.add(cb); return () => { wlListeners.delete(cb); }; }
+function wlToggle(sku: string) {
+  const next = new Set(wlLoad());
+  if (next.has(sku)) next.delete(sku); else next.add(sku);
+  wlSet = next;
+  try { localStorage.setItem(WISHLIST_KEY, JSON.stringify([...next])); } catch { /* storage blocked */ }
+  for (const l of wlListeners) l();
+}
+function WishlistButton({ sku, name }: { sku: string; name: string }) {
+  const on = useSyncExternalStore(wlSubscribe, () => wlLoad().has(sku), () => false);
+  const toggle = (e: React.MouseEvent) => {
+    e.preventDefault(); e.stopPropagation();
+    wlToggle(sku);
+  };
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-pressed={on}
+      aria-label={on ? `Remove ${name} from wishlist` : `Save ${name} to wishlist`}
+      title={on ? "Saved to wishlist" : "Save to wishlist"}
+      className="absolute right-2 top-2 z-10 flex h-8 w-8 items-center justify-center rounded-full border border-n200 bg-chalk/90 shadow-raised backdrop-blur-sm transition-colors hover:border-n400"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden className={"h-4 w-4 " + (on ? "fill-ember-deep stroke-ember-deep" : "fill-none stroke-n600")} strokeWidth="1.8">
+        <path d="M12 20.5l-7.1-7.1a4.5 4.5 0 0 1 6.4-6.4l.7.7.7-.7a4.5 4.5 0 0 1 6.4 6.4z" />
+      </svg>
+    </button>
+  );
+}
+
+/* Add to Cart — role-aware. Approved buyers add to their order (uses the
+   existing cart engine); everyone else is routed to register. Server pricing
+   is untouched; quantity is set/refined in the cart. */
+function CardAddToCart({ sku, name }: { sku: string; name: string }) {
+  const { role } = useRole();
+  const { add } = useCart();
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+
+  if (role !== "buyer") {
+    return (
+      <Link
+        href="/register"
+        className="inline-flex h-10 w-full items-center justify-center rounded-[2px] border border-n400 bg-chalk text-[13px] font-semibold text-ink transition-colors hover:border-ink"
+      >
+        Register to order
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      disabled={busy}
+      onClick={(e) => {
+        e.preventDefault(); e.stopPropagation();
+        setBusy(true);
+        add(sku, 1)
+          .then(() => toast(`Added ${name.split(" — ")[0]} — 1 unit. Open the cart to set quantity.`))
+          .catch(() => toast("Couldn't add to your order — please try again."))
+          .finally(() => setBusy(false));
+      }}
+      className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-[2px] bg-ember-deep text-[13px] font-semibold text-white transition-colors hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
+    >
+      {busy ? "Adding…" : (<>
+        <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8"><path d="M4 5h2l1.5 10.5A2 2 0 0 0 9.5 17h7a2 2 0 0 0 2-1.6L20 8H6.5M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" /></svg>
+        Add to Cart
+      </>)}
+    </button>
+  );
+}
+
 export function ProductCard({ p, priority = false }: { p: Product; priority?: boolean }) {
-  // One premium vertical card used at every width (consistent presentation):
-  // large image area on a refined neutral ground with a subtle hover zoom,
-  // clamped name/meta for uniform heights, role-aware price block pinned to
-  // the base. The only discount shown is the real saving computed from the
-  // approved buyer's own price — no fabricated ratings / stock / delivery.
+  // Premium commerce card: image + title link to the PDP; wishlist and Add to
+  // Cart are separate controls (not nested in a link). The only discount shown
+  // is the real saving computed from the approved buyer's own price — never a
+  // hardcoded figure, no fabricated ratings / stock / delivery.
   const { role } = useRole();
   const off =
     role === "buyer" && p.buyer !== undefined ? discountPct(p.std, p.buyer) : null;
+  const href = `/product/${p.sku}`;
   return (
-    <Link
-      href={`/product/${p.sku}`}
-      className="group flex flex-col overflow-hidden rounded-[3px] border border-n200 bg-chalk transition-colors duration-200 hover:border-n400"
-    >
+    <div className="group flex flex-col overflow-hidden rounded-[3px] border border-n200 bg-chalk transition-colors duration-200 hover:border-n400">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-n100">
-        {p.img ? (
-          <Image
-            src={p.img}
-            alt={`${p.name} — representative image`}
-            fill
-            priority={priority}
-            sizes="(max-width: 479px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 300px"
-            className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
-          />
-        ) : (
-          /* Library §4: labelled placeholder frame — no substitute imagery. */
-          <div
-            className="absolute inset-0 flex items-center justify-center"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
-            }}
-          >
-            <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">
-              awaiting approved photography
-            </span>
-          </div>
-        )}
-        {p.configurable && (
-          <span className="absolute left-2 top-2 rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-info">
-            Configure to order
-          </span>
-        )}
-        {off !== null && <DiscountBadge off={off} className="absolute right-2 top-2 shadow-raised" />}
+        <Link href={href} aria-label={p.name} className="absolute inset-0 block">
+          {p.img ? (
+            <Image
+              src={p.img}
+              alt={`${p.name} — representative image`}
+              fill
+              priority={priority}
+              sizes="(max-width: 479px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 300px"
+              className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
+            />
+          ) : (
+            /* Library §4: labelled placeholder frame — no substitute imagery. */
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{
+                backgroundImage:
+                  "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
+              }}
+            >
+              <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">
+                awaiting approved photography
+              </span>
+            </div>
+          )}
+        </Link>
+        {off !== null && <DiscountBadge off={off} className="pointer-events-none absolute left-2 top-2 z-10 shadow-raised" />}
+        <WishlistButton sku={p.sku} name={p.name} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-3.5 md:p-4">
         <span className="truncate font-mono text-[10.5px] uppercase tracking-widest text-n600">{p.sub}</span>
-        <div className="mt-1 line-clamp-2 text-[14px] font-semibold leading-snug text-ink group-hover:underline group-hover:underline-offset-2 md:text-[15px]">
+        <Link href={href} className="mt-1 line-clamp-2 text-[14px] font-semibold leading-snug text-ink underline-offset-2 hover:underline md:text-[15px]">
           {p.name}
-        </div>
+        </Link>
         <div className="mt-0.5 line-clamp-1 text-[12.5px] text-n600">{p.meta}</div>
-        <div className="mt-auto border-t border-n100 pt-3">
+        {p.configurable && (
+          <span className="mt-1.5 inline-flex self-start rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-info">
+            Configure to order
+          </span>
+        )}
+        <div className="mt-auto space-y-3 border-t border-n100 pt-3">
           {/* the corner badge already carries the % on the card, so suppress
               the inline one here to avoid a doubled badge */}
           <PriceBlock p={p} showBadge={false} />
+          <CardAddToCart sku={p.sku} name={p.name} />
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
 
