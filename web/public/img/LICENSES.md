@@ -55,3 +55,47 @@ first in line for replacement under the ASSET-ACQUISITION-PLAN.
 | volleyball/net-antenna-hero.jpg | Net Antenna & Pocket Set — Fibreglass, Pair (VB-0215) | Volleyball equipment - antenna by the net.jpg | Zorro2212 | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Volleyball_equipment_-_antenna_by_the_net.jpg |
 | volleyball/volleyball-match-hero.jpg | Volleyball — Match, 18-Panel PU (VB-0104) | Beach volleyball ball.png | Beach_volleyball_ball.jpg: Thue derivative work: Amada44 talk to me | Public domain | https://commons.wikimedia.org/wiki/File:Beach_volleyball_ball.png |
 | volleyball/volleyball-net-hero.jpg | Volleyball Net — Competition, 9.5 m (VB-0203) | Volleyball net Hyvinkää.jpg | Maasaak | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Volleyball_net_Hyvink%C3%A4%C3%A4.jpg |
+
+
+## Milestone 3 additions — representative CC images (2026-11-18)
+
+> Same policy as above: Wikimedia Commons, permissive licences only (CC0 / CC BY / CC BY-SA / public domain), full attribution below. Images depict REPRESENTATIVE products, not actual Smash Pro SKUs, and are first in line for replacement by owner-approved SKU photography. Each image was downloaded at ~1200px and visually verified by eye to match its product; where no accurate, permissively-licensed match could be verified, the product keeps the labelled placeholder frame (no substitution). 19 of the 55 remaining products stay on the placeholder for this reason (incl. scoreboard, ball carry net, volleyball/badminton posts & nets, court/boundary tape, pop-up goal, training bibs, boundary cones, junior racquet, court squeegee, open-reel measuring tape, rubber gym tiles, plain t-shirts, sports socks, drawstring bags, cooler jug).
+
+| File | Representative of (SKU) | Source title | Creator | Licence | Source page |
+|---|---|---|---|---|---|
+| cricket/stumps-bails-hero.jpg | Stumps & Bails Set (CR-0915) | Buckhurst Hill Cricket Club wicket stumps and bails | Acabashi | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Buckhurst_Hill_Cricket_Club_wicket_stumps_and_bails,_Essex,_England.jpg |
+| football/junior-football-hero.jpg | Football — Size 3, Junior Training (FB-0118) | Balón normal Temporada 2025-26 - Partido Betis vs Athletic | FotosLaLiga | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Bal%C3%B3n_normal_Temporada_2025-26_-_Partido_Betis_vs_Athletic.jpg |
+| football/goal-net-hero.jpg | Football Goal Net (FB-0210) | Football goal net | Santeri Viinamäki | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Football_goal_net.jpg |
+| football/shin-guards-hero.jpg | Shin Guards (FB-0404) | Ayaq qoruyucu (football shin guard) | Hilal knight | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Ayaq_qoruyucu.jpg |
+| basketball/junior-basketball-hero.jpg | Junior Basketball — Size 5 (BB-0115) | Baden "Game Time" Basketball | puuikibeach | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Baden_%22Game_Time%22_Basketball_(4227060563).jpg |
+| basketball/backboard-hero.jpg | Acrylic Backboard, Fixed Rim (BB-0208) | Basketball net | J.smith | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Basketball_net.jpg |
+| volleyball/training-volleyball-hero.jpg | Volleyball — Training, Rubber (VB-0110) | Volleyball ball | Οσελότος | CC0 | https://commons.wikimedia.org/wiki/File:Volleyball_ball.jpg |
+| badminton/nylon-shuttlecocks-hero.jpg | Nylon Shuttlecocks — Club (BD-1110) | Badminton-Ball (shuttlecock) | Tim Reckmann | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Badminton-Ball_(13550266595).jpg |
+| badminton/overgrip-hero.jpg | Replacement Grip — PU Overgrip (BD-2304) | Overgrips | LordOider | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Overgrips.JPG |
+| tennis/graphite-racquet-hero.jpg | Graphite Composite Racquet (TN-0103) | Tennis Racket and Balls | Vladsinger | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Tennis_Racket_and_Balls.jpg |
+| athletics/relay-batons-hero.jpg | Relay Batons — Aluminium (AT-0102) | Relay batons at the sports day of Baozhong Junior High School | 褒忠國中 雲端網 | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Relay_batons_at_the_sports_day_of_Baozhong_Junior_High_School_2015-11-13.jpg |
+| athletics/starting-block-hero.jpg | Starting Block — Adjustable Rail (AT-0108) | Starting block | Santeri Viinamäki | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Starting_block.JPG |
+| athletics/shot-put-hero.jpg | Shot Put — Cast Iron, 4 kg (AT-0204) | Shot put ball | Santeri Viinamäki | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Shot_put_ball.JPG |
+| athletics/discus-hero.jpg | Discus — Composite, 1 kg (AT-0210) | Discus 1kg | Santeri Viinamäki | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Discus_1kg.JPG |
+| athletics/stopwatch-hero.jpg | Stopwatch — 60-Lap Memory (AT-0303) | Analog stopwatch | Al Riaz Uddin | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Analog_stopwatch.jpg |
+| gym-fitness/hex-dumbbells-hero.jpg | Rubber Hex Dumbbells — 5 kg Pair (GF-0104) | Pair of 8kg dumbbells (Unsplash) | Cyril Saulnier | CC0 | https://commons.wikimedia.org/wiki/File:Pair_of_8kg_dumbbells_(Unsplash).jpg |
+| gym-fitness/plate-set-hero.jpg | Rubber Plate Set — 60 kg (GF-0110) | Weight plates in gym 20180112 | Santeri Viinamäki | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Weight_plates_in_gym_20180112.jpg |
+| gym-fitness/barbell-hero.jpg | Barbell — 7 ft, 20 kg (GF-0116) | Olympic barbell | Tomas Pilik | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Olympic_barbell.jpg |
+| gym-fitness/skipping-ropes-hero.jpg | Skipping Ropes — Set of 10 (GF-0205) | Jump rope for children | Osupon | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Jump_rope_for_children.JPG |
+| gym-fitness/kettlebell-hero.jpg | Kettlebell — Cast Iron, 12 kg (GF-0211) | Competition kettlebell 16 kilo | Knuckles | CC BY-SA 3.0 | https://commons.wikimedia.org/wiki/File:Competition_kettlebell_16_kilo.jpg |
+| gym-fitness/exercise-mats-hero.jpg | Exercise Mats — Set of 10 (GF-0304) | Blue exercise mat | Santeri Viinamäki | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Blue_exercise_mat.jpg |
+| indoor-games/tt-table-hero.jpg | Table Tennis Table — Indoor (IG-0103) | Baldwin Wallace University (table tennis) | Erik Drost | CC BY 2.0 | https://commons.wikimedia.org/wiki/File:Baldwin_Wallace_University_(43726833852).jpg |
+| indoor-games/tt-balls-hero.jpg | Table Tennis Balls — 40 mm (IG-0115) | Table Tennis Plastic Ball 40+ mm | Peter Porai-Koshits | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Table_Tennis_Plastic_Ball_40%2B_mm.jpg |
+| indoor-games/carrom-coins-hero.jpg | Carrom Coins & Striker Set (IG-0210) | Carromboard | Akasher | Public domain | https://commons.wikimedia.org/wiki/File:Carromboard.JPG |
+| outdoor-games/kho-kho-poles-hero.jpg | Kho-Kho Poles (OG-0102) | India vs Nepal, 4th Asian Kho Kho Championship | Khokhofederation | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Glimpse_of_India_vs_Nepal_Match_during_4th_Asian_Kho_Kho_Championship.jpg |
+| outdoor-games/tug-of-war-rope-hero.jpg | Tug-of-War Rope — 30 m (OG-0108) | Men pulling a rope during a tug of war game | Samson Ssemakadde | CC0 | https://commons.wikimedia.org/wiki/File:Men_pulling_a_rope_during_a_tug_of_war_game.jpg |
+| outdoor-games/throwball-hero.jpg | Throwball — Match (OG-0114) | Throwball cosco | Vinoth offl | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Throwball_cosco.jpg |
+| outdoor-games/play-parachute-hero.jpg | Play Parachute — 6 m (OG-0203) | Parachute Schwungtuch 1 | Maseltov | CC BY-SA 3.0 DE | https://commons.wikimedia.org/wiki/File:Parachute_Schwungtuch_1.jpg |
+| sportswear/track-pants-hero.jpg | Track Pants — Pack of 10 (SW-3014) | Tracksuit pants (AM 2017.66.26-4) | Auckland War Memorial Museum | CC BY 4.0 | https://commons.wikimedia.org/wiki/File:Tracksuit_pants_(AM_2017.66.26-4).jpg |
+| sportswear/baselayer-hero.jpg | Compression Baselayer Tops (SW-3209) | Wrestlig rash guard | Catcat Gao | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Wrestlig_rash_guard.jpg |
+| sportswear/rain-jackets-hero.jpg | Team Rain Jackets (SW-3302) | Peter Storm vintage cagoule front | Rocknrollmancer | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Peter_Storm_vintage_cagoule_front.jpg |
+| accessories/duffel-bag-hero.jpg | Duffel Bag — 60 L (AC-4008) | QWSTION Simple Holdall | QWSTION | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:QWSTION_SIMPLE-HOLDALL_RAW-BLEND-LEATHER_FRONT.jpg |
+| accessories/water-bottles-hero.jpg | Water Bottles — Carrier of 8 (AC-4103) | Zéfal bottles | Cjp24 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Z%C3%A9fal_bottles.jpg |
+| accessories/whistles-hero.jpg | Referee Whistles — Metal (AC-4203) | 1992 Referee whistles for football | Laslovarga | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:1992_Referee_whistles_for_football_Laslovarga_(7).jpg |
+| accessories/first-aid-kit-hero.jpg | First Aid Kit — 42-Piece (AC-4209) | A first aid box | Contributers2020 | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:A_first_aid_box.jpg |
+| accessories/ball-pump-hero.jpg | Ball Pump — Dual-Action (AC-4215) | Handluftpumpe10a | Ilmtaler | CC BY-SA 4.0 | https://commons.wikimedia.org/wiki/File:Handluftpumpe10a.jpg |

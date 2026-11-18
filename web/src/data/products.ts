@@ -104,7 +104,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "CR-0915", name: "Stumps & Bails Set — Seasoned Wood, Two Ends",
-    cat: "cricket", sub: "Ground equipment",
+    cat: "cricket", sub: "Ground equipment", img: "/img/cricket/stumps-bails-hero.jpg",
     meta: "Seasoned hardwood · two ends", std: 1840, buyer: 1564,
     specs: [
       ["Set", "6 stumps + 4 bails (two ends)"],
@@ -147,7 +147,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "FB-0118", name: "Football — Size 3, Junior Training, Box of 6",
-    cat: "football", sub: "Balls",
+    cat: "football", sub: "Balls", img: "/img/football/junior-football-hero.jpg",
     meta: "Size 3 · junior training · box of 6", std: 3540, buyer: 3009,
     specs: [
       ["Size", "3 (junior)"],
@@ -157,7 +157,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "FB-0210", name: "Football Goal Net — Full Size, 4 mm HDPE Pair",
-    cat: "football", sub: "Goals & nets",
+    cat: "football", sub: "Goals & nets", img: "/img/football/goal-net-hero.jpg",
     meta: "Fits 7.32 × 2.44 m · pair", std: 2860, buyer: 2431,
     specs: [
       ["Fits goal", "7.32 × 2.44 m (full size)"],
@@ -187,7 +187,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "FB-0404", name: "Shin Guards — Slip-in, Pair",
-    cat: "football", sub: "Protection",
+    cat: "football", sub: "Protection", img: "/img/football/shin-guards-hero.jpg",
     meta: "Polypropylene shell · 3 sizes", std: 420, buyer: 357,
     specs: [
       ["Shell", "Polypropylene, EVA backing"],
@@ -218,7 +218,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BB-0115", name: "Junior Basketball — Size 5, Rubber, Box of 5",
-    cat: "basketball", sub: "Balls",
+    cat: "basketball", sub: "Balls", img: "/img/basketball/junior-basketball-hero.jpg",
     meta: "Size 5 · junior · box of 5", std: 3600, buyer: 3060,
     specs: [
       ["Size", "5 (junior)"],
@@ -238,7 +238,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BB-0208", name: "Acrylic Backboard — 1.8 × 1.05 m, Fixed Rim",
-    cat: "basketball", sub: "Court equipment",
+    cat: "basketball", sub: "Court equipment", img: "/img/basketball/backboard-hero.jpg",
     meta: "10 mm acrylic · fixed steel rim", std: 9800, buyer: 8330,
     specs: [
       ["Board", "10 mm acrylic, 1.8 × 1.05 m"],
@@ -279,7 +279,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "VB-0110", name: "Volleyball — Training, Rubber, Box of 6",
-    cat: "volleyball", sub: "Balls",
+    cat: "volleyball", sub: "Balls", img: "/img/volleyball/training-volleyball-hero.jpg",
     meta: "Moulded rubber · box of 6", std: 3900, buyer: 3315,
     specs: [
       ["Construction", "Moulded rubber"],
@@ -363,7 +363,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BD-1110", name: "Nylon Shuttlecocks — Club, Tube of 6",
-    cat: "badminton", sub: "Shuttles",
+    cat: "badminton", sub: "Shuttles", img: "/img/badminton/nylon-shuttlecocks-hero.jpg",
     meta: "Nylon skirt · medium speed · tube of 6", std: 560, buyer: 476,
     specs: [
       ["Skirt", "Nylon, cork base"],
@@ -393,7 +393,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "BD-2304", name: "Replacement Grip — PU Overgrip, Pack of 10",
-    cat: "badminton", sub: "Strings & grips",
+    cat: "badminton", sub: "Strings & grips", img: "/img/badminton/overgrip-hero.jpg",
     meta: "Tacky PU overgrip · pack of 10", std: 450, buyer: 382.5,
     specs: [
       ["Material", "Tacky PU, 0.6 mm"],
@@ -404,7 +404,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Tennis ---------------- */
   {
     sku: "TN-0103", name: "Graphite Composite Racquet — 27 in, L2 Grip",
-    cat: "tennis", sub: "Racquets",
+    cat: "tennis", sub: "Racquets", img: "/img/tennis/graphite-racquet-hero.jpg",
     meta: "Graphite composite · 27 in · strung", std: 2680, buyer: 2278,
     specs: [
       ["Frame", "Graphite composite"],
@@ -467,7 +467,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Athletics ---------------- */
   {
     sku: "AT-0102", name: "Relay Batons — Aluminium, Set of 8",
-    cat: "athletics", sub: "Track equipment",
+    cat: "athletics", sub: "Track equipment", img: "/img/athletics/relay-batons-hero.jpg",
     meta: "Anodised aluminium · set of 8", std: 920, buyer: 782,
     specs: [
       ["Material", "Anodised aluminium"],
@@ -477,7 +477,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AT-0108", name: "Starting Block — Adjustable Rail",
-    cat: "athletics", sub: "Track equipment",
+    cat: "athletics", sub: "Track equipment", img: "/img/athletics/starting-block-hero.jpg",
     meta: "Steel rail · adjustable pedals", std: 2450, buyer: 2082.5,
     specs: [
       ["Rail", "Steel, spiked base"],
@@ -497,7 +497,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AT-0204", name: "Shot Put — Cast Iron, 4 kg",
-    cat: "athletics", sub: "Field equipment",
+    cat: "athletics", sub: "Field equipment", img: "/img/athletics/shot-put-hero.jpg",
     meta: "Cast iron · 4 kg, turned finish", std: 1180, buyer: 1003,
     specs: [
       ["Weight", "4 kg"],
@@ -506,7 +506,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AT-0210", name: "Discus — Composite, 1 kg",
-    cat: "athletics", sub: "Field equipment",
+    cat: "athletics", sub: "Field equipment", img: "/img/athletics/discus-hero.jpg",
     meta: "Composite plates · steel rim · 1 kg", std: 1360, buyer: 1156,
     specs: [
       ["Weight", "1 kg"],
@@ -516,7 +516,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AT-0303", name: "Stopwatch — 60-Lap Memory",
-    cat: "athletics", sub: "Timing & measurement",
+    cat: "athletics", sub: "Timing & measurement", img: "/img/athletics/stopwatch-hero.jpg",
     meta: "60-lap memory · splash-proof", std: 1150, buyer: 977.5,
     specs: [
       ["Memory", "60 laps / splits"],
@@ -538,7 +538,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Gym & Fitness ---------------- */
   {
     sku: "GF-0104", name: "Rubber Hex Dumbbells — 5 kg Pair",
-    cat: "gym-fitness", sub: "Free weights",
+    cat: "gym-fitness", sub: "Free weights", img: "/img/gym-fitness/hex-dumbbells-hero.jpg",
     meta: "Rubber-coated hex · 5 kg pair", std: 1980, buyer: 1683,
     specs: [
       ["Weight", "5 kg each"],
@@ -549,7 +549,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "GF-0110", name: "Rubber Plate Set — 60 kg, Olympic Bore",
-    cat: "gym-fitness", sub: "Free weights",
+    cat: "gym-fitness", sub: "Free weights", img: "/img/gym-fitness/plate-set-hero.jpg",
     meta: "60 kg set · 50 mm bore", std: 10560, buyer: 8976,
     specs: [
       ["Set", "2×15 kg, 2×10 kg, 2×5 kg"],
@@ -559,7 +559,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "GF-0116", name: "Barbell — 7 ft, 20 kg, Knurled",
-    cat: "gym-fitness", sub: "Free weights",
+    cat: "gym-fitness", sub: "Free weights", img: "/img/gym-fitness/barbell-hero.jpg",
     meta: "7 ft · 20 kg · rotating sleeves", std: 7400, buyer: 6290,
     specs: [
       ["Length", "7 ft (220 cm)"],
@@ -570,7 +570,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "GF-0205", name: "Skipping Ropes — Speed Bearing, Set of 10",
-    cat: "gym-fitness", sub: "Conditioning",
+    cat: "gym-fitness", sub: "Conditioning", img: "/img/gym-fitness/skipping-ropes-hero.jpg",
     meta: "Bearing handles · set of 10", std: 2400, buyer: 2040,
     specs: [
       ["Rope", "Adjustable PVC-coated wire"],
@@ -580,7 +580,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "GF-0211", name: "Kettlebell — Cast Iron, 12 kg",
-    cat: "gym-fitness", sub: "Conditioning",
+    cat: "gym-fitness", sub: "Conditioning", img: "/img/gym-fitness/kettlebell-hero.jpg",
     meta: "Cast iron · flat base · 12 kg", std: 2160, buyer: 1836,
     specs: [
       ["Weight", "12 kg"],
@@ -590,7 +590,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "GF-0304", name: "Exercise Mats — 10 mm NBR, Set of 10",
-    cat: "gym-fitness", sub: "Mats & flooring",
+    cat: "gym-fitness", sub: "Mats & flooring", img: "/img/gym-fitness/exercise-mats-hero.jpg",
     meta: "10 mm NBR foam · set of 10", std: 5900, buyer: 5015,
     specs: [
       ["Size", "183 × 61 cm"],
@@ -612,7 +612,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Indoor Games ---------------- */
   {
     sku: "IG-0103", name: "Table Tennis Table — Indoor, 19 mm",
-    cat: "indoor-games", sub: "Table tennis",
+    cat: "indoor-games", sub: "Table tennis", img: "/img/indoor-games/tt-table-hero.jpg",
     meta: "19 mm top · foldable, wheeled", std: 18400, buyer: 15640,
     specs: [
       ["Top", "19 mm MDF, matt finish"],
@@ -633,7 +633,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "IG-0115", name: "Table Tennis Balls — 40 mm Match, Box of 12",
-    cat: "indoor-games", sub: "Table tennis",
+    cat: "indoor-games", sub: "Table tennis", img: "/img/indoor-games/tt-balls-hero.jpg",
     meta: "40 mm · match grade · box of 12", std: 540, buyer: 459,
     specs: [
       ["Diameter", "40 mm"],
@@ -653,7 +653,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "IG-0210", name: "Carrom Coins & Striker Set — Boxed",
-    cat: "indoor-games", sub: "Carrom",
+    cat: "indoor-games", sub: "Carrom", img: "/img/indoor-games/carrom-coins-hero.jpg",
     meta: "Full coin set · boxed with striker", std: 620, buyer: 527,
     specs: [
       ["Coins", "Full set, turned wood"],
@@ -685,7 +685,7 @@ export const PRODUCTS: Product[] = [
   /* ---------------- Outdoor Games ---------------- */
   {
     sku: "OG-0102", name: "Kho-Kho Poles — Seasoned Wood, Pair",
-    cat: "outdoor-games", sub: "Field games",
+    cat: "outdoor-games", sub: "Field games", img: "/img/outdoor-games/kho-kho-poles-hero.jpg",
     meta: "Seasoned hardwood · pair", std: 2850, buyer: 2422.5,
     specs: [
       ["Material", "Seasoned hardwood, smooth turned"],
@@ -695,7 +695,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "OG-0108", name: "Tug-of-War Rope — 30 m, Manila",
-    cat: "outdoor-games", sub: "Field games",
+    cat: "outdoor-games", sub: "Field games", img: "/img/outdoor-games/tug-of-war-rope-hero.jpg",
     meta: "30 m · 36 mm manila", std: 4100, buyer: 3485,
     specs: [
       ["Length", "30 m"],
@@ -705,7 +705,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "OG-0114", name: "Throwball — Match, Set of 3",
-    cat: "outdoor-games", sub: "Field games",
+    cat: "outdoor-games", sub: "Field games", img: "/img/outdoor-games/throwball-hero.jpg",
     meta: "Stitched PU · set of 3", std: 1980, buyer: 1683,
     specs: [
       ["Construction", "Machine-stitched PU"],
@@ -715,7 +715,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "OG-0203", name: "Play Parachute — 6 m, 16 Handles",
-    cat: "outdoor-games", sub: "Playground",
+    cat: "outdoor-games", sub: "Playground", img: "/img/outdoor-games/play-parachute-hero.jpg",
     meta: "6 m · 16 handles · carry bag", std: 2300, buyer: 1955,
     specs: [
       ["Diameter", "6 m"],
@@ -777,7 +777,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "SW-3014", name: "Track Pants — Warp-knit, Pack of 10",
-    cat: "sportswear", sub: "Training wear",
+    cat: "sportswear", sub: "Training wear", img: "/img/sportswear/track-pants-hero.jpg",
     meta: "Warp-knit · zip pockets · pack of 10", std: 4600, buyer: 3910,
     specs: [
       ["Fabric", "Warp-knit polyester"],
@@ -797,7 +797,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "SW-3209", name: "Compression Baselayer Tops — Pack of 5",
-    cat: "sportswear", sub: "Socks & baselayers",
+    cat: "sportswear", sub: "Socks & baselayers", img: "/img/sportswear/baselayer-hero.jpg",
     meta: "4-way stretch · pack of 5", std: 2750, buyer: 2337.5,
     specs: [
       ["Fabric", "4-way stretch polyamide blend"],
@@ -807,7 +807,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "SW-3302", name: "Team Rain Jackets — Set of 15",
-    cat: "sportswear", sub: "Outerwear",
+    cat: "sportswear", sub: "Outerwear", img: "/img/sportswear/rain-jackets-hero.jpg",
     meta: "Water-resistant shell · set of 15", std: 8700, buyer: 7395,
     specs: [
       ["Shell", "Water-resistant polyester"],
@@ -829,7 +829,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AC-4008", name: "Duffel Bag — 60 L, Institutional",
-    cat: "accessories", sub: "Bags",
+    cat: "accessories", sub: "Bags", img: "/img/accessories/duffel-bag-hero.jpg",
     meta: "60 L · 600D polyester", std: 1450, buyer: 1232.5,
     specs: [
       ["Capacity", "60 L"],
@@ -839,7 +839,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AC-4103", name: "Water Bottles — 750 ml, Carrier of 8",
-    cat: "accessories", sub: "Hydration",
+    cat: "accessories", sub: "Hydration", img: "/img/accessories/water-bottles-hero.jpg",
     meta: "750 ml squeeze · carrier of 8", std: 1760, buyer: 1496,
     specs: [
       ["Capacity", "750 ml"],
@@ -859,7 +859,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AC-4203", name: "Referee Whistles — Metal, Pack of 10",
-    cat: "accessories", sub: "Officiating",
+    cat: "accessories", sub: "Officiating", img: "/img/accessories/whistles-hero.jpg",
     meta: "Metal pea whistle · pack of 10", std: 850, buyer: 722.5,
     specs: [
       ["Build", "Nickel-plated brass, pea type"],
@@ -869,7 +869,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AC-4209", name: "First Aid Kit — Team Sideline, 42-Piece",
-    cat: "accessories", sub: "First aid",
+    cat: "accessories", sub: "First aid", img: "/img/accessories/first-aid-kit-hero.jpg",
     meta: "42-piece · zip case", std: 1380, buyer: 1173,
     specs: [
       ["Contents", "42 pieces, sideline oriented"],
@@ -879,7 +879,7 @@ export const PRODUCTS: Product[] = [
   },
   {
     sku: "AC-4215", name: "Ball Pump — Dual-Action, Needle Set",
-    cat: "accessories", sub: "Inflation & care",
+    cat: "accessories", sub: "Inflation & care", img: "/img/accessories/ball-pump-hero.jpg",
     meta: "Dual-action · 5 needles + hose", std: 520, buyer: 442,
     specs: [
       ["Action", "Dual (inflates both strokes)"],
