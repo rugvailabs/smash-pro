@@ -19,6 +19,7 @@ export function CatalogToolbar({ shown, total }: { shown: number; total: number 
   const type = params.get("type") ?? "";
   const price = params.get("price") ?? "";
   const sort = params.get("sort") ?? "relevance";
+  const view = params.get("view") === "list" ? "list" : "grid";
 
   const setParam = useCallback(
     (key: string, value: string) => {
@@ -44,7 +45,35 @@ export function CatalogToolbar({ shown, total }: { shown: number; total: number 
         <span className="num font-mono text-xs text-n600">
           <b className="text-ink">{shown}</b>{shown !== total && <> of {total}</>} items · sample
         </span>
-        <label className="ml-auto flex items-center gap-2 text-[13px] text-n600">
+
+        {/* grid / list view toggle — presentation only, no data change */}
+        <div className="ml-auto flex items-center gap-0.5 rounded-[2px] border border-n400 p-0.5">
+          <button
+            type="button"
+            aria-label="Grid view"
+            aria-pressed={view === "grid"}
+            onClick={() => setParam("view", "")}
+            className={"flex h-8 w-8 items-center justify-center rounded-[1px] transition-colors " + (view === "grid" ? "bg-ink text-chalk" : "text-n600 hover:text-ink")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8">
+              <rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" />
+              <rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            aria-label="List view"
+            aria-pressed={view === "list"}
+            onClick={() => setParam("view", "list")}
+            className={"flex h-8 w-8 items-center justify-center rounded-[1px] transition-colors " + (view === "list" ? "bg-ink text-chalk" : "text-n600 hover:text-ink")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="1.8">
+              <path d="M4 6h16M4 12h16M4 18h16" strokeLinecap="round" />
+            </svg>
+          </button>
+        </div>
+
+        <label className="flex items-center gap-2 text-[13px] text-n600">
           <span className="hidden sm:inline">Sort</span>
           <select
             aria-label="Sort"

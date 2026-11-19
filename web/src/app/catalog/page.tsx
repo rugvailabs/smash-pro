@@ -38,9 +38,9 @@ export default function CatalogPage({
 async function CatalogContent({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string; type?: string; price?: string; sort?: string }>;
+  searchParams: Promise<{ cat?: string; type?: string; price?: string; sort?: string; view?: string }>;
 }) {
-  const { cat = "cricket", type, price, sort } = await searchParams;
+  const { cat = "cricket", type, price, sort, view } = await searchParams;
   const [categories, category, all] = await Promise.all([
     getCategories(),
     getCategory(cat),
@@ -104,7 +104,7 @@ async function CatalogContent({
 
             <div className="mt-5">
               {products.length ? (
-                <ProductGrid items={products} priorityCount={4} />
+                <ProductGrid items={products} priorityCount={4} view={view === "list" ? "list" : "grid"} />
               ) : all.length ? (
                 <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
                   No <b className="text-ink">{title}</b> items match these filters.{" "}

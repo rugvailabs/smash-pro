@@ -221,11 +221,74 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
   );
 }
 
+/** Horizontal list row — same real data/controls as ProductCard (image,
+ *  sub, name, meta, configurable flag, role-aware price, add-to-cart),
+ *  laid out for the list view toggle instead of a grid tile. */
+export function ProductListRow({ p, priority = false }: { p: Product; priority?: boolean }) {
+  const { role } = useRole();
+  const off = role === "buyer" && p.buyer !== undefined ? discountPct(p.std, p.buyer) : null;
+  const href = `/product/${p.sku}`;
+  return (
+    <div className="group flex gap-4 border-b border-n200 bg-chalk py-4 first:pt-0 last:border-b-0 sm:gap-5">
+      <div className="relative aspect-square w-28 shrink-0 overflow-hidden rounded-[2px] bg-n100 sm:w-36">
+        <Link href={href} aria-label={p.name} className="absolute inset-0 block">
+          {p.img ? (
+            <Image
+              src={p.img}
+              alt={`${p.name} — representative image`}
+              fill
+              priority={priority}
+              sizes="(max-width: 639px) 112px, 144px"
+              className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
+            />
+          ) : (
+            <div
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ backgroundImage: "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)" }}
+            >
+              <span className="bg-n100 px-1 text-center font-mono text-[8px] uppercase tracking-wide text-n400">awaiting photography</span>
+            </div>
+          )}
+        </Link>
+        {off !== null && <DiscountBadge off={off} className="pointer-events-none absolute left-1.5 top-1.5 z-10 shadow-raised" />}
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:gap-6">
+        <div className="min-w-0 flex-1">
+          <span className="truncate font-mono text-[10.5px] uppercase tracking-widest text-n600">{p.sub}</span>
+          <Link href={href} className="mt-1 block text-[15px] font-semibold leading-snug text-ink underline-offset-2 hover:underline">
+            {p.name}
+          </Link>
+          <div className="mt-0.5 line-clamp-1 text-[12.5px] text-n600">{p.meta}</div>
+          {p.configurable && (
+            <span className="mt-1.5 inline-flex rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-info">
+              Configure to order
+            </span>
+          )}
+        </div>
+        <div className="mt-3 flex shrink-0 items-end justify-between gap-4 sm:mt-0 sm:w-[220px] sm:flex-col sm:items-end">
+          <PriceBlock p={p} showBadge={false} />
+          <div className="w-[136px]"><CardAddToCart sku={p.sku} name={p.name} /></div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /** priorityCount: eager-load the first N card images — used only where the
  *  grid is above the fold (the catalogue LCP); defaults to 0 so other grids
  *  keep lazy loading. Deliberate column steps: 2 (mobile) → 3 (tablet/laptop)
- *  → 4 (desktop); min-w-0 on cards prevents any horizontal overflow. */
-export function ProductGrid({ items, priorityCount = 0 }: { items: Product[]; priorityCount?: number }) {
+ *  → 4 (desktop); min-w-0 on cards prevents any horizontal overflow.
+ *  view="list" switches to ProductListRow — same data, horizontal layout. */
+export function ProductGrid({
+  items, priorityCount = 0, view = "grid",
+}: { items: Product[]; priorityCount?: number; view?: "grid" | "list" }) {
+  if (view === "list") {
+    return (
+      <div>
+        {items.map((p, i) => <ProductListRow key={p.sku} p={p} priority={i < priorityCount} />)}
+      </div>
+    );
+  }
   return (
     <div className="grid grid-cols-2 gap-2.5 min-[900px]:grid-cols-3 md:gap-4 xl:grid-cols-4">
       {items.map((p, i) => (

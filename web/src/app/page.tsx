@@ -1,9 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getCategories, getFeatured, getRecommended } from "@/lib/catalog";
+import { getFeatured, getRecommended } from "@/lib/catalog";
+import { CATEGORIES } from "@/data/products";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
 import { HeroCarousel } from "@/components/hero-carousel";
+import { FirstOrderBanner } from "@/components/first-order-banner";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { Bone } from "@/components/skeletons";
@@ -204,6 +206,37 @@ function SectionCut() {
   );
 }
 
+/* Fixed-row category cards (not scrollable — a set 6, matching the
+   reference's tile-row placement around the hero). Real categories/
+   imagery only, split into two halves by CATEGORIES' own order. */
+function CategoryCardsRow({ items }: { items: typeof CATEGORIES }) {
+  return (
+    <section className="border-b border-n200 bg-chalk py-7 md:py-9">
+      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-6">
+          {items.map((c) => {
+            const hero = CATEGORY_HERO[c.slug] ?? null;
+            return (
+              <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block">
+                <div className="relative aspect-square overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
+                  {hero ? (
+                    <Image src={hero} alt={c.name} fill sizes="(min-width:1024px) 16vw, (min-width:640px) 32vw, 48vw" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]" />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundImage: "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)" }}>
+                      <span className="relative font-mono text-[9px] uppercase tracking-wide text-n400">imagery pending</span>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-2.5 text-center font-display text-[14px] font-bold leading-tight text-ink group-hover:text-ember-deep md:text-[15px]">{c.name}</div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 const STEPS: [string, string][] = [
   ["Register and get approved", "Your institution's details are reviewed before ordering is enabled."],
   ["See your price", "Standard prices are public. On approval, your institutional price appears on every product."],
@@ -216,9 +249,17 @@ export default function HomePage() {
   // outside the data Suspense, so it never waits on the catalogue query and
   // its fixed height causes no layout shift. The data-driven sections below
   // stream behind a layout-true skeleton (Cache Components, library §14).
+  // CategoryCardsRow is likewise static (CATEGORIES is the real seed data,
+  // the same source server/seed.ts uses) — safe to render synchronously
+  // either side of the hero, same rationale as the hero itself.
+  const firstHalf = CATEGORIES.slice(0, 6);
+  const secondHalf = CATEGORIES.slice(6, 12);
   return (
     <main>
+      <FirstOrderBanner />
+      <CategoryCardsRow items={firstHalf} />
       <HeroCarousel />
+      <CategoryCardsRow items={secondHalf} />
       <ProofStrip />
       <SectionCut />
       <Suspense fallback={<HomeSectionsSkeleton />}>
@@ -240,60 +281,11 @@ function HomeSectionsSkeleton() {
 }
 
 async function HomeSections() {
-  const [categories, featured, recommended] = await Promise.all([
-    getCategories(), getFeatured(), getRecommended(),
-  ]);
+  const [featured, recommended] = await Promise.all([getFeatured(), getRecommended()]);
 
   return (
     <>
       <InstitutionPromoBand />
-
-      {/* categories — single horizontal row, scrollable, all 12 (library pattern
-          shared conceptually with category-strip.tsx but sized for a homepage
-          merchandising rail rather than the catalogue's compact secondary nav) */}
-      <section className="border-b border-n200 bg-chalk pb-11 pt-6 md:pb-16 md:pt-8">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-10">
-          <Kick>Catalogue</Kick>
-          <SectionHead title="Every sport. One platform." more="Browse all →" moreHref="/catalog?cat=cricket" />
-          <div className="edge-fade-x flex snap-x gap-4 overflow-x-auto pb-1">
-            {categories.map((c) => {
-              const hero = CATEGORY_HERO[c.slug] ?? null;
-              return (
-                <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block w-[132px] shrink-0 snap-start sm:w-[150px] md:w-[168px]">
-                  <div className="relative aspect-square overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
-                    {hero ? (
-                      <Image
-                        src={hero}
-                        alt={c.name}
-                        fill
-                        sizes="168px"
-                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
-                      />
-                    ) : (
-                      /* Library §4 placeholder — no substitute imagery */
-                      <div className="absolute inset-0 flex items-end justify-center pb-3" aria-hidden>
-                        <div
-                          className="absolute inset-0"
-                          style={{
-                            backgroundImage:
-                              "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
-                          }}
-                        />
-                        <span className="relative font-mono text-[9px] uppercase tracking-wide text-n400">
-                          imagery pending
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-2.5 text-center font-display text-[14px] font-bold leading-tight text-ink group-hover:text-ember-deep md:text-[15px]">
-                    {c.name}
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       <FeatureDuo />
 

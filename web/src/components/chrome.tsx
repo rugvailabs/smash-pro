@@ -66,14 +66,15 @@ export function SiteHeader() {
   const role: Role = mounted ? liveRole : "visitor";
 
   /* Icon-over-label header action (premium retail chrome pattern) — one
-     shared shape for Sign in / Account / Cart so the three read as a set. */
+     shared shape for Sign in / Account / Orders / Support / Wishlist /
+     Cart so they read as a set. Light chrome: Ink icons/text on Chalk. */
   const IconAction = ({
     href, label, icon, badge, hiddenBelow = "md",
   }: { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode; hiddenBelow?: "md" | "lg" }) => (
     <Link
       href={href}
       className={
-        "hidden flex-col items-center gap-1 text-white/85 transition-colors hover:text-white " +
+        "hidden flex-col items-center gap-1 text-n800 transition-colors hover:text-ink " +
         (hiddenBelow === "lg" ? "lg:flex" : "md:flex")
       }
     >
@@ -83,6 +84,16 @@ export function SiteHeader() {
       </span>
       <span className="text-[11px] font-medium leading-none">{label}</span>
     </Link>
+  );
+
+  const wishlistIcon = (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6"><path d="M12 20.5l-7.1-7.1a4.5 4.5 0 0 1 6.4-6.4l.7.7.7-.7a4.5 4.5 0 0 1 6.4 6.4z" /></svg>
+  );
+  const supportIcon = (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.8 1.8-2.3 3M12 16.5h.01" strokeLinecap="round" /></svg>
+  );
+  const ordersIcon = (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6"><rect x="4" y="7" width="16" height="13" rx="1.5" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
   );
 
   const tab = (href: string, label: string, match: string) => (
@@ -102,12 +113,14 @@ export function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-ink">
+      {/* Light chrome — Smash Pro navy (Ink) wordmark/icons on white, Ember
+          reserved for the accent/badges. */}
+      <header className="sticky top-0 z-40 border-b border-n200 bg-chalk">
         <div className="mx-auto flex h-20 max-w-[1280px] items-center gap-5 px-4 md:gap-7 md:px-10">
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"
-            className="-ml-1 flex h-11 w-11 items-center justify-center text-white md:hidden"
+            className="-ml-1 flex h-11 w-11 items-center justify-center text-ink md:hidden"
           >
             <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5 fill-none stroke-current" strokeWidth="2">
               <path d="M4 7h16M4 12h16M4 17h16" />
@@ -115,7 +128,7 @@ export function SiteHeader() {
           </button>
           <Link
             href="/"
-            className="stretch-xp shrink-0 font-display text-[22px] font-extrabold tracking-wide text-chalk"
+            className="stretch-xp shrink-0 font-display text-[22px] font-extrabold tracking-wide text-ink"
           >
             SMASH PRO
           </Link>
@@ -128,7 +141,7 @@ export function SiteHeader() {
                 href="/signin"
                 label="Sign In"
                 icon={
-                  <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.7">
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6">
                     <circle cx="12" cy="8" r="3.4" />
                     <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" strokeLinecap="round" />
                   </svg>
@@ -140,25 +153,35 @@ export function SiteHeader() {
                 Register
               </Link>
             )}
+            {role === "buyer" && (
+              <IconAction href="/orders" label="Orders" hiddenBelow="lg" icon={ordersIcon} />
+            )}
+            {/* Support and Wishlist are buyer-commerce chrome — never supplier/admin. */}
+            {role !== "supplier" && role !== "admin" && (
+              <IconAction href="/support" label="Support" hiddenBelow="lg" icon={supportIcon} />
+            )}
+            {role !== "supplier" && role !== "admin" && (
+              <IconAction href="/wishlist" label="Wishlist" icon={wishlistIcon} />
+            )}
             {role !== "visitor" && (
-              <span className="hidden items-center gap-2 border-l border-white/15 pl-4 text-[13px] font-medium text-white lg:inline-flex">
+              <span className="hidden items-center gap-2 border-l border-n200 pl-4 text-[13px] font-medium text-ink lg:inline-flex">
                 {role === "admin"
                   ? "Smash Pro Operations"
                   : orgName ?? (role === "supplier" ? "Supplier account" : "Buyer account")}
-                <span className="rounded-[2px] border border-white/25 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-white/55">
+                <span className="rounded-[2px] border border-n400 px-1.5 py-0.5 font-mono text-[10px] tracking-wider text-n600">
                   {role === "admin" ? "ADMIN" : role === "supplier" ? "SUPPLIER" : role === "buyer" ? "BUYER" : "UNDER REVIEW"}
                 </span>
               </span>
             )}
             {/* In-app notification bell — every signed-in role */}
-            {mounted && role !== "visitor" && <NotificationBell />}
+            {mounted && role !== "visitor" && <NotificationBell onInk={false} />}
             {role === "buyer" && (
               <IconAction
                 href="/account"
                 label="Account"
                 hiddenBelow="lg"
                 icon={
-                  <svg viewBox="0 0 24 24" aria-hidden className="h-[20px] w-[20px] fill-none stroke-current" strokeWidth="1.7">
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-[20px] w-[20px] fill-none stroke-current" strokeWidth="1.6">
                     <circle cx="12" cy="8" r="3.4" />
                     <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" strokeLinecap="round" />
                   </svg>
@@ -168,7 +191,7 @@ export function SiteHeader() {
             {role !== "visitor" && (
               <button
                 onClick={() => void signOut().then(() => router.push("/"))}
-                className="hidden text-[13px] font-medium text-white/70 underline-offset-2 hover:text-white hover:underline md:block"
+                className="hidden text-[13px] font-medium text-n600 underline-offset-2 hover:text-ink hover:underline md:block"
               >
                 Sign out
               </button>
@@ -178,10 +201,10 @@ export function SiteHeader() {
               <Link
                 href="/cart"
                 aria-label="Cart"
-                className="flex flex-col items-center gap-1 border-l border-white/15 pl-4 text-white/85 transition-colors hover:text-white md:pl-5"
+                className="flex flex-col items-center gap-1 border-l border-n200 pl-4 text-n800 transition-colors hover:text-ink md:pl-5"
               >
                 <span className="relative flex h-6 w-6 items-center justify-center">
-                  <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.7">
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6">
                     <path d="M4 5h2l1.5 10.5A2 2 0 0 0 9.5 17h7a2 2 0 0 0 2-1.6L20 8H6.5M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
                   </svg>
                   <span className="num absolute -right-2 -top-1.5 min-w-4 rounded-full bg-ember-deep px-1 text-center font-mono text-[10px] leading-[16px] text-white">

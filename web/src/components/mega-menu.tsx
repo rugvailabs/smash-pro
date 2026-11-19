@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import {
-  buildCatalogueNav, SPORT_TILES, EQUIPMENT_TILES, CATALOGUE_POPULAR,
-} from "@/lib/nav-catalogue";
-import { SectionLabel, SportTile, EquipmentRow } from "@/components/public-nav";
+import { buildCatalogueNav, CATALOGUE_POPULAR } from "@/lib/nav-catalogue";
+import { SPORT_GROUPS, TextGroupsPanel } from "@/components/nav-groups";
 
 /* ============================================================
    Catalogue mega menu — buyer-facing navigation only.
@@ -219,39 +217,29 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-[1fr_380px]">
-                {/* LEFT — Shop by Sport: image-led tiles (reused visitor tiles) */}
-                <div className="px-7 py-6">
-                  <SectionLabel title="Shop by Sport" href="/catalog?cat=cricket" go={go} />
-                  <div className="grid grid-cols-3 gap-x-4 gap-y-4">
-                    {SPORT_TILES.map((t) => <SportTile key={t.slug} t={t} onNavigate={go} />)}
-                  </div>
-                </div>
+              <div className="grid grid-cols-[1fr_280px]">
+                {/* LEFT — dense multi-column sport/category index (same
+                    density as public-nav.tsx's equivalent panel) */}
+                <TextGroupsPanel groups={SPORT_GROUPS} go={go} />
 
-                {/* RIGHT — Equipment rows + Popular products */}
+                {/* RIGHT — Popular products */}
                 <div className="flex flex-col border-l border-n200 bg-paper/40 px-7 py-6">
-                  <SectionLabel title="Shop by Equipment" href="/catalog?cat=gym-fitness" go={go} />
-                  <div className="flex flex-col">
-                    {EQUIPMENT_TILES.map((t) => <EquipmentRow key={t.slug} t={t} onNavigate={go} />)}
-                  </div>
-                  <div className="mt-5 border-t border-n100 pt-4">
-                    <h3 className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-[.14em] text-ember-deep">Popular products</h3>
-                    <ul className="space-y-1.5">
-                      {CATALOGUE_POPULAR.map((s) => (
-                        <li key={s.sku}>
-                          <Link
-                            href={s.href}
-                            data-panel-item
-                            onClick={go}
-                            title={s.name}
-                            className="block truncate text-[13px] text-n800 underline-offset-2 hover:text-ember-deep hover:underline"
-                          >
-                            {s.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  <h3 className="mb-2.5 text-[10.5px] font-semibold uppercase tracking-[.14em] text-ember-deep">Popular products</h3>
+                  <ul className="space-y-1.5">
+                    {CATALOGUE_POPULAR.map((s) => (
+                      <li key={s.sku}>
+                        <Link
+                          href={s.href}
+                          data-panel-item
+                          onClick={go}
+                          title={s.name}
+                          className="block truncate text-[13px] text-n800 underline-offset-2 hover:text-ember-deep hover:underline"
+                        >
+                          {s.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>

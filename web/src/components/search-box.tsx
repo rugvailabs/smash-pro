@@ -110,7 +110,8 @@ export function SearchBox({
       <svg
         viewBox="0 0 24 24" aria-hidden
         className={
-          "pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 fill-none stroke-current text-white/55"
+          "pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 fill-none stroke-current " +
+          (variant === "header" ? "text-n600" : "text-white/55")
         }
         strokeWidth="2"
       >
@@ -132,8 +133,9 @@ export function SearchBox({
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
         className={
-          "w-full rounded-[4px] border border-white/25 bg-ink2 pl-10 pr-3 text-base text-white placeholder:text-white/45 md:text-sm " +
-          (variant === "header" ? "h-12" : "h-10")
+          variant === "header"
+            ? "h-12 w-full rounded-full border border-transparent bg-n100 pl-11 pr-4 text-base text-ink placeholder:text-n600 focus:border-n400 focus:outline-none md:text-sm"
+            : "h-10 w-full rounded-[4px] border border-white/25 bg-ink2 pl-10 pr-3 text-base text-white placeholder:text-white/45 md:text-sm"
         }
       />
       {showPanel && (

@@ -78,7 +78,7 @@ export function CatalogSidebar({ types, typeLabel = "Equipment" }: { types: stri
   const activeCount = (type ? 1 : 0) + (price ? 1 : 0);
 
   return (
-    <div className="lg:sticky lg:top-[132px]">
+    <div className="lg:sticky lg:top-[130px]">
       {/* mobile toggle */}
       <button
         type="button"
