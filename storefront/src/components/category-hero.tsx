@@ -1,0 +1,27 @@
+import Link from "next/link";
+import Image from "next/image";
+
+export function CategoryHero({ title, description, hero, count }: { title: string; description: string; hero: string | null; count: number }) {
+  return (
+    <section className="relative isolate overflow-hidden border-b border-n200 bg-ink">
+      {hero ? <Image src={hero} alt="" fill priority sizes="100vw" className="object-cover object-center opacity-60" /> : null}
+      <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/30" />
+      <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] bg-ember" />
+      <div className="relative mx-auto max-w-[1280px] px-4 py-9 md:px-10 md:py-12">
+        <nav aria-label="Breadcrumb" className="mb-3 font-mono text-[11px] uppercase tracking-[.08em] text-white/55">
+          <Link href="/" className="hover:text-white">Home</Link>
+          <span className="px-1.5">/</span>
+          <Link href="/catalog" className="hover:text-white">Catalogue</Link>
+          <span className="px-1.5">/</span>
+          <span className="text-white/90">{title}</span>
+        </nav>
+        <h1 className="font-display text-[30px] font-bold leading-[1.05] tracking-tight text-chalk md:text-[42px]">{title}</h1>
+        <p className="mt-3 max-w-[56ch] text-[14px] leading-relaxed text-white/75 md:text-[15px]">{description}</p>
+        <div className="mt-5 flex flex-wrap items-center gap-2.5">
+          <span className="num inline-flex h-7 items-center rounded-[2px] border border-white/20 bg-white/5 px-2.5 font-mono text-[11px] tracking-wide text-white/80">{count} products</span>
+          <span className="inline-flex h-7 items-center rounded-[2px] border border-white/20 bg-white/5 px-2.5 font-mono text-[11px] uppercase tracking-wide text-white/70">Wholesale · GST-inclusive</span>
+        </div>
+      </div>
+    </section>
+  );
+}
