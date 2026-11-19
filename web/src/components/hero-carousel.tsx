@@ -153,7 +153,7 @@ export function HeroCarousel() {
     <section
       aria-roledescription="carousel"
       aria-label="Featured"
-      className="relative h-[460px] w-full overflow-hidden bg-ink text-chalk sm:h-[420px] md:h-[460px] lg:h-[520px]"
+      className="relative h-[480px] w-full overflow-hidden bg-ink text-chalk sm:h-[440px] md:h-[500px] lg:h-[560px] xl:h-[600px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -197,25 +197,34 @@ export function HeroCarousel() {
             {/* copy */}
             <div className="absolute inset-0">
               <div className="mx-auto flex h-full max-w-[1280px] items-end px-4 pb-20 md:items-center md:px-10 md:pb-0">
-                <div className="max-w-[90%] sm:max-w-[560px]">
+                <div className="max-w-[90%] sm:max-w-[600px]">
                   <span className="font-mono text-[11px] uppercase tracking-[.09em] text-ember">
                     {s.eyebrow}
                   </span>
-                  <h1 className="stretch-xp mt-3 font-display text-[30px] font-bold leading-[1.08] tracking-[-.02em] text-chalk md:text-[42px] lg:text-[54px]">
+                  <h1 className="stretch-xp mt-3 font-display text-[32px] font-bold leading-[1.06] tracking-[-.02em] text-chalk md:text-[46px] lg:text-[58px]">
                     {s.titleA}
                     <em className="not-italic text-ember">{s.accent}</em>
                     {s.titleB}
                   </h1>
-                  <p className="mt-3.5 max-w-[46ch] text-[15px] leading-relaxed text-white/85 md:mt-4 md:text-lg">
+                  <p className="mt-4 max-w-[46ch] text-[15px] leading-relaxed text-white/85 md:mt-5 md:text-lg">
                     {s.text}
                   </p>
-                  <Link
-                    href={cta.href}
-                    tabIndex={active ? 0 : -1}
-                    className="mt-6 inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:mt-7"
-                  >
-                    {cta.label}
-                  </Link>
+                  <div className="mt-6 flex flex-wrap items-center gap-3.5 md:mt-8">
+                    <Link
+                      href={cta.href}
+                      tabIndex={active ? 0 : -1}
+                      className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:h-[52px] md:px-7"
+                    >
+                      {cta.label}
+                    </Link>
+                    <Link
+                      href="/#how"
+                      tabIndex={active ? 0 : -1}
+                      className="inline-flex h-12 items-center rounded-[2px] border border-white/30 px-6 text-sm font-semibold text-chalk transition-colors hover:border-white md:h-[52px] md:px-7"
+                    >
+                      How it works
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

@@ -65,12 +65,32 @@ export function SiteHeader() {
   const mounted = useIsClient();
   const role: Role = mounted ? liveRole : "visitor";
 
+  /* Icon-over-label header action (premium retail chrome pattern) — one
+     shared shape for Sign in / Account / Cart so the three read as a set. */
+  const IconAction = ({
+    href, label, icon, badge, hiddenBelow = "md",
+  }: { href: string; label: string; icon: React.ReactNode; badge?: React.ReactNode; hiddenBelow?: "md" | "lg" }) => (
+    <Link
+      href={href}
+      className={
+        "hidden flex-col items-center gap-1 text-white/85 transition-colors hover:text-white " +
+        (hiddenBelow === "lg" ? "lg:flex" : "md:flex")
+      }
+    >
+      <span className="relative flex h-6 w-6 items-center justify-center">
+        {icon}
+        {badge}
+      </span>
+      <span className="text-[11px] font-medium leading-none">{label}</span>
+    </Link>
+  );
+
   const tab = (href: string, label: string, match: string) => (
     <Link
       key={match}
       href={href}
       className={
-        "flex h-[46px] items-center whitespace-nowrap px-3.5 text-sm font-medium " +
+        "flex h-[50px] items-center whitespace-nowrap px-3.5 text-sm font-medium " +
         (pathname.startsWith(match)
           ? "font-semibold text-ink shadow-[inset_0_-2px_0_var(--color-ember)]"
           : "text-n800 hover:text-ink")
@@ -83,7 +103,7 @@ export function SiteHeader() {
   return (
     <>
       <header className="sticky top-0 z-40 bg-ink">
-        <div className="mx-auto flex h-16 max-w-[1280px] items-center gap-4 px-4 md:gap-6 md:px-10">
+        <div className="mx-auto flex h-20 max-w-[1280px] items-center gap-5 px-4 md:gap-7 md:px-10">
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"
@@ -95,26 +115,33 @@ export function SiteHeader() {
           </button>
           <Link
             href="/"
-            className="stretch-xp font-display text-[19px] font-extrabold tracking-wide text-chalk"
+            className="stretch-xp shrink-0 font-display text-[22px] font-extrabold tracking-wide text-chalk"
           >
             SMASH PRO
           </Link>
           {/* Commerce search is buyer-side chrome — suppliers and the admin
               console work their own queues, never the sales catalogue. */}
           {role !== "supplier" && role !== "admin" && <SearchBox />}
-          <div className="ml-auto flex items-center gap-4 md:gap-5">
+          <div className="ml-auto flex items-center gap-5 md:gap-6">
             {role === "visitor" && (
-              <Link className="hidden text-sm font-medium text-white md:block" href="/signin">
-                Sign in
-              </Link>
+              <IconAction
+                href="/signin"
+                label="Sign In"
+                icon={
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.7">
+                    <circle cx="12" cy="8" r="3.4" />
+                    <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" strokeLinecap="round" />
+                  </svg>
+                }
+              />
             )}
             {role === "visitor" && (
-              <Link className="hidden h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:inline-flex" href="/register">
+              <Link className="hidden h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:inline-flex" href="/register">
                 Register
               </Link>
             )}
             {role !== "visitor" && (
-              <span className="hidden items-center gap-2 text-[13px] font-medium text-white lg:inline-flex">
+              <span className="hidden items-center gap-2 border-l border-white/15 pl-4 text-[13px] font-medium text-white lg:inline-flex">
                 {role === "admin"
                   ? "Smash Pro Operations"
                   : orgName ?? (role === "supplier" ? "Supplier account" : "Buyer account")}
@@ -125,6 +152,19 @@ export function SiteHeader() {
             )}
             {/* In-app notification bell — every signed-in role */}
             {mounted && role !== "visitor" && <NotificationBell />}
+            {role === "buyer" && (
+              <IconAction
+                href="/account"
+                label="Account"
+                hiddenBelow="lg"
+                icon={
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-[20px] w-[20px] fill-none stroke-current" strokeWidth="1.7">
+                    <circle cx="12" cy="8" r="3.4" />
+                    <path d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5" strokeLinecap="round" />
+                  </svg>
+                }
+              />
+            )}
             {role !== "visitor" && (
               <button
                 onClick={() => void signOut().then(() => router.push("/"))}
@@ -135,11 +175,20 @@ export function SiteHeader() {
             )}
             {/* The cart (and its badge) is buyer commerce — never supplier or admin chrome. */}
             {role !== "supplier" && role !== "admin" && (
-              <Link href="/cart" className="relative inline-flex items-center gap-2 text-sm font-medium text-white">
-                Cart
-                <span className="min-w-5 rounded-[2px] bg-ember-deep px-1.5 py-px text-center font-mono text-[11px]">
-                  {mounted ? count : 0}
+              <Link
+                href="/cart"
+                aria-label="Cart"
+                className="flex flex-col items-center gap-1 border-l border-white/15 pl-4 text-white/85 transition-colors hover:text-white md:pl-5"
+              >
+                <span className="relative flex h-6 w-6 items-center justify-center">
+                  <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.7">
+                    <path d="M4 5h2l1.5 10.5A2 2 0 0 0 9.5 17h7a2 2 0 0 0 2-1.6L20 8H6.5M9 21a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" />
+                  </svg>
+                  <span className="num absolute -right-2 -top-1.5 min-w-4 rounded-full bg-ember-deep px-1 text-center font-mono text-[10px] leading-[16px] text-white">
+                    {mounted ? count : 0}
+                  </span>
                 </span>
+                <span className="text-[11px] font-medium leading-none">Cart</span>
               </Link>
             )}
           </div>
@@ -149,7 +198,7 @@ export function SiteHeader() {
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       {/* Tab strip is desktop/tablet navigation; the drawer owns phones. */}
-      <nav aria-label="Site sections" className="sticky top-16 z-30 hidden border-b border-n200 bg-chalk md:block">
+      <nav aria-label="Site sections" className="sticky top-20 z-30 hidden border-b border-n200 bg-chalk md:block">
         <div className="mx-auto flex max-w-[1280px] gap-1 overflow-x-auto px-4 md:px-10">
           {/* public (visitor / pending) get the redesigned 5-item nav; logged-in
               roles keep their workspace nav below */}
@@ -174,7 +223,7 @@ export function SiteHeader() {
             <>
               {tab("/supplier", "Supplier Workspace", "/supplier")}
               <span className="flex-1" />
-              <Link href="/supplier/profile" className="flex h-[46px] items-center whitespace-nowrap px-3.5 text-sm font-medium text-n600 hover:text-ink">
+              <Link href="/supplier/profile" className="flex h-[50px] items-center whitespace-nowrap px-3.5 text-sm font-medium text-n600 hover:text-ink">
                 Eligibility &amp; profile
               </Link>
             </>
@@ -200,7 +249,7 @@ export function SiteFooter() {
   const item = "text-sm text-white/75 hover:text-white hover:underline hover:underline-offset-[3px]";
   return (
     <footer className="mt-16 bg-ink text-white/70">
-      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 pb-7 pt-11 sm:grid-cols-2 md:px-10 lg:grid-cols-[2fr_1fr_1fr_1fr] lg:gap-11 lg:pb-9 lg:pt-14">
+      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 pb-7 pt-11 sm:grid-cols-2 md:px-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] lg:gap-9 lg:pb-9 lg:pt-14">
         <div>
           <span className="stretch-xp font-display text-[22px] font-extrabold tracking-wide text-chalk">
             SMASH PRO
@@ -256,6 +305,20 @@ export function SiteFooter() {
             )}
             {role === "supplier" && (
               <li><Link className={item} href="/supplier">Supplier Workspace</Link></li>
+            )}
+          </ul>
+        </div>
+        <div>
+          <h5 className={col}>Support</h5>
+          <ul className="space-y-2">
+            <li>
+              <a className={item} href="https://wa.me/910000000000" target="_blank" rel="noopener">
+                WhatsApp the team
+              </a>
+            </li>
+            <li><Link className={item} href="/#how">How ordering works</Link></li>
+            {(role === "visitor" || role === "pending") && (
+              <li><Link className={item} href="/signin">Sign in</Link></li>
             )}
           </ul>
         </div>

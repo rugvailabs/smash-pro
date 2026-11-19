@@ -1,12 +1,58 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getCategories, getFeatured } from "@/lib/catalog";
+import { getCategories, getFeatured, getRecommended } from "@/lib/catalog";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { Bone } from "@/components/skeletons";
+
+/* Two-journey promo band (PORTAL-PRINCIPLES §2: "Buy for your institution" /
+   "Supply to Smash Pro" are the site's only conversions). The supplier half
+   already existed at the page foot; this adds its buyer-facing counterpart
+   using the same institutional photograph referenced elsewhere on the site
+   (public-nav.tsx InstitutionsPanel) — no new imagery introduced. */
+function InstitutionPromoBand() {
+  return (
+    <section className="py-11 md:py-16">
+      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+        <div className="relative grid overflow-hidden rounded-[2px] border border-n200 bg-chalk md:grid-cols-[1fr_1.1fr]">
+          <div className="flex flex-col justify-center px-6 py-9 md:px-10 md:py-0">
+            <Kick>For schools · academies · colleges · retailers</Kick>
+            <h2 className="stretch-xp font-display text-2xl font-bold tracking-tight text-ink md:text-[33px]">
+              Equip your institution.
+            </h2>
+            <p className="-mt-1 mb-6 mt-3 max-w-[48ch] text-[15px] text-n600">
+              One organisation account, every sport, approved institutional
+              pricing on sign-off — register once and order with 100% advance
+              payment, managed end to end by Smash Pro.
+            </p>
+            <div className="flex flex-wrap gap-3.5">
+              <RoleGate show={["visitor", "pending"]}>
+                <Link href="/register" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
+                  Register your institution
+                </Link>
+              </RoleGate>
+              <RoleGate show={["buyer"]}>
+                <Link href="/dashboard" className="inline-flex h-12 items-center rounded-[2px] bg-ember-deep px-6 text-sm font-semibold text-white transition-colors hover:bg-ember-press">
+                  Open your dashboard
+                </Link>
+              </RoleGate>
+              <Link href="/catalog?cat=cricket" className="inline-flex h-12 items-center rounded-[2px] border border-n400 px-6 text-sm font-semibold text-ink transition-colors hover:border-ink">
+                Browse the catalogue
+              </Link>
+            </div>
+          </div>
+          <div className="relative hidden aspect-[16/9] md:block">
+            <Image src="/img/hero/slide-institutional.png" alt="" fill sizes="50vw" className="object-cover" />
+            <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-chalk/10" />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /* Home — hero, category grid, featured pricing, how-it-works, supplier band.
    T3a: public full press — display type on the approved scale (33/42/56),
@@ -40,6 +86,111 @@ function SectionHead({ title, more, moreHref, onInk = false }: { title: string; 
   );
 }
 
+/* Proof strip — three confirmed, real platform facts (no invented stats;
+   PORTAL-PRINCIPLES §2: "proof over promise", never a fabricated metric).
+   Sits on the hero's ink ground as a quiet credibility band before the
+   section seam hands off to the paper canvas below. */
+function ProofStrip() {
+  const FACTS: [string, string][] = [
+    ["12", "sports in one wholesale catalogue"],
+    ["100%", "advance payment — no postpaid credit"],
+    ["1", "counterparty for order, delivery and resolution"],
+  ];
+  return (
+    <div className="border-t border-white/10 bg-ink">
+      <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-x-6 gap-y-4 px-4 py-5 sm:grid-cols-3 md:px-10 md:py-6">
+        {FACTS.map(([n, label]) => (
+          <div key={label} className="flex items-baseline gap-2.5">
+            <span className="num font-display text-xl font-bold text-ember md:text-2xl">{n}</span>
+            <span className="text-[13px] leading-tight text-white/70 md:text-[13.5px]">{label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* Two-up merchandising banners — large, image-led entry points into the
+   two deepest sample categories today (Cricket, Football). Distinct from
+   the full 12-category directory grid below: this is curated highlight,
+   that is complete browse. Imagery is the existing category hero set —
+   nothing new is introduced. */
+function FeatureDuo() {
+  const FEATURES: { slug: string; label: string; note: string }[] = [
+    { slug: "cricket", label: "Cricket", note: "Bats, protection, kit bags & ground equipment" },
+    { slug: "football", label: "Football", note: "Match & training balls for every squad size" },
+  ];
+  return (
+    <section className="border-b border-n200 bg-chalk py-11 md:py-16">
+      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+        <Kick>Popular with institutions</Kick>
+        <SectionHead title="Shop the essentials." />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {FEATURES.map((f) => {
+            const hero = CATEGORY_HERO[f.slug] ?? null;
+            return (
+              <Link key={f.slug} href={`/catalog?cat=${f.slug}`} className="group relative block overflow-hidden rounded-[2px]">
+                <div className="relative aspect-[16/9] w-full overflow-hidden bg-n100 sm:aspect-[4/3]">
+                  {hero && (
+                    <Image
+                      src={hero}
+                      alt=""
+                      fill
+                      sizes="(min-width:768px) 50vw, 100vw"
+                      className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+                    />
+                  )}
+                  <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/20 to-transparent" />
+                  <div className="absolute inset-x-0 bottom-0 p-5 md:p-6">
+                    <span className="stretch-xp block font-display text-[22px] font-bold text-chalk md:text-[26px]">{f.label}</span>
+                    <span className="mt-1 block max-w-[40ch] text-[13px] text-white/80">{f.note}</span>
+                    <span className="mt-3 inline-flex items-center gap-1.5 text-[13px] font-semibold text-ember underline-offset-4 group-hover:underline">
+                      Shop {f.label.toLowerCase()}
+                      <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* Single full-width collection banner — one large image, one heading, one
+   line of support copy, one CTA. Companion to FeatureDuo's pair; together
+   they cover the "collection banners" merchandising slot. Real category
+   imagery only (Gym & Fitness), no invented campaign name. */
+function SingleCollectionBanner() {
+  const hero = CATEGORY_HERO["gym-fitness"] ?? null;
+  return (
+    <section className="border-b border-n200">
+      <Link href="/catalog?cat=gym-fitness" className="group relative block h-[280px] w-full overflow-hidden bg-ink md:h-[360px]">
+        {hero && (
+          <Image src={hero} alt="" fill sizes="100vw" className="object-cover opacity-80 transition-transform duration-300 ease-out group-hover:scale-[1.03]" />
+        )}
+        <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-ink/10" />
+        <div className="relative mx-auto flex h-full max-w-[1280px] items-center px-4 md:px-10">
+          <div className="max-w-[520px]">
+            <span className="font-mono text-[11px] uppercase tracking-[.09em] text-ember">Gym &amp; Fitness</span>
+            <h2 className="stretch-xp mt-2 font-display text-[30px] font-bold leading-[1.05] tracking-tight text-chalk md:text-[42px]">
+              Strength &amp; conditioning, outfitted.
+            </h2>
+            <p className="mt-3 max-w-[42ch] text-[14px] text-white/80 md:text-[15px]">
+              Free weights, plates and training essentials for institutional gyms and conditioning programmes.
+            </p>
+            <span className="mt-5 inline-flex h-11 items-center rounded-[2px] border border-white/35 px-5 text-sm font-semibold text-white transition-colors group-hover:border-white">
+              Shop gym &amp; fitness
+            </span>
+          </div>
+        </div>
+      </Link>
+    </section>
+  );
+}
+
 /** 16° section seam (VISUAL-IDENTITY §6) — the upper ink surface carries
  *  into the next band along the brand angle. Decorative only. */
 function SectionCut() {
@@ -68,6 +219,7 @@ export default function HomePage() {
   return (
     <main>
       <HeroCarousel />
+      <ProofStrip />
       <SectionCut />
       <Suspense fallback={<HomeSectionsSkeleton />}>
         <HomeSections />
@@ -88,31 +240,34 @@ function HomeSectionsSkeleton() {
 }
 
 async function HomeSections() {
-  const [categories, featured] = await Promise.all([getCategories(), getFeatured()]);
+  const [categories, featured, recommended] = await Promise.all([
+    getCategories(), getFeatured(), getRecommended(),
+  ]);
 
   return (
     <>
+      <InstitutionPromoBand />
 
-      {/* categories */}
+      {/* categories — single horizontal row, scrollable, all 12 (library pattern
+          shared conceptually with category-strip.tsx but sized for a homepage
+          merchandising rail rather than the catalogue's compact secondary nav) */}
       <section className="border-b border-n200 bg-chalk pb-11 pt-6 md:pb-16 md:pt-8">
         <div className="mx-auto max-w-[1280px] px-4 md:px-10">
           <Kick>Catalogue</Kick>
           <SectionHead title="Every sport. One platform." more="Browse all →" moreHref="/catalog?cat=cricket" />
-          {/* image tile per category — name beneath, no product count.
-              Categories without approved imagery show the labelled frame. */}
-          <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 md:grid-cols-4 md:gap-x-4 lg:grid-cols-6">
+          <div className="edge-fade-x flex snap-x gap-4 overflow-x-auto pb-1">
             {categories.map((c) => {
               const hero = CATEGORY_HERO[c.slug] ?? null;
               return (
-                <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block">
-                  <div className="relative aspect-[4/5] overflow-hidden rounded-[2px] bg-n100">
+                <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block w-[132px] shrink-0 snap-start sm:w-[150px] md:w-[168px]">
+                  <div className="relative aspect-square overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
                     {hero ? (
                       <Image
                         src={hero}
                         alt={c.name}
                         fill
-                        sizes="(min-width:1024px) 16vw, (min-width:768px) 24vw, 50vw"
-                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.04]"
+                        sizes="168px"
+                        className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
                       />
                     ) : (
                       /* Library §4 placeholder — no substitute imagery */
@@ -130,7 +285,7 @@ async function HomeSections() {
                       </div>
                     )}
                   </div>
-                  <div className="mt-2.5 font-display text-[15px] font-bold leading-tight text-ink underline-offset-4 group-hover:text-ember-deep group-hover:underline md:text-base">
+                  <div className="mt-2.5 text-center font-display text-[14px] font-bold leading-tight text-ink group-hover:text-ember-deep md:text-[15px]">
                     {c.name}
                   </div>
                 </Link>
@@ -140,12 +295,29 @@ async function HomeSections() {
         </div>
       </section>
 
-      {/* featured */}
+      <FeatureDuo />
+
+      <SingleCollectionBanner />
+
+      {/* featured + recommended — homepage merchandising */}
       <section className="py-11 md:py-16">
         <div className="mx-auto max-w-[1280px] px-4 md:px-10">
           <Kick>Public pricing</Kick>
           <SectionHead title="Wholesale standards, in the open." more="All products →" moreHref="/catalog?cat=cricket" />
           <ProductGrid items={featured} />
+          <p className="mt-3 font-mono text-[10px] uppercase tracking-wide text-n400">
+            prices &amp; discounts are illustrative sample data — configured
+            percentages pending owner approval (OBD-20) · imagery is
+            representative, CC-licensed (see credits)
+          </p>
+        </div>
+      </section>
+
+      <section className="border-t border-n200 bg-chalk py-11 md:py-16">
+        <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+          <Kick>Recommended</Kick>
+          <SectionHead title="Recommended for institutions." more="All products →" moreHref="/catalog?cat=badminton" />
+          <ProductGrid items={recommended} />
           <p className="mt-3 font-mono text-[10px] uppercase tracking-wide text-n400">
             prices &amp; discounts are illustrative sample data — configured
             percentages pending owner approval (OBD-20) · imagery is

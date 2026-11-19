@@ -62,7 +62,7 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
   const active = pathname.startsWith("/catalog");
 
   const [open, setOpen] = useState(false);
-  const [panelTop, setPanelTop] = useState<number>(111);
+  const [panelTop, setPanelTop] = useState<number>(130);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -170,7 +170,7 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
         onFocus={() => clearTimers()}
         onKeyDown={onTriggerKey}
         className={
-          "flex h-[46px] items-center gap-1.5 whitespace-nowrap px-3.5 text-sm font-medium " +
+          "flex h-[50px] items-center gap-1.5 whitespace-nowrap px-3.5 text-sm font-medium " +
           (active || open
             ? "font-semibold text-ink shadow-[inset_0_-2px_0_var(--color-ember)]"
             : "text-n800 hover:text-ink")
@@ -193,7 +193,7 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
           className="pointer-events-none fixed inset-x-0 z-30"
           style={{ top: panelTop }}
         >
-          <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+          <div className="mx-auto max-w-[1360px] px-4 md:px-10">
             <div
               className={
                 "pointer-events-auto overflow-hidden rounded-b-[4px] border border-t-0 border-n200 bg-chalk shadow-overlay transition-all duration-150 ease-out " +
@@ -219,17 +219,17 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
                 </Link>
               </div>
 
-              <div className="grid grid-cols-[1fr_340px]">
+              <div className="grid grid-cols-[1fr_380px]">
                 {/* LEFT — Shop by Sport: image-led tiles (reused visitor tiles) */}
-                <div className="px-6 py-5">
+                <div className="px-7 py-6">
                   <SectionLabel title="Shop by Sport" href="/catalog?cat=cricket" go={go} />
-                  <div className="grid grid-cols-3 gap-x-3.5 gap-y-3.5">
+                  <div className="grid grid-cols-3 gap-x-4 gap-y-4">
                     {SPORT_TILES.map((t) => <SportTile key={t.slug} t={t} onNavigate={go} />)}
                   </div>
                 </div>
 
                 {/* RIGHT — Equipment rows + Popular products */}
-                <div className="flex flex-col border-l border-n200 bg-paper/40 px-6 py-5">
+                <div className="flex flex-col border-l border-n200 bg-paper/40 px-7 py-6">
                   <SectionLabel title="Shop by Equipment" href="/catalog?cat=gym-fitness" go={go} />
                   <div className="flex flex-col">
                     {EQUIPMENT_TILES.map((t) => <EquipmentRow key={t.slug} t={t} onNavigate={go} />)}

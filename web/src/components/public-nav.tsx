@@ -52,18 +52,20 @@ export function SectionLabel({ title, href, go }: { title: string; href: string;
 export function SportTile({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
   return (
     <Link href={t.href} onClick={onNavigate} data-panel-item className="group block">
-      <div className="relative aspect-[16/10] overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ink/25">
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
         {t.hero ? (
-          <Image src={t.hero} alt="" fill sizes="180px" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.06]" />
+          <Image src={t.hero} alt="" fill sizes="220px" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.07]" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundImage: HATCH }}>
             <span className="bg-n100 px-1 font-mono text-[9px] uppercase tracking-wide text-n400">imagery pending</span>
           </div>
         )}
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/80 via-ink/10 to-transparent p-2.5 pt-6">
+          <span className="block font-display text-[13px] font-semibold tracking-tight text-chalk">
+            {t.label}
+          </span>
+        </div>
       </div>
-      <span className="mt-1.5 block font-display text-[12.5px] font-semibold tracking-tight text-ink transition-colors group-hover:text-ember-deep">
-        {t.label}
-      </span>
     </Link>
   );
 }
@@ -72,9 +74,9 @@ export function SportTile({ t, onNavigate }: { t: NavTile; onNavigate: () => voi
 export function EquipmentRow({ t, onNavigate }: { t: NavTile; onNavigate: () => void }) {
   return (
     <Link href={t.href} onClick={onNavigate} data-panel-item className="group flex items-center gap-3.5 border-b border-n100 py-3.5 last:border-b-0">
-      <div className="relative h-[52px] w-[72px] shrink-0 overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ink/25">
+      <div className="relative h-[64px] w-[88px] shrink-0 overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
         {t.hero ? (
-          <Image src={t.hero} alt="" fill sizes="72px" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.07]" />
+          <Image src={t.hero} alt="" fill sizes="88px" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.07]" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundImage: HATCH }}>
             <span className="bg-n100 px-1 font-mono text-[8px] uppercase tracking-wide text-n400">pending</span>
@@ -107,17 +109,17 @@ function GroupHead({ title, href, cta }: { title: string; href: string; cta: str
 
 function SportsPanel({ go }: { go: () => void }) {
   return (
-    <div className="grid grid-cols-[58fr_42fr]">
-      {/* LEFT ~58% — Shop by Sport: compact, consistent image-tile grid */}
-      <div className="px-6 py-5">
+    <div className="grid grid-cols-[62fr_38fr]">
+      {/* LEFT ~62% — Shop by Sport: larger image-tile grid, one row per 3 */}
+      <div className="px-7 py-6">
         <SectionLabel title="Shop by Sport" href="/catalog?cat=cricket" go={go} />
-        <div className="grid grid-cols-3 gap-x-3.5 gap-y-3.5">
+        <div className="grid grid-cols-3 gap-x-4 gap-y-4">
           {SPORT_TILES.map((t) => <SportTile key={t.slug} t={t} onNavigate={go} />)}
         </div>
       </div>
-      {/* RIGHT ~42% — Shop by Equipment: horizontal image-and-text rows,
+      {/* RIGHT ~38% — Shop by Equipment: horizontal image-and-text rows,
           vertically centred so the short list reads as composed, not stretched */}
-      <div className="flex flex-col border-l border-n200 bg-paper/40 px-6 py-5">
+      <div className="flex flex-col border-l border-n200 bg-paper/40 px-7 py-6">
         <SectionLabel title="Shop by Equipment" href="/catalog?cat=gym-fitness" go={go} />
         <div className="flex flex-1 flex-col justify-center">
           {EQUIPMENT_TILES.map((t) => <EquipmentRow key={t.slug} t={t} onNavigate={go} />)}
@@ -217,7 +219,7 @@ export function PublicNavDesktop() {
   const pathname = usePathname();
   const [openKey, setOpenKey] = useState<Key | null>(null);
   const [shown, setShown] = useState(false);
-  const [panelTop, setPanelTop] = useState(111);
+  const [panelTop, setPanelTop] = useState(130);
 
   const wrapRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
@@ -277,7 +279,7 @@ export function PublicNavDesktop() {
   };
 
   const go = () => close();
-  const baseItem = "flex h-[46px] items-center gap-1.5 whitespace-nowrap px-3.5 text-sm font-medium transition-colors";
+  const baseItem = "flex h-[50px] items-center gap-1.5 whitespace-nowrap px-3.5 text-sm font-medium transition-colors";
   const idle = "text-n800 hover:text-ink";
   const activeCls = "font-semibold text-ink shadow-[inset_0_-2px_0_var(--color-ember)]";
 
@@ -315,7 +317,7 @@ export function PublicNavDesktop() {
 
       {openKey && (
         <div className="pointer-events-none fixed inset-x-0 z-30" style={{ top: panelTop }} aria-label={PANEL_LABEL[openKey]}>
-          <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+          <div className="mx-auto max-w-[1360px] px-4 md:px-10">
             <div className={"pointer-events-auto overflow-hidden rounded-b-[4px] border border-t-0 border-n200 bg-chalk shadow-overlay transition-all duration-150 ease-out " + (shown ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0")}>
               {openKey === "sports" && <SportsPanel go={go} />}
               {openKey === "institutions" && <InstitutionsPanel go={go} />}

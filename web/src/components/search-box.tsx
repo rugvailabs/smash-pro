@@ -98,7 +98,7 @@ export function SearchBox({
     <form
       ref={rootRef}
       role="search"
-      className={variant === "header" ? "relative hidden max-w-[460px] flex-1 md:block" : "relative"}
+      className={variant === "header" ? "relative hidden max-w-[680px] flex-1 md:block" : "relative"}
       onSubmit={(e) => {
         e.preventDefault();
         if (active >= 0 && showPanel) { go(items[active].href); return; }
@@ -107,6 +107,16 @@ export function SearchBox({
         router.push(`/search?q=${encodeURIComponent(q)}`);
       }}
     >
+      <svg
+        viewBox="0 0 24 24" aria-hidden
+        className={
+          "pointer-events-none absolute left-3.5 top-1/2 h-[18px] w-[18px] -translate-y-1/2 fill-none stroke-current text-white/55"
+        }
+        strokeWidth="2"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path d="M21 21l-4.3-4.3" strokeLinecap="round" />
+      </svg>
       <input
         name="q"
         type="search"
@@ -121,7 +131,10 @@ export function SearchBox({
         onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(-1); }}
         onFocus={() => setOpen(true)}
         onKeyDown={onKeyDown}
-        className="h-10 w-full rounded-[2px] border border-white/25 bg-ink2 px-3 text-base text-white placeholder:text-white/45 md:text-sm"
+        className={
+          "w-full rounded-[4px] border border-white/25 bg-ink2 pl-10 pr-3 text-base text-white placeholder:text-white/45 md:text-sm " +
+          (variant === "header" ? "h-12" : "h-10")
+        }
       />
       {showPanel && (
         <ul

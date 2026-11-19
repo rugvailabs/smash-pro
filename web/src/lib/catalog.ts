@@ -41,6 +41,20 @@ export async function getFeatured(): Promise<Product[]> {
   return out;
 }
 
+/** A second curated real-SKU row, distinct from getFeatured() — same
+ *  mechanism (fixed catalogue picks), different products. No "new arrivals"
+ *  equivalent exists: the schema carries no created/listed-date field, so
+ *  that section is never built from invented recency. */
+export async function getRecommended(): Promise<Product[]> {
+  const picks = ["FB-0105", "TN-0103", "AT-0115", "GF-0104"];
+  const out: Product[] = [];
+  for (const sku of picks) {
+    const p = await getProductBySku(sku);
+    if (p) out.push(p as Product);
+  }
+  return out;
+}
+
 /** Procurement-relevant cross-sell: same-category items only. Returns an
  *  empty list when the category has no other items — the caller hides the
  *  section rather than padding it with unrelated products. */
