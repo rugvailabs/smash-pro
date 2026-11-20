@@ -1,12 +1,12 @@
 import type {
-  AdminAnalytics, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
+  AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminReport, AdminRequirementDetail,
   AdminRequirementRow, AuditLogPage, BuyerTypeDiscountRow, Reconciliation,
   SupplierPerformanceRow,
 } from "@/lib/admin-types";
 import {
-  adminCountsForSession, buyerTypeDiscountsForAdmin, complaintsForAdmin, getAnalytics,
+  adminCountsForSession, brandsForAdmin, buyerTypeDiscountsForAdmin, complaintsForAdmin, getAnalytics,
   getAuditLog, getOrganizationsFull, getReconciliation, getSupplierPerformance,
   orderForAdmin, ordersForAdmin, organizationForAdmin, organizationsForAdmin,
   paymentsForAdmin, posForAdmin, priceRulesForAdmin, productRequestsForAdmin,
@@ -38,6 +38,10 @@ export async function getProductsAdmin(): Promise<AdminProductRow[]> {
 
 export async function getPriceRulesAdmin(): Promise<AdminPriceRule[]> {
   return priceRulesForAdmin();
+}
+
+export async function getBrandsAdmin(): Promise<AdminBrandRow[]> {
+  return brandsForAdmin();
 }
 
 export async function getBuyerTypeDiscounts(): Promise<BuyerTypeDiscountRow[]> {

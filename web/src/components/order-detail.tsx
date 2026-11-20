@@ -131,7 +131,18 @@ export function OrderDetail({ order }: { order: Order }) {
 
           <Sect>Delivery</Sect>
           <Panel className="px-4 py-3">
-            <KV k="Ship to">{order.shipTo}</KV>
+            {/* deliveryMethod (OBD-22) governs warehouse-fulfilled orders only —
+                direct-shipment orders keep their own OBD-19 supplier→buyer flow. */}
+            {!order.direct && (
+              <KV k="Method">
+                {order.deliveryMethod === "managed" ? "Smash Pro delivery (free)"
+                  : order.deliveryMethod === "self-pickup" ? "Self-pickup from warehouse"
+                  : "Self-arranged courier"}
+              </KV>
+            )}
+            <KV k={!order.direct && order.deliveryMethod === "self-pickup" ? "Pickup location" : "Ship to"}>
+              {!order.direct && order.deliveryMethod === "self-pickup" ? (order.pickupNote ?? order.shipTo) : order.shipTo}
+            </KV>
             {order.dispatched && (
               <KV k="Dispatched">{order.dispatched} · transport ref <span className="font-mono text-[12.5px]">{order.transportRef}</span></KV>
             )}

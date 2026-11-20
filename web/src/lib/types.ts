@@ -53,6 +53,10 @@ export interface CartLine {
 export type PaymentMethod = "UPI" | "Card" | "Net Banking" | "NEFT" | "RTGS" | "Cheque";
 export type PaymentStatus = "confirmed" | "awaiting-verification" | "failed" | "cancelled-unpaid";
 export type OrderStatus = "placed" | "processing" | "dispatched" | "delivered" | "confirm-receipt" | "cancelled";
+/** Warehouse-fulfilled delivery method (OBD-22). Never charged to the buyer:
+ *  self-pickup/self-courier are the buyer's own arrangement; "managed" is
+ *  free and offered only at/above the OBD-22 order-value threshold. */
+export type DeliveryMethod = "managed" | "self-pickup" | "self-courier";
 
 export interface OrderLine {
   sku: string;
@@ -92,6 +96,13 @@ export interface Order {
     declaredAmount?: number;
   };
   shipTo: string;
+  /** OBD-22 — how a warehouse-fulfilled order reaches the buyer. Not
+   *  applicable to pure direct-shipment orders, which keep OBD-19's own
+   *  supplier→buyer flow regardless of this field's value. */
+  deliveryMethod: DeliveryMethod;
+  /** Pickup-location snapshot — present only when deliveryMethod is
+   *  "self-pickup" (OBD-22). */
+  pickupNote?: string;
   dispatched?: string;
   transportRef?: string;
   deliveredOn?: string;

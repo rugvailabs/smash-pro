@@ -48,13 +48,13 @@ export interface UiCartLine {
 interface CartCtx {
   lines: UiCartLine[];
   count: number;
-  summary: { itemsIncl: number; subtotalExGst: number; gst: number; shipping: number; total: number };
+  summary: { itemsIncl: number; subtotalExGst: number; gst: number; shipping: number; total: number; freeDeliveryEligible: boolean };
   add: (sku: string, qty: number, config?: RacquetConfig) => Promise<void>;
   setQty: (key: string, qty: number) => Promise<void>;
   remove: (key: string) => Promise<void>;
   clear: () => Promise<void>;
 }
-const EMPTY_SUMMARY = { itemsIncl: 0, subtotalExGst: 0, gst: 0, shipping: 0, total: 0 };
+const EMPTY_SUMMARY = { itemsIncl: 0, subtotalExGst: 0, gst: 0, shipping: 0, total: 0, freeDeliveryEligible: false };
 const CartContext = createContext<CartCtx>({
   lines: [], count: 0, summary: EMPTY_SUMMARY,
   add: async () => {}, setQty: async () => {}, remove: async () => {}, clear: async () => {},
@@ -154,7 +154,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       lines: (cart?.lines ?? []) as UiCartLine[],
       count: cart?.count ?? 0,
       summary: cart
-        ? { itemsIncl: cart.itemsIncl, subtotalExGst: cart.subtotalExGst, gst: cart.gst, shipping: cart.shipping, total: cart.total }
+        ? { itemsIncl: cart.itemsIncl, subtotalExGst: cart.subtotalExGst, gst: cart.gst, shipping: cart.shipping, total: cart.total, freeDeliveryEligible: cart.freeDeliveryEligible }
         : EMPTY_SUMMARY,
       add, setQty, remove, clear,
     }),

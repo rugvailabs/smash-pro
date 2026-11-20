@@ -9,7 +9,7 @@ export async function GET() {
     const cart = await cartForSession();
     // visitors/pending/suppliers have no server cart — empty shape, no 401
     // (the UI gates ordering; this endpoint leaks nothing)
-    return json(cart ?? { lines: [], count: 0, itemsIncl: 0, subtotalExGst: 0, gst: 0, shipping: 0, total: 0 });
+    return json(cart ?? { lines: [], count: 0, itemsIncl: 0, subtotalExGst: 0, gst: 0, shipping: 0, total: 0, freeDeliveryEligible: false });
   });
 }
 

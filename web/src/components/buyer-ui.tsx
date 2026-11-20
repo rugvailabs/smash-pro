@@ -96,7 +96,9 @@ export function GstCard({
       <div className="pb-1 text-xs text-n600">Rates per product HSN — pending tax confirmation</div>
       <div className="flex justify-between py-1 text-sm">
         <span>Shipping</span>
-        <span className="num">{shipping === null ? "—" : inr(shipping)}</span>
+        <span className="num">
+          {shipping === null ? "—" : shipping === 0 ? <span className="font-semibold text-ok">Free</span> : inr(shipping)}
+        </span>
       </div>
       <div className="mt-1.5 flex items-baseline justify-between border-t border-n400 pt-3">
         <b className="text-[15px] text-ink">{totalLabel}</b>

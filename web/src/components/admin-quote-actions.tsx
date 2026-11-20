@@ -144,9 +144,19 @@ export function QuoteActions({
 
 /* ---------- post-award: issue the purchase order ---------- */
 
-export function IssuePo({ quotationId, supplierName }: { quotationId: number; supplierName: string }) {
+export function IssuePo({
+  quotationId, supplierName, products = [],
+}: {
+  quotationId: number;
+  supplierName: string;
+  /** catalogue products to optionally link this PO line to, so Brand (and
+   *  any future product-linked data) resolves automatically — purely
+   *  informational, never changes the quotation's own price/qty/terms */
+  products?: { sku: string; name: string; brand: string | null }[];
+}) {
   const { busy, error, call } = useAdminCall();
   const [destination, setDestination] = useState<"warehouse" | "direct">("warehouse");
+  const [sku, setSku] = useState("");
 
   return (
     <div className="rounded-[2px] border border-n200 bg-chalk p-4">
@@ -170,10 +180,28 @@ export function IssuePo({ quotationId, supplierName }: { quotationId: number; su
             <option value="direct">Direct to buyer</option>
           </select>
         </div>
+        <div>
+          <label className="mb-1.5 block text-[13px] font-medium text-ink" htmlFor="po-sku">
+            Catalogue product (optional)
+          </label>
+          <select
+            id="po-sku"
+            value={sku}
+            onChange={(e) => setSku(e.target.value)}
+            className="h-10 w-64 rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink"
+          >
+            <option value="">Not linked to a catalogue product</option>
+            {products.map((p) => (
+              <option key={p.sku} value={p.sku}>
+                {p.sku} — {p.name}{p.brand ? ` (${p.brand})` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
         <button
           onClick={() =>
             void call("/api/admin/pos", {
-              body: { quotationId, destination },
+              body: { quotationId, destination, sku: sku || null },
               done: "Purchase order issued.",
             })
           }
@@ -185,7 +213,9 @@ export function IssuePo({ quotationId, supplierName }: { quotationId: number; su
       </div>
       <NoteFlag className="mt-2">
         direct shipment requires the supplier&rsquo;s direct privilege
-        (obd-19) — the server enforces this on issue
+        (obd-19) — the server enforces this on issue · linking a catalogue
+        product only resolves its brand for the purchase orders list, it
+        never changes price, quantity or terms (those stay the quotation&rsquo;s own)
       </NoteFlag>
       <ActionError error={error} />
     </div>

@@ -8,7 +8,7 @@ import { EmptyState } from "@/components/empty-state";
 import { AdminGate } from "@/components/admin-shell";
 import { AdminHead, catLabel, DestTag, statusTone } from "@/components/admin-ui";
 import { IssuePo, QuoteActions } from "@/components/admin-quote-actions";
-import { getAdminCounts, getRequirementAdmin } from "@/lib/admin-api";
+import { getAdminCounts, getProductsAdmin, getRequirementAdmin } from "@/lib/admin-api";
 import { inr } from "@/lib/format";
 import type { AdminQuoteView } from "@/lib/admin-types";
 
@@ -147,6 +147,7 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
   const { id } = await params;
   const req = await getRequirementAdmin(decodeURIComponent(id));
   if (!req) notFound();
+  const products = await getProductsAdmin();
 
   const awarded = req.quotes.find((q) => q.status === "awarded");
   const canAward = !awarded && !req.poId;
@@ -201,7 +202,13 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
           {awarded && !req.poId && (
             <div className="mt-7">
               <Sect>Next step</Sect>
-              <IssuePo quotationId={awarded.quotationId} supplierName={awarded.supplierName} />
+              <IssuePo
+                quotationId={awarded.quotationId}
+                supplierName={awarded.supplierName}
+                products={products
+                  .filter((p) => p.catSlug === req.catSlug)
+                  .map((p) => ({ sku: p.sku, name: p.name, brand: p.brand }))}
+              />
             </div>
           )}
           {req.poId && (

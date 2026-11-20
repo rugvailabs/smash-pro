@@ -98,7 +98,9 @@ export function CartView() {
             <span className="num">{inr(summary.itemsIncl)}</span>
           </div>
           <div className="pb-1.5 text-xs text-n600">
-            Full GST breakdown and any shipping charge appear at checkout
+            {summary.freeDeliveryEligible
+              ? "You're eligible for free Smash Pro delivery — choose it at checkout."
+              : "Full GST breakdown and delivery options appear at checkout."}
           </div>
           <div className="mt-2 flex items-baseline justify-between border-t border-n400 pt-3.5">
             <b className="text-[15px] text-ink">Order value so far</b>

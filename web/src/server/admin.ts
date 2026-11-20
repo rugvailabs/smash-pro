@@ -4,8 +4,9 @@ import { db, schema } from "@/server/db";
 import { audit, getSession, requireAdmin, type SessionUser } from "@/server/auth";
 import { notifyOrg } from "@/server/notifications";
 import { BUYER_TYPES, isBuyerTypeKey, type BuyerTypeKey } from "@/lib/buyer-types";
+import { resolveToPaise, type PriceMode } from "@/lib/pricing-calc";
 import type {
-  AdminAnalytics, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
+  AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminQuoteView, AdminReport,
   AdminRequirementDetail, AdminRequirementRow, AuditLogPage, AuditLogRow,
@@ -222,17 +223,87 @@ export async function productsForAdmin(): Promise<AdminProductRow[]> {
     .select()
     .from(schema.products)
     .orderBy(asc(schema.products.catSlug), asc(schema.products.sku));
+  const brands = await db.select({ id: schema.brands.id, name: schema.brands.name }).from(schema.brands);
+  const brandName = new Map(brands.map((b) => [b.id, b.name]));
   return rows.map((p) => ({
     sku: p.sku, name: p.name, catSlug: p.catSlug, sub: p.sub,
     std: r(p.stdPaise), active: p.active, configurable: p.configurable,
     hasImg: p.img !== null,
+    brand: p.brandId !== null ? brandName.get(p.brandId) ?? null : null,
   }));
+}
+
+/* ---------- brands (simple master list) ---------- */
+
+export async function brandsForAdmin(): Promise<AdminBrandRow[]> {
+  if (!(await adminSession())) return [];
+  const rows = await db.select().from(schema.brands).orderBy(asc(schema.brands.name));
+  const products = await db.select({ brandId: schema.products.brandId }).from(schema.products);
+  const counts = new Map<number, number>();
+  for (const p of products) {
+    if (p.brandId !== null) counts.set(p.brandId, (counts.get(p.brandId) ?? 0) + 1);
+  }
+  return rows.map((b) => ({
+    id: b.id, name: b.name, notes: b.notes,
+    productCount: counts.get(b.id) ?? 0,
+  }));
+}
+
+export async function createBrand(input: { name: string; notes?: string }): Promise<{ id: number }> {
+  const s = await requireAdmin();
+  const name = input.name.trim();
+  if (!name || name.length > 120) throw new Error("400:A brand name up to 120 characters is required");
+  const notes = (input.notes ?? "").trim();
+  if (notes.length > 300) throw new Error("400:Notes are too long");
+  const [existing] = await db.select({ id: schema.brands.id }).from(schema.brands).where(eq(schema.brands.name, name));
+  if (existing) throw new Error("409:A brand with this name already exists");
+  const [row] = await db
+    .insert(schema.brands)
+    .values({ name, notes: notes || null })
+    .returning({ id: schema.brands.id });
+  await audit(s.userId, "brand.create", "brand", String(row.id), { name });
+  return { id: row.id };
 }
 
 function assertStd(std: number) {
   if (typeof std !== "number" || !Number.isFinite(std) || std < 0.01 || std > 1_000_000) {
     throw new Error("400:Standard price must be between ₹0.01 and ₹10,00,000");
   }
+}
+
+/** Links to an ALREADY-APPROVED photo already committed under /img/ by the
+ *  photography programme (ADR-0005: no file bytes handled by the app; no
+ *  upload accepted here). Never a general URL — only this app's own
+ *  approved-imagery tree, so this can't be used to attach unapproved or
+ *  external imagery to a product. */
+function assertImgPath(img: string): string {
+  const trimmed = img.trim();
+  if (!/^\/img\/[a-z0-9/_-]+\.(jpg|jpeg|png|webp)$/i.test(trimmed)) {
+    throw new Error(
+      "400:Image path must point to an already-approved file under /img/ (e.g. /img/cricket/new-bat-hero.jpg) — this field links existing approved photography, it does not accept uploads"
+    );
+  }
+  return trimmed;
+}
+
+function assertMode(mode: unknown, label: string): PriceMode {
+  if (mode !== "percent" && mode !== "fixed") {
+    throw new Error(`400:${label} mode must be "percent" or "fixed"`);
+  }
+  return mode;
+}
+
+function assertEntryValue(value: unknown, mode: PriceMode, label: string): number {
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) {
+    throw new Error(`400:${label} must be a non-negative number`);
+  }
+  if (mode === "percent" && value > 1000) {
+    throw new Error(`400:${label} percentage looks out of range (max 1000%)`);
+  }
+  if (mode === "fixed" && value > 1_000_000) {
+    throw new Error(`400:${label} amount looks out of range (max ₹10,00,000)`);
+  }
+  return value;
 }
 
 function assertSpecs(specs: [string, string][]) {
@@ -247,12 +318,19 @@ function assertSpecs(specs: [string, string][]) {
   if (!ok) throw new Error("400:Specs must be label/value string pairs");
 }
 
-/** Create a catalogue product. img stays null until approved photography
- *  exists (no placeholder imagery); hsn stays null and is NEVER settable
- *  until OBD-20/OBD-11 resolve with professional tax validation. */
+/** Create a catalogue product. img links an ALREADY-APPROVED file already
+ *  committed under /img/ by the photography programme — it stays null
+ *  until the admin supplies that path (no upload, no placeholder imagery);
+ *  hsn stays null and is NEVER settable until OBD-20/OBD-11 resolve with
+ *  professional tax validation. */
 export async function createProduct(input: {
   sku: string; name: string; catSlug: string; sub: string;
-  meta?: string; std: number; specs?: [string, string][];
+  meta?: string; specs?: [string, string][];
+  mrp: number; // ₹, the cut-off/MRP price
+  purchaseMode: PriceMode; purchaseValue: number; // dealer/purchase price entry
+  marginMode: PriceMode; marginValue: number; // ProSmash margin entry
+  brandId?: number | null;
+  img?: string | null;
 }): Promise<{ sku: string }> {
   const s = await requireAdmin();
   const sku = input.sku.trim().toUpperCase();
@@ -265,9 +343,29 @@ export async function createProduct(input: {
   if (!name || name.length > 200) throw new Error("400:A product name up to 200 characters is required");
   if (!sub || sub.length > 120) throw new Error("400:A subtitle up to 120 characters is required");
   if (meta.length > 300) throw new Error("400:Meta is too long");
-  assertStd(input.std);
+  assertStd(input.mrp); // same ₹0.01–₹10,00,000 sanity bounds as a listed price
+  const purchaseMode = assertMode(input.purchaseMode, "Purchase price");
+  const purchaseValue = assertEntryValue(input.purchaseValue, purchaseMode, "Purchase price");
+  const marginMode = assertMode(input.marginMode, "Margin");
+  const marginValue = assertEntryValue(input.marginValue, marginMode, "Margin");
   const specs = input.specs ?? [];
   assertSpecs(specs);
+
+  let brandId: number | null = null;
+  if (input.brandId !== undefined && input.brandId !== null) {
+    const [b] = await db.select({ id: schema.brands.id }).from(schema.brands).where(eq(schema.brands.id, input.brandId));
+    if (!b) throw new Error("400:Unknown brand");
+    brandId = b.id;
+  }
+  const img = input.img ? assertImgPath(input.img) : null;
+
+  // resolved server-side from the raw entries — never trust a client-submitted total
+  const mrpPaise = Math.round(input.mrp * 100);
+  const purchasePaise = resolveToPaise(purchaseMode, purchaseValue, mrpPaise);
+  const marginPaise = resolveToPaise(marginMode, marginValue, mrpPaise);
+  const stdPaise = purchasePaise + marginPaise; // visitor selling price
+  assertStd(stdPaise / 100);
+
   const [cat] = await db
     .select({ slug: schema.categories.slug })
     .from(schema.categories)
@@ -279,12 +377,20 @@ export async function createProduct(input: {
     .where(eq(schema.products.sku, sku));
   if (existing) throw new Error("409");
   await db.insert(schema.products).values({
-    sku, name, catSlug: cat.slug, sub, meta,
-    stdPaise: Math.round(input.std * 100),
-    img: null, gallery: null, hsn: null,
+    sku, name, catSlug: cat.slug, sub, meta, brandId,
+    stdPaise, mrpPaise,
+    purchaseMode, purchaseValue, purchasePaise,
+    marginMode, marginValue, marginPaise,
+    img, gallery: null, hsn: null,
     configurable: false, directShip: false, specs, active: true,
   });
-  await audit(s.userId, "product.create", "product", sku, { catSlug: cat.slug, std: input.std });
+  await audit(s.userId, "product.create", "product", sku, {
+    catSlug: cat.slug, mrp: input.mrp,
+    purchaseMode, purchaseValue, purchasePaise,
+    marginMode, marginValue, marginPaise,
+    brandId, img,
+    std: r(stdPaise),
+  });
   return { sku };
 }
 
@@ -579,6 +685,8 @@ export async function orderForAdmin(id: string): Promise<AdminOrderDetail | null
     paymentStatusLabel: pay?.statusLabel ?? "",
     lineCount: lines.length,
     shipTo: o.shipTo,
+    deliveryMethod: o.deliveryMethod as "managed" | "self-pickup" | "self-courier",
+    pickupNote: o.pickupNote,
     rail: o.rail,
     lines: lines.map((l) => ({
       sku: l.sku, name: l.name, qty: l.qty,
@@ -918,12 +1026,20 @@ export async function posForAdmin(): Promise<AdminPoRow[]> {
     .select({ id: schema.organizations.id, name: schema.organizations.name })
     .from(schema.organizations);
   const orgName = new Map(orgs.map((o) => [o.id, o.name]));
+  // brand resolves PO → linked SKU → product → brand; never entered per-PO
+  const prods = await db.select({ sku: schema.products.sku, brandId: schema.products.brandId }).from(schema.products);
+  const brands = await db.select({ id: schema.brands.id, name: schema.brands.name }).from(schema.brands);
+  const brandName = new Map(brands.map((b) => [b.id, b.name]));
+  const brandBySku = new Map(prods.map((p) => [p.sku, p.brandId !== null ? brandName.get(p.brandId) ?? null : null]));
   return rows.map((p) => ({
     id: p.id,
     supplierName: orgName.get(p.supplierOrgId) ?? "",
     destination: p.destination as AdminPoRow["destination"],
     issued: p.issued,
-    lineName: p.lineName, lineQty: p.lineQty,
+    lineName: p.lineName,
+    sku: p.sku ?? null,
+    brand: p.sku ? brandBySku.get(p.sku) ?? null : null,
+    lineQty: p.lineQty,
     unit: r(p.unitPaise), value: r(p.valuePaise),
     fulfilment: p.fulfilment as AdminPoRow["fulfilment"],
     fulfilmentLabel: p.fulfilmentLabel,
@@ -936,7 +1052,7 @@ export async function posForAdmin(): Promise<AdminPoRow[]> {
 /** Issue a PO from an awarded quotation's latest version. Destination is
  *  admin-set (OBD-19 Option C — the supplier never chooses). */
 export async function createPo(input: {
-  quotationId: number; destination: string;
+  quotationId: number; destination: string; sku?: string | null;
 }): Promise<{ id: string }> {
   const s = await requireAdmin();
   if (input.destination !== "warehouse" && input.destination !== "direct") {
@@ -958,6 +1074,15 @@ export async function createPo(input: {
   const v = await latestVersion(q.id);
   if (!v) throw new Error("409");
 
+  // optional — links this PO line to a catalogue product so Brand resolves
+  // automatically; does not change pricing (that stays the quotation's own)
+  let sku: string | null = null;
+  if (input.sku) {
+    const [p] = await db.select({ sku: schema.products.sku }).from(schema.products).where(eq(schema.products.sku, input.sku));
+    if (!p) throw new Error("400:Unknown product SKU");
+    sku = p.sku;
+  }
+
   const lineQty = parseLeadingInt(v.quantity) ?? parseLeadingInt(req.qty);
   if (!lineQty) {
     throw new Error("400:Could not determine the PO quantity from the quotation or requirement");
@@ -975,7 +1100,7 @@ export async function createPo(input: {
   await db.insert(schema.purchaseOrders).values({
     id, supplierOrgId: q.supplierOrgId, quotationId: q.id,
     destination: input.destination, issued,
-    lineName: req.title, lineQty,
+    lineName: req.title, sku, lineQty,
     unitPaise: v.unitPaise, valuePaise,
     // PO contract: a PO is issued in the `issued` state awaiting supplier
     // acknowledgement — the admin never short-circuits that step
@@ -995,7 +1120,7 @@ export async function createPo(input: {
     .set({ poId: id })
     .where(eq(schema.requirements.id, q.reqId));
   await audit(s.userId, "po.create", "purchase_order", id, {
-    quotationId: q.id, reqId: q.reqId, destination: input.destination, value: r(valuePaise),
+    quotationId: q.id, reqId: q.reqId, destination: input.destination, sku, value: r(valuePaise),
   });
   return { id };
 }

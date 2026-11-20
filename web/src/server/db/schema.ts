@@ -1,5 +1,5 @@
 import {
-  boolean, integer, jsonb, pgTable, serial, text, timestamp,
+  boolean, doublePrecision, integer, jsonb, pgTable, serial, text, timestamp,
 } from "drizzle-orm/pg-core";
 
 /* ============================================================
@@ -63,16 +63,40 @@ export const categories = pgTable("categories", {
   sortOrder: integer("sort_order").notNull().default(0),
 });
 
+/** Brand master list (simple: name + optional notes). A product carries at
+ *  most one brand, set once in the Add Product form — never re-typed per
+ *  purchase; purchase-order rows resolve brand through their linked SKU. */
+export const brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const products = pgTable("products", {
   sku: text("sku").primaryKey(),
   name: text("name").notNull(),
   catSlug: text("cat_slug").notNull().references(() => categories.slug),
   sub: text("sub").notNull(),
+  brandId: integer("brand_id").references(() => brands.id),
   img: text("img"), // null → labelled placeholder frame (no fake imagery)
   gallery: jsonb("gallery").$type<string[]>(),
   meta: text("meta").notNull().default(""),
-  /** standard listed price, GST-inclusive (OBD-03) */
+  /** standard listed price, GST-inclusive (OBD-03) — this IS the visitor
+   *  selling price; for products entered via the cost-based form below it
+   *  is purchasePaise + marginPaise, resolved server-side at save time */
   stdPaise: integer("std_paise").notNull(),
+  /** cut-off/MRP price shown struck through against the visitor selling
+   *  price; null for products predating this pricing-entry mode */
+  mrpPaise: integer("mrp_paise"),
+  /** dealer/purchase (cost) price — admin-only, never serialised publicly */
+  purchaseMode: text("purchase_mode"), // 'percent' (of MRP) | 'fixed'
+  purchaseValue: doublePrecision("purchase_value"), // raw entered number
+  purchasePaise: integer("purchase_paise"), // resolved ₹ paise
+  /** ProSmash margin — admin-only, never serialised publicly */
+  marginMode: text("margin_mode"), // 'percent' (of MRP) | 'fixed'
+  marginValue: doublePrecision("margin_value"), // raw entered number
+  marginPaise: integer("margin_paise"), // resolved ₹ paise
   configurable: boolean("configurable").notNull().default(false),
   specs: jsonb("specs").$type<[string, string][]>().notNull(),
   directShip: boolean("direct_ship").notNull().default(false),
@@ -158,6 +182,13 @@ export const orders = pgTable("orders", {
   shippingPaise: integer("shipping_paise"),
   totalPaise: integer("total_paise").notNull(),
   shipTo: text("ship_to").notNull(),
+  /** 'managed' | 'self-pickup' | 'self-courier' (OBD-22, ADR-0009). DB
+   *  default exists only to keep pre-existing seeded rows valid — the
+   *  application always passes this explicitly, never relies on it. */
+  deliveryMethod: text("delivery_method").notNull().default("managed"),
+  /** Pickup-location snapshot, set only when deliveryMethod = 'self-pickup'
+   *  (OBD-22) — a later address change never rewrites historical orders. */
+  pickupNote: text("pickup_note"),
   dispatchedAt: text("dispatched_at"),
   transportRef: text("transport_ref"),
   deliveredOn: text("delivered_on"),
@@ -252,6 +283,10 @@ export const purchaseOrders = pgTable("purchase_orders", {
   destination: text("destination").notNull(), // 'warehouse' | 'direct' (OBD-19 Option C)
   issued: text("issued").notNull(),
   lineName: text("line_name").notNull(),
+  /** optional catalogue product this line represents — lets Brand (and any
+   *  future product-linked data) resolve automatically; not all POs map to
+   *  a catalogue SKU (requirements are category/free-text, not SKU-based) */
+  sku: text("sku").references(() => products.sku),
   lineQty: integer("line_qty").notNull(),
   unitPaise: integer("unit_paise").notNull(),
   valuePaise: integer("value_paise").notNull(),

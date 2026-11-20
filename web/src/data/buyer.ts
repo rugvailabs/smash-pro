@@ -44,6 +44,9 @@ export const ORDERS: Order[] = [
       { sku: "BD-1104", name: "Feather Shuttlecocks — Tournament, Tube of 12", unit: 1054, qty: 30 },
     ],
     subtotalExGst: 116630, gst: 13930, shipping: 1200, total: 131760,
+    // Historical order, predates OBD-22 — original total retained (same
+    // precedent as OBD-20: confirmed orders are never repriced).
+    deliveryMethod: "managed",
     payment: {
       method: "NEFT",
       status: "awaiting-verification",
@@ -74,6 +77,7 @@ export const ORDERS: Order[] = [
       { sku: "BD-1104", name: "Feather Shuttlecocks — Tournament, Tube of 12", unit: 1054, qty: 5 },
     ],
     subtotalExGst: 45782, gst: 5490, shipping: 1200, total: 52472,
+    deliveryMethod: "managed",
     payment: {
       method: "UPI",
       status: "confirmed",
@@ -100,6 +104,9 @@ export const ORDERS: Order[] = [
       { sku: "VB-0231", name: "Volleyball — Match, Size 5", unit: 1915, qty: 12 },
     ],
     subtotalExGst: 20518, gst: 2462, shipping: 1200, total: 24180,
+    // direct: true — this is a supplier direct-shipment order (OBD-19),
+    // not covered by OBD-22; deliveryMethod is a harmless placeholder here.
+    deliveryMethod: "managed",
     payment: {
       method: "UPI",
       status: "confirmed",
@@ -134,6 +141,7 @@ export const ORDERS: Order[] = [
       { sku: "CR-0624", name: "Batting Gloves — Match Grade, Right Hand", unit: 833, qty: 12 },
     ],
     subtotalExGst: 56429, gst: 6760, shipping: 1200, total: 64389,
+    deliveryMethod: "managed",
     payment: {
       method: "Net Banking",
       status: "confirmed",
@@ -164,6 +172,7 @@ export const ORDERS: Order[] = [
       { sku: "CR-0901", name: "Practice Net — 60 × 10 ft, HDPE", unit: 2958, qty: 1 },
     ],
     subtotalExGst: 7992, gst: 950, shipping: null, total: 8942,
+    deliveryMethod: "managed",
     payment: {
       method: "Card",
       status: "cancelled-unpaid",

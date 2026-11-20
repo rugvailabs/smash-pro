@@ -12,9 +12,10 @@ import type { Address } from "@/lib/types";
    Checkout — OBD-08 (100% advance), OBD-20 (GST breakdown; rates
    per HSN pending — amounts unlabelled sample values), OBD-21
    (methods; online methods auto-confirm in the DEMO — no gateway
-   is selected, ADR-0006), OBD-19 ◇ (shipping payer presentation
-   pending — shown as a plain line). Placing the order is REAL:
-   it creates the order server-side from the server cart (I3).
+   is selected, ADR-0006), OBD-22 (delivery method: self-pickup /
+   self-arranged courier / free managed delivery at ₹50,000+ — no
+   COD, no paid managed tier). Placing the order is REAL: it
+   creates the order server-side from the server cart (I3).
    ============================================================ */
 
 const METHODS = [
@@ -23,26 +24,46 @@ const METHODS = [
   { key: "NEFT", name: "NEFT / RTGS or Cheque", note: "Upload payment proof — dispatch after admin verification" },
 ] as const;
 
+/** OBD-22 — free-delivery threshold, rupees (mirrors server FREE_DELIVERY_
+ *  THRESHOLD_PAISE). Managed delivery is only offered at/above this; below
+ *  it, self-pickup or a self-arranged courier are the only options. */
+const FREE_DELIVERY_THRESHOLD = 50000;
+const PICKUP_ADDRESS_PLACEHOLDER = "Smash Pro warehouse — address pending confirmation (OBD-22)";
+
+type DeliveryKey = "managed" | "self-pickup" | "self-courier";
+
 export function CheckoutView({ addresses }: { addresses: Address[] }) {
   const { lines, summary } = useCart();
   const router = useRouter();
   const [addr, setAddr] = useState(0);
   const [method, setMethod] = useState<(typeof METHODS)[number]["key"]>("UPI");
+  const eligible = summary.freeDeliveryEligible;
+  const [delivery, setDelivery] = useState<DeliveryKey>(eligible ? "managed" : "self-pickup");
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const DELIVERY_OPTIONS: { key: DeliveryKey; name: string; note: string; disabled?: boolean }[] = [
+    eligible
+      ? { key: "managed", name: "Smash Pro delivery — Free", note: "We deliver to your address. Free for orders ₹50,000 and above." }
+      : { key: "managed", name: "Smash Pro delivery", note: `Free from ₹50,000 — add ${inr(FREE_DELIVERY_THRESHOLD - summary.itemsIncl)} more to unlock`, disabled: true },
+    { key: "self-pickup", name: "Pick up from our warehouse", note: PICKUP_ADDRESS_PLACEHOLDER },
+    { key: "self-courier", name: "Book your own courier (Porter, Rapido, Uber, etc.)", note: "You arrange and pay the courier directly — we'll have your order ready for collection." },
+  ];
 
   const placeOrder = async () => {
     if (placing) return;
     setPlacing(true);
     setError(null);
     try {
-      const shipTo = addresses[addr]
-        ? `${addresses[addr].label}, ${addresses[addr].detail.split("·")[0].trim()}`
-        : "Primary address";
+      const shipTo = delivery === "self-pickup"
+        ? PICKUP_ADDRESS_PLACEHOLDER
+        : addresses[addr]
+          ? `${addresses[addr].label}, ${addresses[addr].detail.split("·")[0].trim()}`
+          : "Primary address";
       const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ shipTo, method }),
+        body: JSON.stringify({ shipTo, method, deliveryMethod: delivery }),
       });
       const data = (await res.json()) as { orderId?: string; error?: string };
       if (!res.ok || !data.orderId) {
@@ -114,7 +135,34 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
           ))}
         </Panel>
 
-        <Sect>3 · Payment method</Sect>
+        <Sect>3 · Delivery method</Sect>
+        <div className="space-y-2.5">
+          {DELIVERY_OPTIONS.map((d) => (
+            <label
+              key={d.key}
+              className={
+                "flex gap-3 rounded-[2px] border bg-chalk p-4 " +
+                (d.disabled
+                  ? "cursor-not-allowed border-n200 opacity-60"
+                  : "cursor-pointer " + (delivery === d.key ? "border-ember-deep shadow-[inset_0_0_0_1px_var(--color-ember-deep)]" : "border-n200 hover:border-n400")
+                )
+              }
+            >
+              <input
+                type="radio" name="delivery" checked={delivery === d.key} disabled={d.disabled}
+                onChange={() => setDelivery(d.key)}
+                className="mt-1 accent-[var(--color-ember-deep)]"
+              />
+              <span className="text-sm">
+                <b className="text-ink">{d.name}</b>
+                <small className="block text-[13px] text-n600">{d.note}</small>
+              </span>
+            </label>
+          ))}
+        </div>
+        <NoteFlag className="mt-2">no cash on delivery — payment is always collected in advance (obd-08/obd-22)</NoteFlag>
+
+        <Sect>4 · Payment method</Sect>
         <div className="space-y-2.5">
           {METHODS.map((m) => (
             <label
@@ -157,9 +205,9 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
           confirmed payment. No credit facilities are offered.
         </Banner>
         <NoteFlag className="mt-2.5">
-          amounts illustrative · shipping payer presentation pending OBD-19 ◇ ·
-          GST rate labels pending OBD-20/OBD-11 · demo environment — no money
-          moves (gateway pending OBD-21)
+          amounts illustrative · delivery method per OBD-22 · GST rate labels
+          pending OBD-20/OBD-11 · demo environment — no money moves (gateway
+          pending OBD-21)
         </NoteFlag>
       </div>
 

@@ -65,6 +65,8 @@ function composeOrder(
       declaredAmount: pay?.declaredAmountPaise != null ? r(pay.declaredAmountPaise) : undefined,
     },
     shipTo: o.shipTo,
+    deliveryMethod: o.deliveryMethod as Order["deliveryMethod"],
+    pickupNote: o.pickupNote ?? undefined,
     dispatched: o.dispatchedAt ?? undefined,
     transportRef: o.transportRef ?? undefined,
     deliveredOn: o.deliveredOn ?? undefined,
@@ -157,9 +159,22 @@ export interface CartDto {
   gst: number;
   shipping: number;
   total: number;
+  /** OBD-22 — whether free Smash-Pro-managed delivery is available for this
+   *  cart's current items total (before any shipping line). */
+  freeDeliveryEligible: boolean;
 }
 
-const DEMO_SHIPPING_PAISE = 120000;
+/** OBD-22 — free managed-delivery threshold, GST-inclusive items total.
+ *  Below this, managed delivery is not offered at all (self-pickup or
+ *  self-arranged courier only); at/above it, managed delivery is free.
+ *  There is no paid managed-delivery tier. */
+export const FREE_DELIVERY_THRESHOLD_PAISE = 50_000_00;
+
+/** OBD-22 — single warehouse pickup location. Address is PENDING
+ *  CONFIRMATION (owner to supply the real address); this placeholder is
+ *  snapshotted onto any order that chooses self-pickup. */
+export const PICKUP_ADDRESS_PLACEHOLDER =
+  "Smash Pro warehouse — address pending confirmation (OBD-22)";
 
 /** Illustrative GST portion of GST-inclusive totals — rates per product HSN
  *  pending OBD-20/OBD-11; presentation split mirrors the approved preview. */
@@ -192,15 +207,18 @@ export async function cartForSession(): Promise<CartDto | null> {
     });
   }
   const { subtotal, gst } = gstSplit(itemsIncl);
-  const shipping = out.length ? DEMO_SHIPPING_PAISE : 0;
+  // OBD-22: warehouse-fulfilled orders never carry a shipping charge —
+  // self-pickup/self-courier are the buyer's own arrangement, and managed
+  // delivery (when eligible) is free. Shipping is always 0 here.
   return {
     lines: out,
     count: out.reduce((s2, l) => s2 + l.qty, 0),
     itemsIncl: r(itemsIncl),
     subtotalExGst: r(subtotal),
     gst: r(gst),
-    shipping: r(shipping),
-    total: r(itemsIncl + shipping),
+    shipping: 0,
+    total: r(itemsIncl),
+    freeDeliveryEligible: itemsIncl >= FREE_DELIVERY_THRESHOLD_PAISE,
   };
 }
 
@@ -294,6 +312,7 @@ export async function clearCart() {
 export async function createOrderFromCart(input: {
   shipTo: string;
   method: "UPI" | "Card" | "Net Banking" | "NEFT" | "RTGS" | "Cheque";
+  deliveryMethod: "managed" | "self-pickup" | "self-courier";
 }): Promise<{ orderId: string; paymentStatus: string }> {
   const s = await approvedBuyer();
   if (!s) throw new Error("401");
@@ -302,6 +321,13 @@ export async function createOrderFromCart(input: {
   // technical processing bound (integer-paise storage), not a business rule
   if (cart.total > 19_000_000) {
     throw new Error("400:Order total is too large to process in one order — please split it");
+  }
+  // OBD-22: managed delivery is only ever offered at/above the free-delivery
+  // threshold — re-validated server-side, never trusting the client's choice.
+  if (input.deliveryMethod === "managed" && !cart.freeDeliveryEligible) {
+    throw new Error(
+      "400:Smash Pro delivery is only available, free, for orders of ₹50,000 or more — choose self-pickup or your own courier for this order."
+    );
   }
 
   const rows = await db.select({ id: schema.orders.id }).from(schema.orders);
@@ -342,6 +368,8 @@ export async function createOrderFromCart(input: {
     shippingPaise: Math.round(cart.shipping * 100),
     totalPaise: Math.round(cart.total * 100),
     shipTo: input.shipTo,
+    deliveryMethod: input.deliveryMethod,
+    pickupNote: input.deliveryMethod === "self-pickup" ? PICKUP_ADDRESS_PLACEHOLDER : null,
   });
   await db.insert(schema.orderLines).values(
     cart.lines.map((l) => ({
@@ -357,7 +385,9 @@ export async function createOrderFromCart(input: {
     confirmedAt: offline ? null : `${placed}`,
   });
   await db.delete(schema.cartLines).where(eq(schema.cartLines.userId, s.userId));
-  await audit(s.userId, "order.create", "order", orderId, { method: input.method, total: cart.total });
+  await audit(s.userId, "order.create", "order", orderId, {
+    method: input.method, deliveryMethod: input.deliveryMethod, total: cart.total,
+  });
   return { orderId, paymentStatus: payStatus };
 }
 

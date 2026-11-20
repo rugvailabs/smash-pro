@@ -46,6 +46,15 @@ export interface AdminProductRow {
   active: boolean;
   configurable: boolean;
   hasImg: boolean;
+  brand: string | null;
+}
+
+export interface AdminBrandRow {
+  id: number;
+  name: string;
+  notes: string | null;
+  /** products currently assigned to this brand */
+  productCount: number;
 }
 
 /** LEGACY — product-category / per-org / per-product rules (superseded by
@@ -90,6 +99,9 @@ export interface AdminOrderRow {
 
 export interface AdminOrderDetail extends AdminOrderRow {
   shipTo: string;
+  /** OBD-22 — data plumbing only; no admin UI change in this pass. */
+  deliveryMethod: "managed" | "self-pickup" | "self-courier";
+  pickupNote: string | null;
   rail: { label: string; date?: string; state: "done" | "cur" | "todo" }[];
   lines: { sku: string; name: string; qty: number; unit: number; total: number }[];
   subtotalExGst: number;
@@ -166,6 +178,11 @@ export interface AdminPoRow {
   destination: "warehouse" | "direct";
   issued: string;
   lineName: string;
+  /** catalogue SKU this line represents, if the admin linked one at issue time */
+  sku: string | null;
+  /** resolved via sku → product → brand; null when no SKU is linked or the
+   *  linked product has no brand assigned */
+  brand: string | null;
   lineQty: number;
   unit: number;
   value: number;

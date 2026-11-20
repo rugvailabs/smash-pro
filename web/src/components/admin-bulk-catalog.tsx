@@ -79,7 +79,7 @@ export function BulkCatalog({ products }: { products: AdminProductRow[] }) {
       <ActionError error={error} className="mb-2.5 mt-0" />
 
       <div className="overflow-x-auto overflow-y-auto rounded-[2px] border border-n200 bg-chalk" style={{ maxHeight: 620 }}>
-        <table className="w-full border-collapse text-sm" style={{ minWidth: 1020 }}>
+        <table className="w-full border-collapse text-sm" style={{ minWidth: 1120 }}>
           <thead>
             <tr>
               <th className={`${thCls} w-10`}>
@@ -94,7 +94,7 @@ export function BulkCatalog({ products }: { products: AdminProductRow[] }) {
                   className="h-3.5 w-3.5 accent-ember-deep align-middle"
                 />
               </th>
-              {["SKU", "Product", "Category", "Sub"].map((h) => (
+              {["SKU", "Product", "Category", "Sub", "Brand"].map((h) => (
                 <th key={h} className={thCls}>{h}</th>
               ))}
               <th className={`${thCls} text-right`}>Std price</th>
@@ -125,6 +125,7 @@ export function BulkCatalog({ products }: { products: AdminProductRow[] }) {
                   </td>
                   <td className={tdCls}>{catLabel(p.catSlug)}</td>
                   <td className={tdCls}>{p.sub}</td>
+                  <td className={tdCls}>{p.brand ?? <span className="text-n400">—</span>}</td>
                   <td className={`${tdCls} whitespace-nowrap text-right`}>
                     <StdPriceCell sku={p.sku} std={p.std} />
                   </td>

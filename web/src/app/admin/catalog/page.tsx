@@ -7,7 +7,7 @@ import { AdminGate } from "@/components/admin-shell";
 import { AdminHead } from "@/components/admin-ui";
 import { BulkCatalog } from "@/components/admin-bulk-catalog";
 import { ProductForm } from "@/components/admin-product-form";
-import { getAdminCounts, getProductsAdmin } from "@/lib/admin-api";
+import { getAdminCounts, getBrandsAdmin, getProductsAdmin } from "@/lib/admin-api";
 
 /* ADM catalogue — the master product list. Standard listed price is
    public (OBD-03) and editable inline; active controls catalogue
@@ -29,6 +29,7 @@ async function AdminCatalogContent() {
   if (!counts) return <AdminGate />;
 
   const products = await getProductsAdmin();
+  const brands = await getBrandsAdmin();
   const active = products.filter((p) => p.active).length;
   const noPhoto = products.filter((p) => !p.hasImg).length;
 
@@ -58,7 +59,7 @@ async function AdminCatalogContent() {
       <div className="mt-8 grid items-start gap-7 lg:grid-cols-[7fr_5fr]">
         <div className="min-w-0">
           <Sect>Add product</Sect>
-          <ProductForm />
+          <ProductForm brands={brands} />
         </div>
         <div className="min-w-0">
           <Sect>Catalogue rules</Sect>
