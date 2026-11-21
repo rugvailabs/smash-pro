@@ -15,13 +15,14 @@ import type { AdminProductRow } from "@/lib/admin-types";
    Bulk catalogue operations: a client-side search + category/brand
    filter bar (the full list is already fetched, so filtering is
    instant — no round trip) over row checkboxes + a bulk action bar
-   (activate / deactivate the selection), layered OVER the existing
-   single-item inline controls (Active/inStock toggles stay fully
-   functional on filtered rows). Every other field used to have its
-   own per-cell inline edit here; those were removed once the
-   row-level "Edit" action (last column) covered all of them in one
-   consolidated form — the table displays those values as plain
-   text/read-only now. Plus a category-default discount quick form
+   (activate / deactivate the selection, and bulk-set category/
+   subcategory/brand — the fix for having to open the per-row Edit
+   action one SKU at a time after a large Excel import, ADR-0017),
+   layered OVER the existing single-item inline controls (Active/
+   inStock toggles stay fully functional on filtered rows). Every
+   OTHER field (margin/price, HSN, MSP, colour, size, image) still
+   only has the row-level "Edit" action (last column) — a consolidated
+   per-product form. Plus a category-default discount quick form
    (OBD-20 decided structure — upsert the category-default rule).
    Every mutation is one audited server action.
    ============================================================ */
@@ -34,6 +35,13 @@ export function BulkCatalog({
   const [q, setQ] = useState("");
   const [catFilter, setCatFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
+
+  // bulk-apply toolbar (category/sub/brand) — "" means "leave unchanged"
+  // for that field; only non-empty fields are sent, so partial updates
+  // (e.g. just the subcategory) don't touch the others
+  const [bulkCat, setBulkCat] = useState("");
+  const [bulkSub, setBulkSub] = useState("");
+  const [bulkBrand, setBulkBrand] = useState("");
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -72,6 +80,28 @@ export function BulkCatalog({
       })
     ) {
       setSel(new Set());
+    }
+  };
+
+  const bulkFieldsValid = bulkCat !== "" || bulkSub.trim() !== "" || bulkBrand !== "";
+
+  const applyBulkFields = async () => {
+    if (sel.size === 0 || !bulkFieldsValid) return;
+    const skus = [...sel];
+    const body: { skus: string[]; catSlug?: string; sub?: string; brandId?: number | null } = { skus };
+    if (bulkCat !== "") body.catSlug = bulkCat;
+    if (bulkSub.trim() !== "") body.sub = bulkSub.trim();
+    if (bulkBrand !== "") body.brandId = bulkBrand === "none" ? null : Number(bulkBrand);
+    if (
+      await call("/api/admin/products/bulk-update-fields", {
+        body,
+        done: `${skus.length} product${skus.length === 1 ? "" : "s"} updated.`,
+      })
+    ) {
+      setSel(new Set());
+      setBulkCat("");
+      setBulkSub("");
+      setBulkBrand("");
     }
   };
 
@@ -127,7 +157,7 @@ export function BulkCatalog({
       <div className="mb-2.5 flex min-h-9 flex-wrap items-center gap-2.5">
         {sel.size === 0 ? (
           <span className="font-mono text-[10px] uppercase tracking-wide text-n400">
-            select rows to activate or deactivate in bulk
+            select rows to activate, deactivate, or bulk-set category/subcategory/brand
           </span>
         ) : (
           <>
@@ -148,6 +178,50 @@ export function BulkCatalog({
           </>
         )}
       </div>
+
+      {sel.size > 0 && (
+        <div className="mb-3.5 flex flex-wrap items-end gap-3 rounded-[2px] border border-n200 bg-n100 p-3">
+          <div>
+            <label className={labelCls} htmlFor="bulk-cat">Set category</label>
+            <select
+              id="bulk-cat" value={bulkCat} onChange={(e) => setBulkCat(e.target.value)}
+              className={`${inputCls} w-44`}
+            >
+              <option value="">No change</option>
+              {ADMIN_CATEGORIES.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className={labelCls} htmlFor="bulk-sub">Set subcategory</label>
+            <input
+              id="bulk-sub" type="text" value={bulkSub} onChange={(e) => setBulkSub(e.target.value)}
+              placeholder="No change" className={`${inputCls} w-44`}
+            />
+          </div>
+          <div>
+            <label className={labelCls} htmlFor="bulk-brand">Set brand</label>
+            <select
+              id="bulk-brand" value={bulkBrand} onChange={(e) => setBulkBrand(e.target.value)}
+              className={`${inputCls} w-44`}
+            >
+              <option value="">No change</option>
+              <option value="none">No brand</option>
+              {brands.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            onClick={() => void applyBulkFields()}
+            disabled={busy || !bulkFieldsValid}
+            className={btnEmberSm}
+          >
+            {busy ? "Working…" : `Apply to ${sel.size} selected`}
+          </button>
+        </div>
+      )}
       <ActionError error={error} className="mb-2.5 mt-0" />
 
       {filtered.length === 0 ? (

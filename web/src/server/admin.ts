@@ -1810,6 +1810,62 @@ export async function bulkSetProductsActive(skus: string[], active: boolean): Pr
   return { count: valid.length };
 }
 
+/** Bulk-sets category/subcategory/brand for many products at once — the
+ *  fix for having to open the per-row Edit action one SKU at a time to
+ *  correct these after a large Excel import (ADR-0017). Every other
+ *  product-detail field (margin/price, HSN, MSP, colour, size, image)
+ *  still goes through `updateProduct`; this covers just the three
+ *  fields that most commonly need a one-shot correction across many
+ *  imported rows. Same catSlug/sub/brandId validation as updateProduct,
+ *  same 500-row cap/audit pattern as bulkSetProductsActive. */
+export async function bulkUpdateProductFields(
+  skus: string[],
+  patch: { catSlug?: string; sub?: string; brandId?: number | null },
+): Promise<{ count: number }> {
+  const s = await requireAdmin();
+  if (!Array.isArray(skus) || skus.length === 0) throw new Error("400:Select at least one product");
+  if (skus.length > 500) throw new Error("400:Too many products in one operation (max 500)");
+  const norm = [...new Set(skus.map((x) => String(x).trim().toUpperCase()).filter(Boolean))];
+  if (!norm.length) throw new Error("400:Select at least one product");
+  if (patch.catSlug === undefined && patch.sub === undefined && patch.brandId === undefined) {
+    throw new Error("400:Nothing to update");
+  }
+
+  const set: { catSlug?: string; sub?: string; brandId?: number | null } = {};
+  if (patch.catSlug !== undefined) {
+    const [cat] = await db
+      .select({ slug: schema.categories.slug })
+      .from(schema.categories)
+      .where(eq(schema.categories.slug, patch.catSlug));
+    if (!cat) throw new Error("400:Unknown category");
+    set.catSlug = cat.slug;
+  }
+  if (patch.sub !== undefined) {
+    const sub = patch.sub.trim();
+    if (!sub || sub.length > 120) throw new Error("400:A subtitle up to 120 characters is required");
+    set.sub = sub;
+  }
+  if (patch.brandId !== undefined) {
+    if (patch.brandId !== null) {
+      const [b] = await db.select({ id: schema.brands.id }).from(schema.brands).where(eq(schema.brands.id, patch.brandId));
+      if (!b) throw new Error("400:Unknown brand");
+    }
+    set.brandId = patch.brandId;
+  }
+
+  const known = new Set(
+    (await db.select({ sku: schema.products.sku }).from(schema.products)).map((x) => x.sku)
+  );
+  const valid = norm.filter((x) => known.has(x));
+  if (!valid.length) throw new Error("400:None of the selected products were found");
+
+  await db.update(schema.products).set(set).where(inArray(schema.products.sku, valid));
+  await audit(s.userId, "product.bulk-update-fields", "product", "bulk", {
+    patch, count: valid.length, skus: valid,
+  });
+  return { count: valid.length };
+}
+
 /** Upsert the category-default price rule (OBD-20 decided structure) for a
  *  category — the approved-buyer base discount tier. Reuses the same bp bounds
  *  as createPriceRule (0..9000). */
