@@ -47,7 +47,7 @@ async function AdminInvoicesContent() {
           minW={1100}
           cols={[
             { h: "Invoice" }, { h: "Requirement" }, { h: "Supplier" }, { h: "Supplier's invoice no." },
-            { h: "Supplier's date" }, { h: "Status" }, { h: "Total", right: true },
+            { h: "Supplier's date" }, { h: "Status" }, { h: "Total", right: true }, { h: "PDF" },
           ]}
         >
           {invoices.map((inv) => (
@@ -66,6 +66,11 @@ async function AdminInvoicesContent() {
               <td className={`${tdCls} whitespace-nowrap`}>{inv.supplierInvoiceDate}</td>
               <td className={tdCls}><Chip tone={statusTone(inv.status)}>{inv.status === "sent" ? "Sent" : "Draft"}</Chip></td>
               <td className={`${tdCls} num text-right font-semibold`}>{inr(inv.grandTotal)}</td>
+              <td className={tdCls}>
+                <a href={`/api/admin/invoices/${inv.id}/pdf`} className="text-[13px] font-semibold text-ember-deep hover:underline">
+                  Download
+                </a>
+              </td>
             </tr>
           ))}
         </AdminTable>

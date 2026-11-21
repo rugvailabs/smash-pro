@@ -139,8 +139,28 @@ async function AdminOrderDetailContent({ params }: { params: Promise<{ id: strin
             <AuditNote />
           </Panel>
 
-          <Sect>Ship to</Sect>
-          <Panel className="p-4 text-sm text-n800">{d.shipTo}</Panel>
+          <Sect>Delivery</Sect>
+          <Panel className="px-4 py-2">
+            {!d.direct && (
+              <KV k="Method">
+                {d.deliveryMethod === "managed" ? "Smash Pro delivery (free)"
+                  : d.deliveryMethod === "self-pickup" ? "Self-pickup from warehouse"
+                  : "Self-arranged courier"}
+              </KV>
+            )}
+            {!d.direct && d.deliveryMethod === "self-pickup" && (
+              <KV k="Pickup location">{d.pickupNote ?? d.shipTo}</KV>
+            )}
+            {!d.direct && d.deliveryMethod === "self-courier" && (
+              <>
+                <KV k="Collect from">{d.pickupNote ?? d.shipTo}</KV>
+                <KV k="Deliver to">{d.shipTo}</KV>
+              </>
+            )}
+            {(d.direct || d.deliveryMethod === "managed") && (
+              <KV k="Ship to">{d.shipTo}</KV>
+            )}
+          </Panel>
 
           <Sect>Payment</Sect>
           <Panel>

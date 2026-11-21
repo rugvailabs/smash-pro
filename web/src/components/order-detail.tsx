@@ -140,9 +140,18 @@ export function OrderDetail({ order }: { order: Order }) {
                   : "Self-arranged courier"}
               </KV>
             )}
-            <KV k={!order.direct && order.deliveryMethod === "self-pickup" ? "Pickup location" : "Ship to"}>
-              {!order.direct && order.deliveryMethod === "self-pickup" ? (order.pickupNote ?? order.shipTo) : order.shipTo}
-            </KV>
+            {!order.direct && order.deliveryMethod === "self-pickup" && (
+              <KV k="Pickup location">{order.pickupNote ?? order.shipTo}</KV>
+            )}
+            {!order.direct && order.deliveryMethod === "self-courier" && (
+              <>
+                <KV k="Collect from">{order.pickupNote ?? order.shipTo}</KV>
+                <KV k="Deliver to">{order.shipTo}</KV>
+              </>
+            )}
+            {(order.direct || order.deliveryMethod === "managed") && (
+              <KV k="Ship to">{order.shipTo}</KV>
+            )}
             {order.dispatched && (
               <KV k="Dispatched">{order.dispatched} · transport ref <span className="font-mono text-[12.5px]">{order.transportRef}</span></KV>
             )}

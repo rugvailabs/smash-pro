@@ -3,6 +3,7 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { audit, getSession, type SessionUser } from "@/server/auth";
 import { notifyAdmins } from "@/server/notifications";
+import { SMASH_PRO_PICKUP_ADDRESS } from "@/lib/company-profile";
 import { applyDiscountPaise, buyerTypeDiscountBp } from "@/server/pricing";
 import { RACQUET_OPTIONS } from "@/data/products";
 import type { BuyerRequest, Institution, Order, RacquetConfig } from "@/lib/types";
@@ -170,11 +171,13 @@ export interface CartDto {
  *  There is no paid managed-delivery tier. */
 export const FREE_DELIVERY_THRESHOLD_PAISE = 50_000_00;
 
-/** OBD-22 — single warehouse pickup location. Address is PENDING
- *  CONFIRMATION (owner to supply the real address); this placeholder is
- *  snapshotted onto any order that chooses self-pickup. */
-export const PICKUP_ADDRESS_PLACEHOLDER =
-  "Smash Pro warehouse — address pending confirmation (OBD-22)";
+/** OBD-22 — single warehouse pickup location, now confirmed (ADR-0018
+ *  amendment resolves the prior PENDING CONFIRMATION placeholder). Snapshotted
+ *  onto any order that chooses self-pickup OR a self-arranged courier — a
+ *  courier (Porter/Rapido/Uber, etc.) needs this same address to collect
+ *  from, exactly as a self-pickup buyer does. Never the supplier's own
+ *  address, which stays internal to Smash Pro ops. */
+export const PICKUP_ADDRESS_PLACEHOLDER = SMASH_PRO_PICKUP_ADDRESS;
 
 /** Illustrative GST portion of GST-inclusive totals — rates per product HSN
  *  pending OBD-20/OBD-11; presentation split mirrors the approved preview. */
@@ -369,7 +372,12 @@ export async function createOrderFromCart(input: {
     totalPaise: Math.round(cart.total * 100),
     shipTo: input.shipTo,
     deliveryMethod: input.deliveryMethod,
-    pickupNote: input.deliveryMethod === "self-pickup" ? PICKUP_ADDRESS_PLACEHOLDER : null,
+    // self-courier also needs the collection address — the buyer's own
+    // courier (Porter/Rapido/Uber, etc.) picks up from here, same as a
+    // self-pickup buyer would in person
+    pickupNote: input.deliveryMethod === "self-pickup" || input.deliveryMethod === "self-courier"
+      ? PICKUP_ADDRESS_PLACEHOLDER
+      : null,
   });
   await db.insert(schema.orderLines).values(
     cart.lines.map((l) => ({

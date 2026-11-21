@@ -6,7 +6,7 @@ import { Chip } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
 import { AdminGate } from "@/components/admin-shell";
 import { AdminHead, statusTone } from "@/components/admin-ui";
-import { DownloadInvoice, MarkInvoiceSent } from "@/components/admin-invoice-actions";
+import { DownloadInvoice, DownloadInvoicePdf, MarkInvoiceSent } from "@/components/admin-invoice-actions";
 import { InvoiceDocument } from "@/components/invoice-document";
 import { getAdminCounts, getInvoiceAdmin } from "@/lib/admin-api";
 
@@ -41,6 +41,7 @@ async function InvoiceDetailContent({ params }: { params: Promise<{ id: string }
         actions={
           <div className="flex items-center gap-2">
             <DownloadInvoice id={inv.id} />
+            <DownloadInvoicePdf id={inv.id} />
             {inv.status === "draft" && <MarkInvoiceSent id={inv.id} />}
           </div>
         }

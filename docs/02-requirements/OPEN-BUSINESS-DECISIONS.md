@@ -434,18 +434,21 @@ direct-shipment keeps its own OBD-19 shipping-charge rules unchanged).**
    payment method (OBD-21 lists UPI, cards, Net Banking, NEFT/RTGS, cheque
    only) — this decision explicitly confirms COD stays excluded.
 4. The pickup location is a **single warehouse address** — confirmed to
-   exist, but the exact address is `PENDING CONFIRMATION` (owner to supply;
-   shown as a placeholder in the UI/data until then).
+   exist, and the exact address is now confirmed (2026-11-21, ADR-0018
+   amendment): `lib/company-profile.ts`'s `SMASH_PRO_PICKUP_ADDRESS`. Shown
+   to a buyer choosing self-pickup **or** a self-arranged courier (a
+   courier needs the same collection address a self-pickup buyer would
+   use) — never a supplier's own address, which stays internal-only.
 5. This replaces the previous flat illustrative shipping-fee placeholder
    (`DEMO_SHIPPING_PAISE`) used on warehouse-fulfilled orders — under this
    decision there is **never** a shipping charge collected from the buyer
    for warehouse-fulfilled lines; delivery is either self-arranged (buyer's
    own cost, outside the platform) or free.
 
-**Still open:** exact pickup address (owner to confirm); whether multiple
-pickup/warehouse locations will ever exist (ties to OBD-10, still open);
-any operational handoff process for self-arranged-courier pickups (e.g.
-ID verification at the gate) is not specified here.
+**Still open:** whether multiple pickup/warehouse locations will ever exist
+(ties to OBD-10, still open); any operational handoff process for
+self-arranged-courier pickups (e.g. ID verification at the gate) is not
+specified here.
 **Affects:** Workflow J · BUY-005/006, ADM-015 · `orders.deliveryMethod`
 (new column, ADR-0009) · checkout UI, order detail, cart summary.
 
@@ -520,7 +523,7 @@ no change to buyer pricing (`server/pricing.ts`, `/admin/pricing`).
 | OBD-21 (partial) | Payment Methods & Operations: UPI, cards, Net Banking, NEFT/RTGS, cheques; online payments auto-verified via gateway; NEFT/RTGS/cheque need buyer proof + admin verification; failed payments retry until configurable timeout cancels the order; available stock reserved at order placement and released on timeout cancellation; refund rules admin-configurable; original payment method is the default refund destination, bank transfer as approved exception. Gateway choice, timeout defaults, reconciliation and invoice timing remain open/proposed. | Owner | 2026-11-13 |
 | OBD-03 | Public product catalogue with login-based discounts: anonymous visitors browse the full catalog with names, images, descriptions, specs and the standard listed selling price (OBD-05 base price, GST-inclusive per OBD-20); discounts and discounted prices require login; no supplier costs, margins or confidential commercial data on public pages; OBD-05/OBD-20 rules unchanged; existing approval/verification gates preserved (transactions still require approval). Clarified same day: discount visibility is approval-gated — pending accounts see standard prices; approved logged-in buyers see discounted prices. | Owner | 2026-11-13 |
 | PLT-001 amendment | Authentication and role-scoped access (unified website): one unified application for public catalogue, buyer and supplier workflows; Super Admin remains a separate application; shared screens limited to the public catalogue (PLT-006); one credential grants exactly one role (OBD-15 remains open); server-side role scoping of routes and data; access boundaries §3 items 2–8 unchanged. Applied to FUNCTIONAL-REQUIREMENTS.md, USER-ROLES-AND-PERMISSIONS.md §3.1 and UI-PREPARATION-PLAN.md §1. | Owner | 2026-11-16 |
-| OBD-22 | Buyer delivery method & free-delivery threshold: three options for warehouse-fulfilled orders — self-pickup (free), self-arranged courier e.g. Porter/Rapido/Uber (buyer pays the courier directly, free to ProSmash), or Smash-Pro-managed delivery (free, but only offered when the GST-inclusive items total is ≥ ₹50,000 — no paid managed tier below that). Confirms COD was never and is not a supported payment method. Removes the prior flat illustrative shipping-fee placeholder on warehouse-fulfilled orders. Pickup address confirmed to exist but exact address is PENDING CONFIRMATION. | Owner | 2026-11-20 |
+| OBD-22 | Buyer delivery method & free-delivery threshold: three options for warehouse-fulfilled orders — self-pickup (free), self-arranged courier e.g. Porter/Rapido/Uber (buyer pays the courier directly, free to ProSmash), or Smash-Pro-managed delivery (free, but only offered when the GST-inclusive items total is ≥ ₹50,000 — no paid managed tier below that). Confirms COD was never and is not a supported payment method. Removes the prior flat illustrative shipping-fee placeholder on warehouse-fulfilled orders. Pickup address confirmed 2026-11-21 (`SMASH_PRO_PICKUP_ADDRESS`) — shown for self-pickup and self-arranged courier alike; never a supplier's own address. | Owner | 2026-11-20 |
 | OBD-23 | Product cost-price entry & visitor discount display: Add Product form takes MRP (cut-off price) plus Dealer/Purchase Price and ProSmash Margin, each entered as % of MRP or a fixed ₹ amount; server resolves Purchase + Margin into the visitor selling price (unchanged `stdPaise` field/column) and a floored Visitor Discount % off MRP; purchase/margin remain admin-only, never serialised publicly; approved-buyer category pricing is untouched and stays a separate discount off the resolved selling price; governs the Add Product form only, not bulk-catalogue price edits. Owner should confirm the flagged assumption that % mode is of MRP, not a purchase-price markup. | Owner | 2026-11-20 |
 | OBD-23 (amendment) | MRP and the resulting Visitor Discount % are made PUBLIC (unlike purchase/margin, which stay admin-only): every visitor and pending account now sees "MRP ₹X, now ₹Y, Z% off" on product cards and the product page, the same way the standard listed price already displays. Approved buyers continue to see only their own OBD-05 category discount as the highlighted saving — MRP is not additionally shown stacked on top of it for a signed-in buyer. | Owner | 2026-11-20 |
 | OBD-23 (amendment) | Margin-base correction: ProSmash Margin resolves as a percentage of **Dealer/Purchase Price**, not MRP (Purchase Price's own % mode is unaffected, still % of MRP). `margin_amount = dealer_price × margin% / 100`; `visitor_selling_price = dealer_price + margin_amount`; `visitor_discount% = (MRP − visitor_selling_price) / MRP` unchanged, still vs MRP. Fixed-₹ margin mode was already base-agnostic and needed no change. | Owner | 2026-11-20 |

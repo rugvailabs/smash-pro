@@ -102,6 +102,38 @@ instead of the requirement's real `status`/`closes`.
   state) and a "Products in this requirement" table when `items` is
   present.
 
+## Amendment (2026-11-21) — OBD-22 pickup address confirmed; PDF download
+
+- OBD-22's "pickup location... exact address is `PENDING CONFIRMATION`" is
+  now resolved: `lib/company-profile.ts` exports `SMASH_PRO_PICKUP_ADDRESS`
+  (built from the same confirmed `SMASH_PRO_PROFILE` this ADR already
+  introduced for the invoice buyer block), replacing the placeholder string
+  in both `server/buyer.ts` (`PICKUP_ADDRESS_PLACEHOLDER`) and
+  `checkout-view.tsx`'s client-side copy of the same constant.
+- Fixed a related gap: self-arranged courier orders (`deliveryMethod:
+  "self-courier"`) previously got no collection address at all —
+  `orders.pickupNote` was only ever set for `"self-pickup"`. A buyer booking
+  Porter/Rapido/Uber needs the same warehouse address a self-pickup buyer
+  would use, so `createOrderFromCart` now snapshots it for both methods.
+  The buyer-facing order detail and admin order detail pages now show
+  "Collect from" (the warehouse) and "Deliver to" (the buyer's address)
+  separately for self-courier orders, instead of just one "Ship to" row.
+- Deliberately **not** extended to supplier addresses: buyers still only
+  ever see Smash Pro's address. Suppliers' own `organizations.worksAddress`
+  stays internal-only (visible to the supplier itself and admin), matching
+  the existing boundary that buyers never learn which supplier fulfilled a
+  direct-shipment order (OBD-19's "Smash Pro is the single customer-facing
+  contact"). Exposing a supplier's address/identity to buyers directly
+  would be a separate, not-yet-made business decision.
+- Added a real PDF download for the recorded invoice
+  (`@react-pdf/renderer`, pure JS — no headless browser/native deps):
+  `GET /api/admin/invoices/[id]/pdf` renders `components/invoice-pdf.tsx`
+  (a parallel implementation of `invoice-document.tsx` using react-pdf's own
+  primitives) to a `.pdf` file, alongside — not replacing — the print-HTML
+  view. The PDF uses "Rs." instead of "₹": the PDF standard-14 Helvetica
+  font has no ₹ glyph and silently renders garbage for it; the HTML/print
+  view is unaffected and keeps the real ₹ symbol.
+
 ## Consequences
 
 - No breaking migration: all new columns/tables are additive and nullable

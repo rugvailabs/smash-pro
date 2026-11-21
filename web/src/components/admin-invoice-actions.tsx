@@ -22,7 +22,15 @@ export function MarkInvoiceSent({ id }: { id: string }) {
 export function DownloadInvoice({ id }: { id: string }) {
   return (
     <a href={`/invoices/${id}/print`} target="_blank" rel="noopener noreferrer" className={btnGhostSm}>
-      Download
+      Print view
+    </a>
+  );
+}
+
+export function DownloadInvoicePdf({ id }: { id: string }) {
+  return (
+    <a href={`/api/admin/invoices/${id}/pdf`} className={btnEmberSm}>
+      Download PDF
     </a>
   );
 }

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useCart } from "@/components/providers";
 import { Banner, GstCard, NoteFlag, Panel, Sect } from "@/components/buyer-ui";
 import { inr } from "@/lib/format";
+import { SMASH_PRO_PICKUP_ADDRESS } from "@/lib/company-profile";
 import type { Address } from "@/lib/types";
 
 /* ============================================================
@@ -28,7 +29,7 @@ const METHODS = [
  *  THRESHOLD_PAISE). Managed delivery is only offered at/above this; below
  *  it, self-pickup or a self-arranged courier are the only options. */
 const FREE_DELIVERY_THRESHOLD = 50000;
-const PICKUP_ADDRESS_PLACEHOLDER = "Smash Pro warehouse — address pending confirmation (OBD-22)";
+const PICKUP_ADDRESS_PLACEHOLDER = SMASH_PRO_PICKUP_ADDRESS;
 
 type DeliveryKey = "managed" | "self-pickup" | "self-courier";
 
@@ -47,7 +48,11 @@ export function CheckoutView({ addresses }: { addresses: Address[] }) {
       ? { key: "managed", name: "Smash Pro delivery — Free", note: "We deliver to your address. Free for orders ₹50,000 and above." }
       : { key: "managed", name: "Smash Pro delivery", note: `Free from ₹50,000 — add ${inr(FREE_DELIVERY_THRESHOLD - summary.itemsIncl)} more to unlock`, disabled: true },
     { key: "self-pickup", name: "Pick up from our warehouse", note: PICKUP_ADDRESS_PLACEHOLDER },
-    { key: "self-courier", name: "Book your own courier (Porter, Rapido, Uber, etc.)", note: "You arrange and pay the courier directly — we'll have your order ready for collection." },
+    {
+      key: "self-courier",
+      name: "Book your own courier (Porter, Rapido, Uber, etc.)",
+      note: `You arrange and pay the courier directly — give them this collection address: ${PICKUP_ADDRESS_PLACEHOLDER}`,
+    },
   ];
 
   const placeOrder = async () => {
