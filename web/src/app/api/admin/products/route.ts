@@ -12,6 +12,14 @@ export async function POST(req: Request) {
       marginMode?: PriceMode; marginValue?: number;
       brandId?: number | null;
       img?: string | null;
+      hsn?: string | null;
+      gstPercent?: number | null;
+      supplierCode?: string | null;
+      msp?: number | null;
+      color?: string | null;
+      size?: string | null;
+      inStock?: boolean;
+      groupKey?: string | null;
     };
     for (const k of ["sku", "name", "catSlug", "sub"] as const) {
       if (!body[k]) return json({ error: `Missing field: ${k}` }, 400);
@@ -30,6 +38,14 @@ export async function POST(req: Request) {
       marginMode: body.marginMode!, marginValue: body.marginValue!,
       brandId: body.brandId ?? null,
       img: body.img ?? null,
+      hsn: body.hsn ?? null,
+      gstPercent: body.gstPercent ?? null,
+      supplierCode: body.supplierCode ?? null,
+      msp: body.msp ?? null,
+      color: body.color ?? null,
+      size: body.size ?? null,
+      inStock: body.inStock,
+      groupKey: body.groupKey ?? null,
     });
     return json(out);
   });

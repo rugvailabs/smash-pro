@@ -1,6 +1,7 @@
 # ADR-0011 — Product cost-price entry (`products.mrpPaise`, purchase/margin columns)
 
 > Status: Accepted (owner-directed, OBD-23) · Date: 2026-11-20
+> Amended 2026-11-20: margin base corrected from MRP to Dealer/Purchase Price (see Amendment below).
 
 ## Context
 
@@ -32,9 +33,13 @@ and meaning; only how admin *arrives at* its value on creation changes.
   `assertStd` bounds (₹0.01–₹10,00,000) before insert.
 - Visitor Discount % floors at 0 (`visitorDiscountPct`) — a resolved price
   at or above MRP never displays as a negative discount.
-- Purchase/margin/MRP columns are **never added to `PricedProduct`** (the
+- Purchase/margin columns are **never added to `PricedProduct`** (the
   public/buyer API DTO in `server/pricing.ts`) — same OBD-05 admin-only
   boundary as before; only `AdminProductRow`/audit log may surface them.
+  **MRP is the one exception (OBD-23 amendment, 2026-11-20, ADR-0011
+  unchanged otherwise): it IS added to `PricedProduct.mrp`** — a public
+  marketing figure, not a cost/margin figure, so it carries no
+  access-boundary restriction. See ADR note in `server/pricing.ts`.
 - Scope: the Add Product form only. `updateProduct()` and bulk-catalogue
   reprice continue to set `stdPaise` directly; they are not retrofitted to
   this cost-entry model here.
@@ -51,3 +56,39 @@ and meaning; only how admin *arrives at* its value on creation changes.
   markup on purchase price, not MRP," only `resolveToPaise`'s margin call
   site needs to change (pass `purchasePaise` instead of `mrpPaise` as the
   base) — the column shapes and UI do not need to change.
+
+## Amendment (2026-11-20) — margin base corrected to Dealer/Purchase Price
+
+The owner confirmed the flagged assumption the other way: **ProSmash Margin
+is a markup on Dealer/Purchase Price, not on MRP.** Purchase price's own %
+mode is unchanged (still % of MRP) — only the margin side moves.
+
+- `margin_amount = dealer_price × (margin_percentage / 100)` when
+  `marginMode = 'percent'`; unchanged (`marginValue` in paise) when
+  `marginMode = 'fixed'` — a fixed ₹ amount never depended on a base, so it
+  was already "on top of" Dealer Price via `stdPaise = purchasePaise +
+  marginPaise`.
+- `visitor_selling_price = dealer_price + margin_amount` — unchanged
+  (`stdPaise`, same formula, only `marginPaise`'s own resolution changed).
+- `visitor_discount_percentage = (MRP − visitor_selling_price) / MRP` —
+  unchanged; still computed against MRP (`visitorDiscountPct`), per OBD-23.
+- Implementation: `resolveToPaise`'s margin call site (`createProduct` in
+  `server/admin.ts`, and the client live-preview in
+  `components/admin-product-form.tsx`) now passes `purchasePaise` as the
+  base instead of `mrpPaise`. `resolveToPaise` itself is unchanged (it was
+  already base-agnostic — only the caller's choice of base moves).
+- No schema migration: `purchaseMode`/`marginMode`/`purchaseValue`/
+  `marginValue`/`purchasePaise`/`marginPaise`/`mrpPaise` columns, their
+  types and stored enum values (`'percent'|'fixed'`) are unchanged — only
+  the *meaning* of `marginMode = 'percent'` changes (its base), which is
+  purely an application-layer resolution rule, not a stored fact. Existing
+  rows with `marginMode = 'percent'` were created under the old (MRP-based)
+  reading; no backfill is performed because `marginPaise`/`stdPaise` were
+  already resolved and stored at creation time and are not recomputed
+  retroactively.
+- Buyer-facing / public contract is unchanged: purchase price and margin
+  stay admin-only; only MRP, visitor selling price (`stdPaise`) and the
+  MRP-relative discount are ever public (OBD-23).
+- Scope is still the Add Product form only — `updateProduct()` and
+  bulk-catalogue reprice are unaffected by this amendment, same as the
+  original decision.

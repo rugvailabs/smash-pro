@@ -1,10 +1,15 @@
 import "server-only";
-import { and, asc, desc, eq, inArray, isNull, ne } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, like, ne } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { audit, getSession, requireAdmin, type SessionUser } from "@/server/auth";
 import { notifyOrg } from "@/server/notifications";
 import { BUYER_TYPES, isBuyerTypeKey, type BuyerTypeKey } from "@/lib/buyer-types";
-import { resolveToPaise, type PriceMode } from "@/lib/pricing-calc";
+import { resolveToPaise, visitorDiscountPct, type PriceMode } from "@/lib/pricing-calc";
+import { normalizeGstPercent, normalizeHsn } from "@/lib/product-tax-fields";
+import {
+  normalizeColor, normalizeGroupKey, normalizeMsp, normalizeSize, normalizeSupplierCode,
+} from "@/lib/product-catalog-fields";
+import { trustedImageHosts } from "@/server/storage";
 import type {
   AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
@@ -19,9 +24,12 @@ import type {
    payment verification (OBD-21), catalogue & price rules
    (OBD-20 decided structure), order fulfilment advances,
    procurement (requirements → quotations → POs), complaints and
-   product requests. Pending OBD items (GST rates/HSN, supplier
-   commission, cancellation windows, verification checklists)
-   are deliberately absent. Reads return null/empty for
+   product requests. Pending OBD items (supplier commission,
+   cancellation windows, verification checklists) are deliberately
+   absent. Product HSN/GST% (ADR-0014) are optional admin-entered
+   record-keeping fields only — not wired into any GST computation,
+   which stays pending OBD-11/OBD-20 professional tax validation.
+   Reads return null/empty for
    non-admin sessions; every mutation requireAdmin()s and
    appends to the audit log (PLT-003). Money is integer paise in
    the DB, two-decimal rupees at this boundary.
@@ -226,10 +234,19 @@ export async function productsForAdmin(): Promise<AdminProductRow[]> {
   const brands = await db.select({ id: schema.brands.id, name: schema.brands.name }).from(schema.brands);
   const brandName = new Map(brands.map((b) => [b.id, b.name]));
   return rows.map((p) => ({
-    sku: p.sku, name: p.name, catSlug: p.catSlug, sub: p.sub,
+    sku: p.sku, name: p.name, catSlug: p.catSlug, sub: p.sub, meta: p.meta,
     std: r(p.stdPaise), active: p.active, configurable: p.configurable,
-    hasImg: p.img !== null,
+    hasImg: p.img !== null, img: p.img,
     brand: p.brandId !== null ? brandName.get(p.brandId) ?? null : null,
+    brandId: p.brandId,
+    hsn: p.hsn, gstPercent: p.gstPercent,
+    supplierCode: p.supplierCode, msp: p.mspPaise !== null ? r(p.mspPaise) : null,
+    color: p.color, size: p.size, inStock: p.inStock,
+    groupKey: p.groupKey,
+    mrp: p.mrpPaise !== null ? r(p.mrpPaise) : null,
+    purchase: p.purchasePaise !== null ? r(p.purchasePaise) : null,
+    purchaseMode: p.purchaseMode as PriceMode | null, purchaseValue: p.purchaseValue,
+    marginMode: p.marginMode as PriceMode | null, marginValue: p.marginValue,
   }));
 }
 
@@ -278,12 +295,19 @@ function assertStd(std: number) {
  *  external imagery to a product. */
 function assertImgPath(img: string): string {
   const trimmed = img.trim();
-  if (!/^\/img\/[a-z0-9/_-]+\.(jpg|jpeg|png|webp)$/i.test(trimmed)) {
-    throw new Error(
-      "400:Image path must point to an already-approved file under /img/ (e.g. /img/cricket/new-bat-hero.jpg) — this field links existing approved photography, it does not accept uploads"
-    );
+  if (/^\/img\/[a-z0-9/_-]+\.(jpg|jpeg|png|webp)$/i.test(trimmed)) return trimmed;
+
+  // ADR-0013 — also accept a URL from this app's own configured upload
+  // storage (DigitalOcean Spaces/CDN), never an arbitrary external host
+  try {
+    const host = new URL(trimmed).host;
+    if (trustedImageHosts().includes(host)) return trimmed;
+  } catch {
+    /* not a URL at all — falls through to the error below */
   }
-  return trimmed;
+  throw new Error(
+    "400:Image must be an already-approved file under /img/ (e.g. /img/cricket/new-bat-hero.jpg) or an upload through this app's own storage — no other external URLs are accepted"
+  );
 }
 
 function assertMode(mode: unknown, label: string): PriceMode {
@@ -320,9 +344,11 @@ function assertSpecs(specs: [string, string][]) {
 
 /** Create a catalogue product. img links an ALREADY-APPROVED file already
  *  committed under /img/ by the photography programme — it stays null
- *  until the admin supplies that path (no upload, no placeholder imagery);
- *  hsn stays null and is NEVER settable until OBD-20/OBD-11 resolve with
- *  professional tax validation. */
+ *  until the admin supplies that path (no upload, no placeholder imagery).
+ *  hsn/gstPercent (ADR-0014) are optional, admin-entered record-keeping
+ *  fields only — format/range-checked, never classification-validated —
+ *  and are NOT read by any pricing/GST calculation (OBD-11/OBD-20 pending
+ *  professional tax validation for that). */
 export async function createProduct(input: {
   sku: string; name: string; catSlug: string; sub: string;
   meta?: string; specs?: [string, string][];
@@ -331,6 +357,14 @@ export async function createProduct(input: {
   marginMode: PriceMode; marginValue: number; // ProSmash margin entry
   brandId?: number | null;
   img?: string | null;
+  hsn?: string | null;
+  gstPercent?: number | null;
+  supplierCode?: string | null;
+  msp?: number | null; // ₹, optional third reference price (ADR-0015)
+  color?: string | null;
+  size?: string | null;
+  inStock?: boolean;
+  groupKey?: string | null;
 }): Promise<{ sku: string }> {
   const s = await requireAdmin();
   const sku = input.sku.trim().toUpperCase();
@@ -348,6 +382,14 @@ export async function createProduct(input: {
   const purchaseValue = assertEntryValue(input.purchaseValue, purchaseMode, "Purchase price");
   const marginMode = assertMode(input.marginMode, "Margin");
   const marginValue = assertEntryValue(input.marginValue, marginMode, "Margin");
+  const hsn = normalizeHsn(input.hsn);
+  const gstPercent = normalizeGstPercent(input.gstPercent);
+  const supplierCode = normalizeSupplierCode(input.supplierCode);
+  const mspPaise = normalizeMsp(input.msp);
+  const color = normalizeColor(input.color);
+  const size = normalizeSize(input.size);
+  const inStock = input.inStock ?? true;
+  const groupKey = normalizeGroupKey(input.groupKey);
   const specs = input.specs ?? [];
   assertSpecs(specs);
 
@@ -359,10 +401,12 @@ export async function createProduct(input: {
   }
   const img = input.img ? assertImgPath(input.img) : null;
 
-  // resolved server-side from the raw entries — never trust a client-submitted total
+  // resolved server-side from the raw entries — never trust a client-submitted total.
+  // Purchase price % is of MRP; margin % is of the resolved Purchase price,
+  // not MRP (OBD-23 amendment, 2026-11-20 — corrects the assumption flagged in ADR-0011).
   const mrpPaise = Math.round(input.mrp * 100);
   const purchasePaise = resolveToPaise(purchaseMode, purchaseValue, mrpPaise);
-  const marginPaise = resolveToPaise(marginMode, marginValue, mrpPaise);
+  const marginPaise = resolveToPaise(marginMode, marginValue, purchasePaise);
   const stdPaise = purchasePaise + marginPaise; // visitor selling price
   assertStd(stdPaise / 100);
 
@@ -381,28 +425,69 @@ export async function createProduct(input: {
     stdPaise, mrpPaise,
     purchaseMode, purchaseValue, purchasePaise,
     marginMode, marginValue, marginPaise,
-    img, gallery: null, hsn: null,
+    img, gallery: null, hsn, gstPercent,
+    supplierCode, mspPaise, color, size, inStock, groupKey,
     configurable: false, directShip: false, specs, active: true,
   });
   await audit(s.userId, "product.create", "product", sku, {
     catSlug: cat.slug, mrp: input.mrp,
     purchaseMode, purchaseValue, purchasePaise,
     marginMode, marginValue, marginPaise,
-    brandId, img,
+    brandId, img, hsn, gstPercent,
+    supplierCode, msp: mspPaise !== null ? r(mspPaise) : null, color, size, inStock, groupKey,
     std: r(stdPaise),
   });
   return { sku };
 }
 
-/** Toggle active and/or update the standard price. hsn/img are not settable. */
-export async function updateProduct(sku: string, patch: { active?: boolean; std?: number }) {
-  const s = await requireAdmin();
-  if (patch.active === undefined && patch.std === undefined) {
-    throw new Error("400:Nothing to update");
+/** Full row edit — backs the Products table's "Edit" action (every field
+ *  shown as a table column, consolidated into one save). Toggle active/
+ *  inStock, update the standard price, name/category/sub/brand/meta,
+ *  re-link the product's image (same assertImgPath authority as creation —
+ *  upload/library/known path only, never an arbitrary external URL), set
+ *  its HSN code / GST % / supplier code / MSP / colour / size
+ *  (ADR-0014/ADR-0015 — admin-entered record-keeping fields only, never
+ *  read by any pricing/GST calculation), and/or change its ProSmash
+ *  margin (ADR-0017 amendment — needed so a batch-imported product's
+ *  placeholder margin can be corrected per-row afterward): recomputes
+ *  `marginPaise`/`stdPaise` from the margin entry against the product's
+ *  EXISTING stored `purchasePaise` — the dealer price itself is not
+ *  editable here. MRP/Dealer-price entry stay creation-only per
+ *  ADR-0011 — not retrofitted; `std` remains the one direct price
+ *  override when margin isn't the thing being corrected. */
+export async function updateProduct(
+  sku: string,
+  patch: {
+    active?: boolean; std?: number; img?: string | null;
+    hsn?: string | null; gstPercent?: number | null;
+    supplierCode?: string | null; msp?: number | null;
+    color?: string | null; size?: string | null; inStock?: boolean;
+    name?: string; catSlug?: string; sub?: string; meta?: string;
+    brandId?: number | null; groupKey?: string | null;
+    marginMode?: PriceMode; marginValue?: number;
   }
+) {
+  const s = await requireAdmin();
+  const nothing =
+    patch.active === undefined && patch.std === undefined && patch.img === undefined &&
+    patch.hsn === undefined && patch.gstPercent === undefined &&
+    patch.supplierCode === undefined && patch.msp === undefined &&
+    patch.color === undefined && patch.size === undefined && patch.inStock === undefined &&
+    patch.name === undefined && patch.catSlug === undefined && patch.sub === undefined &&
+    patch.meta === undefined && patch.brandId === undefined && patch.groupKey === undefined &&
+    patch.marginMode === undefined && patch.marginValue === undefined;
+  if (nothing) throw new Error("400:Nothing to update");
   const [p] = await db.select().from(schema.products).where(eq(schema.products.sku, sku));
   if (!p) throw new Error("404");
-  const set: { active?: boolean; stdPaise?: number } = {};
+  const set: {
+    active?: boolean; stdPaise?: number; img?: string | null;
+    hsn?: string | null; gstPercent?: number | null;
+    supplierCode?: string | null; mspPaise?: number | null;
+    color?: string | null; size?: string | null; inStock?: boolean;
+    name?: string; catSlug?: string; sub?: string; meta?: string;
+    brandId?: number | null; groupKey?: string | null;
+    marginMode?: PriceMode; marginValue?: number; marginPaise?: number;
+  } = {};
   if (patch.active !== undefined) {
     if (typeof patch.active !== "boolean") throw new Error("400:active must be true or false");
     set.active = patch.active;
@@ -411,8 +496,218 @@ export async function updateProduct(sku: string, patch: { active?: boolean; std?
     assertStd(patch.std);
     set.stdPaise = Math.round(patch.std * 100);
   }
+  if (patch.marginMode !== undefined || patch.marginValue !== undefined) {
+    if (p.purchasePaise === null) {
+      throw new Error("400:This product has no dealer/purchase price on record — margin can't be recalculated");
+    }
+    const marginMode = assertMode(patch.marginMode, "Margin");
+    const marginValue = assertEntryValue(patch.marginValue, marginMode, "Margin");
+    const marginPaise = resolveToPaise(marginMode, marginValue, p.purchasePaise);
+    const stdPaise = p.purchasePaise + marginPaise;
+    assertStd(stdPaise / 100);
+    set.marginMode = marginMode;
+    set.marginValue = marginValue;
+    set.marginPaise = marginPaise;
+    set.stdPaise = stdPaise;
+  }
+  if (patch.img !== undefined) {
+    set.img = patch.img ? assertImgPath(patch.img) : null;
+  }
+  if (patch.hsn !== undefined) {
+    set.hsn = normalizeHsn(patch.hsn);
+  }
+  if (patch.gstPercent !== undefined) {
+    set.gstPercent = normalizeGstPercent(patch.gstPercent);
+  }
+  if (patch.supplierCode !== undefined) {
+    set.supplierCode = normalizeSupplierCode(patch.supplierCode);
+  }
+  if (patch.msp !== undefined) {
+    set.mspPaise = normalizeMsp(patch.msp);
+  }
+  if (patch.color !== undefined) {
+    set.color = normalizeColor(patch.color);
+  }
+  if (patch.size !== undefined) {
+    set.size = normalizeSize(patch.size);
+  }
+  if (patch.inStock !== undefined) {
+    if (typeof patch.inStock !== "boolean") throw new Error("400:inStock must be true or false");
+    set.inStock = patch.inStock;
+  }
+  if (patch.groupKey !== undefined) {
+    set.groupKey = normalizeGroupKey(patch.groupKey);
+  }
+  if (patch.name !== undefined) {
+    const name = patch.name.trim();
+    if (!name || name.length > 200) throw new Error("400:A product name up to 200 characters is required");
+    set.name = name;
+  }
+  if (patch.sub !== undefined) {
+    const sub = patch.sub.trim();
+    if (!sub || sub.length > 120) throw new Error("400:A subtitle up to 120 characters is required");
+    set.sub = sub;
+  }
+  if (patch.meta !== undefined) {
+    const meta = patch.meta.trim();
+    if (meta.length > 300) throw new Error("400:Meta is too long");
+    set.meta = meta;
+  }
+  if (patch.catSlug !== undefined) {
+    const [cat] = await db
+      .select({ slug: schema.categories.slug })
+      .from(schema.categories)
+      .where(eq(schema.categories.slug, patch.catSlug));
+    if (!cat) throw new Error("400:Unknown category");
+    set.catSlug = cat.slug;
+  }
+  if (patch.brandId !== undefined) {
+    if (patch.brandId !== null) {
+      const [b] = await db.select({ id: schema.brands.id }).from(schema.brands).where(eq(schema.brands.id, patch.brandId));
+      if (!b) throw new Error("400:Unknown brand");
+    }
+    set.brandId = patch.brandId;
+  }
   await db.update(schema.products).set(set).where(eq(schema.products.sku, sku));
   await audit(s.userId, "product.update", "product", sku, patch);
+}
+
+/* ---------- bulk catalogue import (ADR-0017, supplier stock sheets) ---------- */
+
+/** Resolves `count` fresh `<prefix>-####` SKUs, continuing after the
+ *  highest existing number under that prefix — so a repeat import never
+ *  collides with a previous one. Not transactionally safe against a
+ *  concurrent import (acceptable for an occasional admin-only tool). */
+export async function nextSkuSequence(prefix: string, count: number): Promise<string[]> {
+  if (!/^[A-Z]{2}$/.test(prefix)) throw new Error("400:SKU prefix must be two letters");
+  const existing = await db
+    .select({ sku: schema.products.sku })
+    .from(schema.products)
+    .where(like(schema.products.sku, `${prefix}-%`));
+  let max = 0;
+  for (const { sku } of existing) {
+    const m = /^[A-Z]{2}-(\d{4})$/.exec(sku);
+    if (m) max = Math.max(max, parseInt(m[1], 10));
+  }
+  const out: string[] = [];
+  for (let i = 1; i <= count; i++) out.push(`${prefix}-${String(max + i).padStart(4, "0")}`);
+  return out;
+}
+
+export interface ImportCommitRow {
+  sku: string; name: string;
+  mrp: number | null; dealerExGst: number | null; msp: number | null;
+  gstPercent: number | null; supplierCode: string; color: string | null; size: string | null;
+  inStock: boolean; groupKey: string;
+  /** per-row subcategory (auto-detected or admin-edited in the preview) —
+   *  falls back to the batch default, then "Imported", when absent. */
+  sub?: string | null;
+}
+
+/** Bulk-creates products from a parsed supplier stock sheet (ADR-0017 —
+ *  the Excel importer). Category/brand/margin apply uniformly to the
+ *  whole batch (the sheet carries no per-row category, and margin is a
+ *  ProSmash decision the sheet doesn't make) — `catSlug` is correct
+ *  uniform for a single-sport supplier sheet (the only kind seen so
+ *  far). Subcategory is NOT uniform: a real stock sheet spans several
+ *  genuinely different ones (rackets, shoes, bags, apparel…), so each
+ *  row carries its OWN `sub` (the preview's auto-detected guess, admin-
+ *  overridden where shown) — `input.sub` is only the BATCH DEFAULT
+ *  applied to rows with no `sub` of their own, falling back further to
+ *  "Imported" if that's blank too. `marginMode`/`marginValue` are
+ *  OPTIONAL: left blank, margin defaults to 0% (std = dealer price, i.e.
+ *  no markup yet — a deliberately visible placeholder, safe because the
+ *  batch still imports inactive by default). Admin re-classifies/re-
+ *  prices individual rows afterward via the Edit action, which now also
+ *  supports changing margin (recomputing std from the row's own stored
+ *  dealer price).
+ *  Dealer price is entered FIXED (the sheet's own pre-tax "W.O GST"
+ *  figure), same `purchasePaise = resolveToPaise(...)` / `stdPaise =
+ *  purchasePaise + marginPaise` chain as createProduct (OBD-23). Rows
+ *  that fail validation are skipped and reported, not allowed to abort
+ *  the whole batch. Imports as `active: false` unless `activate` is set
+ *  — nothing goes live in the catalogue until admin confirms pricing. */
+export async function bulkImportProducts(input: {
+  rows: ImportCommitRow[];
+  catSlug: string;
+  sub?: string;
+  brandId: number | null;
+  marginMode?: PriceMode;
+  marginValue?: number;
+  activate: boolean;
+}): Promise<{ created: number; failed: { sku: string; error: string }[] }> {
+  const s = await requireAdmin();
+  const [cat] = await db
+    .select({ slug: schema.categories.slug })
+    .from(schema.categories)
+    .where(eq(schema.categories.slug, input.catSlug));
+  if (!cat) throw new Error("400:Unknown category");
+  const defaultSubTrimmed = (input.sub ?? "").trim();
+  if (defaultSubTrimmed.length > 120) throw new Error("400:Subcategory must be 120 characters or fewer");
+  const defaultSub = defaultSubTrimmed || "Imported";
+  if (input.brandId !== null) {
+    const [b] = await db.select({ id: schema.brands.id }).from(schema.brands).where(eq(schema.brands.id, input.brandId));
+    if (!b) throw new Error("400:Unknown brand");
+  }
+  const marginMode = assertMode(input.marginMode ?? "percent", "Margin");
+  const marginValue = assertEntryValue(input.marginValue ?? 0, marginMode, "Margin");
+
+  const failed: { sku: string; error: string }[] = [];
+  const toInsert: (typeof schema.products.$inferInsert)[] = [];
+  const seenSku = new Set<string>();
+
+  for (const r of input.rows) {
+    try {
+      if (seenSku.has(r.sku)) throw new Error("duplicate SKU in this batch");
+      if (!/^[A-Z]{2}-\d{4}$/.test(r.sku)) throw new Error("SKU must match the pattern AB-0000");
+      if (r.mrp === null || r.mrp <= 0) throw new Error("missing MRP");
+      if (r.dealerExGst === null || r.dealerExGst <= 0) throw new Error("missing dealer price");
+      assertStd(r.mrp);
+      const mrpPaise = Math.round(r.mrp * 100);
+      const purchasePaise = resolveToPaise("fixed", r.dealerExGst, mrpPaise);
+      const marginPaise = resolveToPaise(marginMode, marginValue, purchasePaise);
+      const stdPaise = purchasePaise + marginPaise;
+      assertStd(stdPaise / 100);
+
+      const name = r.name.trim().slice(0, 200) || r.sku;
+      const gstPercent = normalizeGstPercent(r.gstPercent);
+      const supplierCode = normalizeSupplierCode(r.supplierCode);
+      const mspPaise = r.msp !== null ? normalizeMsp(r.msp) : null;
+      const color = normalizeColor(r.color);
+      const size = normalizeSize(r.size);
+      const groupKey = normalizeGroupKey(r.groupKey);
+      const rowSubTrimmed = (r.sub ?? "").trim();
+      if (rowSubTrimmed.length > 120) throw new Error("400:Subcategory must be 120 characters or fewer");
+      const sub = rowSubTrimmed || defaultSub;
+
+      seenSku.add(r.sku);
+      toInsert.push({
+        sku: r.sku, name, catSlug: cat.slug, sub, meta: "", brandId: input.brandId,
+        stdPaise, mrpPaise,
+        purchaseMode: "fixed", purchaseValue: r.dealerExGst, purchasePaise,
+        marginMode, marginValue, marginPaise,
+        img: null, gallery: null, hsn: null, gstPercent,
+        supplierCode, mspPaise, color, size, inStock: r.inStock, groupKey,
+        configurable: false, directShip: false, specs: [], active: input.activate,
+      });
+    } catch (e) {
+      failed.push({ sku: r.sku, error: e instanceof Error ? e.message.replace(/^\d+:/, "") : "invalid row" });
+    }
+  }
+
+  if (toInsert.length > 0) {
+    const [existing] = await db
+      .select({ sku: schema.products.sku })
+      .from(schema.products)
+      .where(inArray(schema.products.sku, toInsert.map((p) => p.sku)));
+    if (existing) throw new Error(`400:SKU ${existing.sku} already exists — refresh the preview and retry`);
+    await db.insert(schema.products).values(toInsert);
+  }
+  await audit(s.userId, "product.bulk-import", "product", `${toInsert.length} rows`, {
+    catSlug: cat.slug, defaultSub, brandId: input.brandId, marginMode, marginValue,
+    created: toInsert.length, failedCount: failed.length,
+  });
+  return { created: toInsert.length, failed };
 }
 
 /* ---------- price rules (OBD-20 decided structure) ---------- */
@@ -1026,27 +1321,38 @@ export async function posForAdmin(): Promise<AdminPoRow[]> {
     .select({ id: schema.organizations.id, name: schema.organizations.name })
     .from(schema.organizations);
   const orgName = new Map(orgs.map((o) => [o.id, o.name]));
-  // brand resolves PO → linked SKU → product → brand; never entered per-PO
-  const prods = await db.select({ sku: schema.products.sku, brandId: schema.products.brandId }).from(schema.products);
+  // brand + MRP resolve PO → linked SKU → product; never entered per-PO.
+  // Discount-vs-MRP is DERIVED (unit price vs the linked product's own
+  // MRP) — there is no supplier-negotiated-discount field anywhere in the
+  // quotation/PO model, so nothing here is a fabricated number.
+  const prods = await db
+    .select({ sku: schema.products.sku, brandId: schema.products.brandId, mrpPaise: schema.products.mrpPaise })
+    .from(schema.products);
   const brands = await db.select({ id: schema.brands.id, name: schema.brands.name }).from(schema.brands);
   const brandName = new Map(brands.map((b) => [b.id, b.name]));
-  const brandBySku = new Map(prods.map((p) => [p.sku, p.brandId !== null ? brandName.get(p.brandId) ?? null : null]));
-  return rows.map((p) => ({
-    id: p.id,
-    supplierName: orgName.get(p.supplierOrgId) ?? "",
-    destination: p.destination as AdminPoRow["destination"],
-    issued: p.issued,
-    lineName: p.lineName,
-    sku: p.sku ?? null,
-    brand: p.sku ? brandBySku.get(p.sku) ?? null : null,
-    lineQty: p.lineQty,
-    unit: r(p.unitPaise), value: r(p.valuePaise),
-    fulfilment: p.fulfilment as AdminPoRow["fulfilment"],
-    fulfilmentLabel: p.fulfilmentLabel,
-    received: r(p.receivedPaise), outstanding: r(p.outstandingPaise),
-    payStatusLabel: p.payStatusLabel,
-    nextFulfilment: nextPoFulfilment(p),
-  }));
+  const bySku = new Map(prods.map((p) => [p.sku, p]));
+  return rows.map((p) => {
+    const linked = p.sku ? bySku.get(p.sku) : undefined;
+    const mrpPaise = linked?.mrpPaise ?? null;
+    return {
+      id: p.id,
+      supplierName: orgName.get(p.supplierOrgId) ?? "",
+      destination: p.destination as AdminPoRow["destination"],
+      issued: p.issued,
+      lineName: p.lineName,
+      sku: p.sku ?? null,
+      brand: linked?.brandId != null ? brandName.get(linked.brandId) ?? null : null,
+      lineQty: p.lineQty,
+      unit: r(p.unitPaise), value: r(p.valuePaise),
+      mrp: mrpPaise !== null ? r(mrpPaise) : null,
+      discountVsMrpPct: mrpPaise !== null ? visitorDiscountPct(mrpPaise, p.unitPaise) : null,
+      fulfilment: p.fulfilment as AdminPoRow["fulfilment"],
+      fulfilmentLabel: p.fulfilmentLabel,
+      received: r(p.receivedPaise), outstanding: r(p.outstandingPaise),
+      payStatusLabel: p.payStatusLabel,
+      nextFulfilment: nextPoFulfilment(p),
+    };
+  });
 }
 
 /** Issue a PO from an awarded quotation's latest version. Destination is

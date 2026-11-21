@@ -42,6 +42,9 @@ export interface ImportedRow {
   /** row number in the source sheet (1-indexed), for admin cross-reference */
   sourceRow: number;
   warnings: string[];
+  /** best-effort subcategory guess (see detectSubcategory) — null when no
+   *  signal was found; admin confirms/overrides before commit either way */
+  suggestedSub: string | null;
 }
 
 export interface ParseResult {
@@ -158,6 +161,42 @@ function baseCode(code: string): string {
   return m ? m[1] : code;
 }
 
+/** Best-effort subcategory guess for one row. Name-keyword matching alone
+ *  catches very little on a real supplier sheet — checked against the
+ *  actual LI-NING file, the large majority of Item Codes are opaque
+ *  alphanumeric strings ("ABLW033-1", "ACPV021-16"…) with no descriptive
+ *  model text at all. So this combines a modest keyword list with
+ *  structural signals the parser already resolves per row: apparel
+ *  letter-sizes and footwear-style numeric sizes (which the dual-purpose
+ *  size/colour column can land in either `size` or `color` depending on
+ *  what else is on the row — see parseStockSheet), racket weight-class
+ *  notation ("3U"/"(4U)"/"5U-G6", universal on badminton racket specs),
+ *  the "GP"-prefixed model-number convention badminton grips use, and a
+ *  string-gauge "…mm" suffix. Returns null, not a guess, when nothing
+ *  matches — the batch default (or an admin override) applies instead,
+ *  same as any other field this importer can't determine from the sheet. */
+export function detectSubcategory(row: { name: string; size: string | null; color: string | null }): string | null {
+  const name = row.name.toLowerCase().trim();
+
+  if (/\binsole(s)?\b/.test(name)) return "Accessories";
+  if (/^gp\d/.test(name) || /\bgrip(s)?\b|\btowel\s*grip\b/.test(name)) return "Grips";
+  if (/\bbag(s)?\b/.test(name)) return "Bags";
+  if (/\bsock(s)?\b/.test(name)) return "Socks";
+  if (/\bshuttle(cock)?(s)?\b/.test(name)) return "Shuttlecocks";
+  if (/\bstring(s)?\b|\breel(s)?\b|\brolls?\b|\bpolylon\b|\d(\.\d+)?\s*mm\b/.test(name)) return "Strings";
+  if (/\bracket(s)?\b|\bracquet(s)?\b/.test(name) || /\(?\s*\d\s?u\b/i.test(name)) return "Rackets";
+
+  for (const v of [row.size, row.color]) {
+    if (v === null) continue;
+    const trimmed = v.trim();
+    if (/^\d*x*(s|m|l)$/i.test(trimmed)) return "Apparel";
+    if (/\bmm\b/i.test(trimmed)) return "Strings";
+    if (looksLikeSize(trimmed)) return "Shoes";
+  }
+
+  return null;
+}
+
 /** Parses a supplier stock-sheet grid into import-ready rows. `grid[r][c]`
  *  is the raw cell value; row 0 is the sheet's first row (1-indexed
  *  `sourceRow` in the output matches the original sheet for cross-
@@ -261,11 +300,12 @@ export function parseStockSheet(grid: Grid): ParseResult {
 
     const gstPercentRaw = cellNumber(get(headers.gstPercent));
     const gstPercent = gstPercentRaw !== null ? Math.round(gstPercentRaw * 100 * 100) / 100 : null; // 0.05 -> 5
+    const rowName = name || supplierCode;
 
     rows.push({
       supplierCode,
       groupKey,
-      name: name || supplierCode,
+      name: rowName,
       color,
       size,
       mrp,
@@ -277,8 +317,39 @@ export function parseStockSheet(grid: Grid): ParseResult {
       inStock,
       sourceRow: r + 1,
       warnings,
+      suggestedSub: detectSubcategory({ name: rowName, size, color }),
     });
   }
 
+  propagateSubcategoryWithinGroups(rows);
   return { rows, skippedBlankRows, headerNotFound: false };
+}
+
+/** Backfills `suggestedSub` for rows where detectSubcategory found no
+ *  signal, from a sibling row sharing the same groupKey that DID get
+ *  classified — e.g. a group's named row ("Tectonic 1 S", a known
+ *  LI-NING shoe line) often carries no size of its own, while its
+ *  continuation rows below do, and that's where the structural "Shoes"
+ *  signal actually lands. groupKey already means "one buyer-facing
+ *  product line" (ADR-0016), so borrowing the group's own classification
+ *  is far more reliable than leaving it null. Majority vote per group in
+ *  the rare case of disagreement; mutates `rows` in place. */
+function propagateSubcategoryWithinGroups(rows: ImportedRow[]): void {
+  const votesByGroup = new Map<string, Map<string, number>>();
+  for (const r of rows) {
+    if (r.suggestedSub === null) continue;
+    const votes = votesByGroup.get(r.groupKey) ?? new Map<string, number>();
+    votes.set(r.suggestedSub, (votes.get(r.suggestedSub) ?? 0) + 1);
+    votesByGroup.set(r.groupKey, votes);
+  }
+  const winnerByGroup = new Map<string, string>();
+  for (const [groupKey, votes] of votesByGroup) {
+    const [winner] = [...votes.entries()].sort((a, b) => b[1] - a[1])[0];
+    winnerByGroup.set(groupKey, winner);
+  }
+  for (const r of rows) {
+    if (r.suggestedSub === null) {
+      r.suggestedSub = winnerByGroup.get(r.groupKey) ?? null;
+    }
+  }
 }

@@ -11,7 +11,15 @@ import type { Product } from "@/lib/types";
 /* ============================================================
    Product presentation: role-aware price block (OBD-03 tiers),
    product card, grid, and the simple add-to-order control.
-   No discount % anywhere (OBD-20 pending).
+
+   Two independent discounts, never conflated (owner-directed,
+   2026-11-20): every visitor/pending account sees the PUBLIC MRP
+   discount (OBD-23 — "MRP ₹X, now ₹Y, Z% off"), computed from the
+   product's own mrp vs std. An approved BUYER instead sees their own
+   buyer-category discount (OBD-05 — off std, set per organisation
+   type on the Pricing page) as the one highlighted saving; MRP is not
+   additionally surfaced on top of it there, to keep a single primary
+   number in front of a signed-in buyer.
    ============================================================ */
 
 /** Discount percentage derived from the ACTUAL standard and applicable buyer
@@ -22,6 +30,15 @@ export function discountPct(std: number, buyer: number): number | null {
   return Math.round((1 - buyer / std) * 1000) / 10;
 }
 const offLabel = (n: number) => `${Number.isInteger(n) ? n : n.toFixed(1)}% OFF`;
+
+/** The single corner-badge discount for a card/row: an approved buyer's
+ *  own category discount takes priority; everyone else sees the public
+ *  MRP discount instead (never both at once — one headline number). */
+function cardOff(p: Product, role: string): number | null {
+  if (role === "buyer" && p.buyer !== undefined) return discountPct(p.std, p.buyer);
+  if (p.mrp !== undefined) return discountPct(p.mrp, p.std);
+  return null;
+}
 
 /** Prominent Ember discount chip, e.g. "15% OFF". */
 export function DiscountBadge({ off, className = "" }: { off: number; className?: string }) {
@@ -62,10 +79,21 @@ export function PriceBlock({
       </div>
     );
   }
+  // Public MRP discount (OBD-23) — shown to every visitor and pending
+  // account; a marketing fact, not the buyer's own institutional pricing.
+  const mrpOff = p.mrp !== undefined ? discountPct(p.mrp, p.std) : null;
   return (
     <div>
-      <div className="font-mono text-[10px] uppercase tracking-widest text-n600">Standard price</div>
+      <div className="flex items-center gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-widest text-n600">Standard price</span>
+        {mrpOff !== null && showBadge && <DiscountBadge off={mrpOff} />}
+      </div>
       <div className={amountCls}>{inr(p.std)}{gst}</div>
+      {mrpOff !== null && (
+        <div className="num mt-0.5 text-[13px] text-n600">
+          MRP <span className="line-through decoration-n400">{inr(p.mrp!)}</span>
+        </div>
+      )}
       {role === "pending" ? (
         <div className="mt-1 text-xs text-n600">Your institutional pricing activates on approval</div>
       ) : (
@@ -159,14 +187,27 @@ function CardAddToCart({ sku, name }: { sku: string; name: string }) {
   );
 }
 
+/** ADR-0016 — a grouped listing (variantCount > 1) can't resolve one SKU
+ *  from the grid alone (which colour/size?); route to the product page's
+ *  Size/Colour picker instead of adding a possibly-wrong variant directly. */
+function ChooseOptionsLink({ sku }: { sku: string }) {
+  return (
+    <Link
+      href={`/product/${sku}`}
+      className="inline-flex h-10 w-full items-center justify-center rounded-[2px] border border-n400 bg-chalk text-[13px] font-semibold text-ink transition-colors hover:border-ink"
+    >
+      Choose options
+    </Link>
+  );
+}
+
 export function ProductCard({ p, priority = false }: { p: Product; priority?: boolean }) {
   // Premium commerce card: image + title link to the PDP; wishlist and Add to
   // Cart are separate controls (not nested in a link). The only discount shown
   // is the real saving computed from the approved buyer's own price — never a
   // hardcoded figure, no fabricated ratings / stock / delivery.
   const { role } = useRole();
-  const off =
-    role === "buyer" && p.buyer !== undefined ? discountPct(p.std, p.buyer) : null;
+  const off = cardOff(p, role);
   const href = `/product/${p.sku}`;
   return (
     <div className="group flex flex-col overflow-hidden rounded-[3px] border border-n200 bg-chalk transition-colors duration-200 hover:border-n400">
@@ -210,11 +251,20 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
             Configure to order
           </span>
         )}
+        {!p.configurable && p.variantCount && p.variantCount > 1 && (
+          <span className="mt-1.5 inline-flex self-start rounded-[2px] bg-n100 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-n600">
+            {p.variantCount} options
+          </span>
+        )}
         <div className="mt-auto space-y-3 border-t border-n100 pt-3">
           {/* the corner badge already carries the % on the card, so suppress
               the inline one here to avoid a doubled badge */}
           <PriceBlock p={p} showBadge={false} />
-          <CardAddToCart sku={p.sku} name={p.name} />
+          {p.variantCount && p.variantCount > 1 ? (
+            <ChooseOptionsLink sku={p.sku} />
+          ) : (
+            <CardAddToCart sku={p.sku} name={p.name} />
+          )}
         </div>
       </div>
     </div>
@@ -226,7 +276,7 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
  *  laid out for the list view toggle instead of a grid tile. */
 export function ProductListRow({ p, priority = false }: { p: Product; priority?: boolean }) {
   const { role } = useRole();
-  const off = role === "buyer" && p.buyer !== undefined ? discountPct(p.std, p.buyer) : null;
+  const off = cardOff(p, role);
   const href = `/product/${p.sku}`;
   return (
     <div className="group flex gap-4 border-b border-n200 bg-chalk py-4 first:pt-0 last:border-b-0 sm:gap-5">
@@ -264,10 +314,21 @@ export function ProductListRow({ p, priority = false }: { p: Product; priority?:
               Configure to order
             </span>
           )}
+          {!p.configurable && p.variantCount && p.variantCount > 1 && (
+            <span className="mt-1.5 inline-flex rounded-[2px] bg-n100 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-n600">
+              {p.variantCount} options
+            </span>
+          )}
         </div>
         <div className="mt-3 flex shrink-0 items-end justify-between gap-4 sm:mt-0 sm:w-[220px] sm:flex-col sm:items-end">
           <PriceBlock p={p} showBadge={false} />
-          <div className="w-[136px]"><CardAddToCart sku={p.sku} name={p.name} /></div>
+          <div className="w-[136px]">
+            {p.variantCount && p.variantCount > 1 ? (
+              <ChooseOptionsLink sku={p.sku} />
+            ) : (
+              <CardAddToCart sku={p.sku} name={p.name} />
+            )}
+          </div>
         </div>
       </div>
     </div>

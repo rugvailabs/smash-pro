@@ -97,6 +97,16 @@ body {
   50% { opacity: 0.55; }
 }
 
+/* header search — animated placeholder blinking cursor (reduced-motion
+   killed by the global override below, same as every other animation) */
+.search-cursor {
+  animation: search-cursor-blink 1s step-start infinite;
+}
+@keyframes search-cursor-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }

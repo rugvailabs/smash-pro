@@ -21,8 +21,13 @@ export interface Product {
    *  the PDP thumbnail rail renders only when more than one frame exists). */
   gallery?: string[];
   meta: string;
-  /** Standard listed price, GST-inclusive (OBD-03/OBD-20). */
+  /** Standard listed price, GST-inclusive (OBD-03/OBD-20) — this is the
+   *  visitor selling price, shown to every visitor, pending account and buyer. */
   std: number;
+  /** MRP / cut-off price, GST-inclusive — a public marketing figure (OBD-23),
+   *  present only for products entered via the cost-based Add Product form.
+   *  Never a cost or margin figure; shown to every visitor, same as `std`. */
+  mrp?: number;
   /** Approved-buyer applicable price, GST-inclusive. Present ONLY when the
    *  backend priced the product for an approved buyer session — price
    *  isolation at the API boundary (OBD-03). Illustrative tier values
@@ -31,6 +36,23 @@ export interface Product {
   /** Requires the racquet configurator (stringing/tension/grip). */
   configurable?: boolean;
   specs: [string, string][];
+  /** ADR-0015/0016 — free-text descriptive attributes; present when set. */
+  color?: string;
+  size?: string;
+  /** ADR-0015/0016 — current sellability, separate from the product being
+   *  listed at all; a buyer-facing Size/Colour option can be out of stock
+   *  while the product itself stays listed. */
+  inStock?: boolean;
+  /** ADR-0016 — buyer-facing variant grouping key; present only when this
+   *  SKU is grouped with sibling colour/size variants. */
+  groupKey?: string;
+  /** ADR-0016 — set only on a listing/search/related-products card that
+   *  represents a group: how many active variants it stands in for. */
+  variantCount?: number;
+  /** ADR-0016 — set only on the product detail page's result, when this
+   *  SKU belongs to a group: every active sibling variant (incl. this
+   *  SKU), for the Size/Colour picker. */
+  variants?: Product[];
 }
 
 export interface RacquetConfig {

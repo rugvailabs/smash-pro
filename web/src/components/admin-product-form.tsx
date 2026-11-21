@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { NoteFlag, Panel, PanelHead } from "@/components/buyer-ui";
 import { ActionError, useAdminCall } from "@/components/admin-actions";
 import { ADMIN_CATEGORIES, AuditNote, btnEmber, inputCls, labelCls } from "@/components/admin-ui";
+import { ImagePathField, isImgPathPlausible } from "@/components/admin-image-field";
 import { resolveToPaise, visitorDiscountPct, type PriceMode } from "@/lib/pricing-calc";
 import { inr } from "@/lib/format";
 
@@ -17,21 +18,44 @@ import { inr } from "@/lib/format";
    per-buyer-category discount off the resolved selling price — see
    the Pricing page — and is untouched by this form.
 
-   Photography still arrives only through the approved programme —
-   this form never accepts a file upload or an external URL (no
-   object storage exists yet, ADR-0005; no placeholder imagery,
-   ever). The Image path field only LINKS a product to a photo a
-   human has already placed under public/img/ via that programme;
-   it is validated server-side to that tree only. "Browse library"
-   lists the files already committed under public/img/<category>/
-   (read-only — see server/media.ts) so admin can click one instead
-   of typing the exact filename. GST rate / HSN fields are
-   deliberately absent — pending OBD-20 / OBD-11 and professional
-   tax validation.
+   Image has three paths, all writing the same `img` field: (1)
+   "Upload from device" — real upload to DigitalOcean Spaces (ADR-0013,
+   server/storage.ts), admin-trusted at the moment of upload, not a
+   second approval step; (2) "Browse library" — read-only picker over
+   files already committed under public/img/<category>/ by the
+   photography programme (server/media.ts); (3) typing a known
+   /img/... path directly. Server-side `assertImgPath` in
+   server/admin.ts is the actual authority — it accepts only an
+   /img/... path or a URL on this app's own configured upload host,
+   never an arbitrary external URL.
+
+   HSN Code / GST % (ADR-0014) are optional, admin-entered
+   record-keeping fields only — manually typed, never auto-assigned,
+   format/range-checked server-side but not validated against any
+   tax classification authority. They are NOT read by the pricing
+   preview above or by checkout/invoices — wiring GST into those
+   calculations stays pending OBD-11/OBD-20 professional tax
+   validation.
+
+   Supplier code / MSP / colour / size / in-stock (ADR-0015) support
+   importing rows from a supplier stock sheet (e.g. LI-NING, HUNDRED)
+   without inventing a variant model: each colour/size combination
+   from a sheet becomes its own ProSmash product row, with the
+   original vendor item code kept for traceability. MSP is a third
+   reference price some sheets carry — stored, not computed into the
+   pricing preview above. `inStock` is deliberately separate from
+   `active`: active controls catalogue visibility, inStock flags
+   temporary unavailability of a still-listed product.
+
+   Group key (ADR-0016): an optional, admin-typed key. Leave it blank
+   for a standalone product (unchanged behaviour). Type the SAME key
+   on two or more products — e.g. a shoe's different colours/sizes —
+   and the buyer-facing catalogue shows them as ONE card/product page
+   with a Size/Colour picker, resolving to whichever SKU a buyer
+   actually orders; each still has its own price/stock/HSN/GST.
    ============================================================ */
 
 const SKU_RE = /^[A-Z]{2}-\d{4}$/;
-const IMG_RE = /^\/img\/[a-z0-9/_-]+\.(jpg|jpeg|png|webp)$/i;
 
 function ModeToggle({
   value, onChange, idPrefix,
@@ -57,81 +81,31 @@ function ModeToggle({
   );
 }
 
-/** Thumbnail grid of files already committed under public/img/<catSlug>/ —
- *  browse-and-pick instead of typing the exact filename. Read-only: never
- *  uploads, never writes; re-fetches whenever the category changes since
- *  the library is scoped per category. */
-function LibraryPicker({
-  catSlug, onPick, onClose,
-}: { catSlug: string; onPick: (path: string) => void; onClose: () => void }) {
-  const [images, setImages] = useState<string[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    setImages(null);
-    setError(null);
-    fetch(`/api/admin/catalog-images?cat=${encodeURIComponent(catSlug)}`)
-      .then(async (res) => {
-        const data = (await res.json().catch(() => null)) as { images?: string[]; error?: string } | null;
-        if (cancelled) return;
-        if (!res.ok) { setError(data?.error ?? "Couldn't load the library."); return; }
-        setImages(data?.images ?? []);
-      })
-      .catch(() => { if (!cancelled) setError("Couldn't load the library — check your connection."); });
-    return () => { cancelled = true; };
-  }, [catSlug]);
-
-  return (
-    <div className="mt-2.5 rounded-[2px] border border-n200 bg-chalk p-3">
-      <div className="mb-2.5 flex items-center justify-between">
-        <p className="font-mono text-[10px] uppercase tracking-wide text-n600">
-          Approved library — {catSlug}
-        </p>
-        <button type="button" onClick={onClose} className="text-xs font-semibold text-n600 hover:text-ink">
-          Close
-        </button>
-      </div>
-      {error ? (
-        <p className="text-sm text-bad">{error}</p>
-      ) : images === null ? (
-        <p className="text-sm text-n600">Loading…</p>
-      ) : images.length === 0 ? (
-        <p className="text-sm text-n600">
-          No approved photos on file for this category yet — the photography programme hasn&rsquo;t placed any under public/img/{catSlug}/.
-        </p>
-      ) : (
-        <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-6 md:grid-cols-8">
-          {images.map((src) => (
-            <button
-              key={src}
-              type="button"
-              onClick={() => onPick(src)}
-              title={src}
-              className="group aspect-square overflow-hidden rounded-[2px] border border-n200 hover:border-ember-deep"
-            >
-              <img src={src} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-export function ProductForm({ brands }: { brands: { id: number; name: string }[] }) {
+export function ProductForm({
+  brands, onSuccess,
+}: {
+  brands: { id: number; name: string }[];
+  /** fires after a successful add — e.g. closing the surrounding modal */
+  onSuccess?: () => void;
+}) {
   const { busy, error, call } = useAdminCall();
   const [form, setForm] = useState({
     sku: "", name: "", catSlug: "cricket", sub: "", meta: "", mrp: "",
   });
   const [brandId, setBrandId] = useState("");
   const [img, setImg] = useState("");
-  const [imgError, setImgError] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
   const [purchaseMode, setPurchaseMode] = useState<PriceMode>("percent");
   const [purchaseValue, setPurchaseValue] = useState("");
   const [marginMode, setMarginMode] = useState<PriceMode>("percent");
   const [marginValue, setMarginValue] = useState("");
+  const [hsn, setHsn] = useState("");
+  const [gstPercent, setGstPercent] = useState("");
+  const [supplierCode, setSupplierCode] = useState("");
+  const [msp, setMsp] = useState("");
+  const [color, setColor] = useState("");
+  const [size, setSize] = useState("");
+  const [groupKey, setGroupKey] = useState("");
+  const [inStock, setInStock] = useState(true);
 
   const set = (k: keyof typeof form) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
@@ -139,16 +113,29 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
 
   const sku = form.sku.trim().toUpperCase();
   const imgTrimmed = img.trim();
-  const imgValid = imgTrimmed === "" || IMG_RE.test(imgTrimmed);
+  const imgValid = isImgPathPlausible(img);
   const mrp = parseFloat(form.mrp);
   const purchaseNum = parseFloat(purchaseValue);
   const marginNum = parseFloat(marginValue);
+  const hsnTrimmed = hsn.trim();
+  const hsnValid = hsnTrimmed === "" || /^\d{4,8}$/.test(hsnTrimmed);
+  const gstTrimmed = gstPercent.trim();
+  const gstNum = parseFloat(gstTrimmed);
+  const gstValid = gstTrimmed === "" || (Number.isFinite(gstNum) && gstNum >= 0 && gstNum <= 100);
+  const supplierCodeTrimmed = supplierCode.trim();
+  const colorTrimmed = color.trim();
+  const sizeTrimmed = size.trim();
+  const mspTrimmed = msp.trim();
+  const mspNum = parseFloat(mspTrimmed);
+  const mspValid = mspTrimmed === "" || (Number.isFinite(mspNum) && mspNum > 0);
+  const groupKeyTrimmed = groupKey.trim();
 
   const preview = useMemo(() => {
     if (!Number.isFinite(mrp) || mrp <= 0) return null;
     const mrpPaise = Math.round(mrp * 100);
     const purchasePaise = resolveToPaise(purchaseMode, Number.isFinite(purchaseNum) ? purchaseNum : 0, mrpPaise);
-    const marginPaise = resolveToPaise(marginMode, Number.isFinite(marginNum) ? marginNum : 0, mrpPaise);
+    // margin % is of Dealer/Purchase price, not MRP (OBD-23 amendment, 2026-11-20)
+    const marginPaise = resolveToPaise(marginMode, Number.isFinite(marginNum) ? marginNum : 0, purchasePaise);
     const visitorPaise = purchasePaise + marginPaise;
     return {
       mrpPaise, purchasePaise, marginPaise, visitorPaise,
@@ -162,6 +149,7 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
     Number.isFinite(mrp) && mrp > 0 &&
     Number.isFinite(purchaseNum) && purchaseNum >= 0 &&
     Number.isFinite(marginNum) && marginNum >= 0 &&
+    hsnValid && gstValid && mspValid &&
     !!preview && preview.visitorPaise > 0 && !busy;
 
   const submit = async () => {
@@ -179,6 +167,14 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
           marginMode, marginValue: marginNum,
           brandId: brandId ? Number(brandId) : null,
           img: imgTrimmed || null,
+          hsn: hsnTrimmed || null,
+          gstPercent: gstTrimmed === "" ? null : gstNum,
+          supplierCode: supplierCodeTrimmed || null,
+          msp: mspTrimmed === "" ? null : mspNum,
+          color: colorTrimmed || null,
+          size: sizeTrimmed || null,
+          inStock,
+          groupKey: groupKeyTrimmed || null,
         },
         done: `${sku} added to the catalogue.`,
       })
@@ -187,8 +183,15 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
       setPurchaseValue("");
       setMarginValue("");
       setImg("");
-      setImgError(false);
-      setPickerOpen(false);
+      setHsn("");
+      setGstPercent("");
+      setSupplierCode("");
+      setMsp("");
+      setColor("");
+      setSize("");
+      setGroupKey("");
+      setInStock(true);
+      onSuccess?.();
     }
   };
 
@@ -241,57 +244,7 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
               placeholder="e.g. Alum-tanned leather · BCCI match grade" className={inputCls} />
           </div>
           <div className="sm:col-span-2">
-            <div className="flex items-center justify-between">
-              <label className={labelCls} htmlFor="pf-img">Image path</label>
-              <button
-                type="button"
-                onClick={() => setPickerOpen((v) => !v)}
-                className="mb-1.5 text-xs font-semibold text-ember-deep hover:underline"
-              >
-                {pickerOpen ? "Hide library" : "Browse library…"}
-              </button>
-            </div>
-            <div className="flex items-start gap-3">
-              <input
-                id="pf-img" type="text" value={img}
-                onChange={(e) => { setImg(e.target.value); setImgError(false); }}
-                placeholder="/img/cricket/new-bat-hero.jpg"
-                className={`${inputCls} font-mono text-[12.5px]`}
-              />
-              {imgTrimmed && IMG_RE.test(imgTrimmed) && (
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-[2px] border border-n200 bg-n100">
-                  {/* plain img, not next/image — admin-entered path, checked live via onError */}
-                  <img
-                    src={imgTrimmed}
-                    alt=""
-                    className="h-full w-full object-cover"
-                    onError={() => setImgError(true)}
-                    onLoad={() => setImgError(false)}
-                  />
-                </div>
-              )}
-            </div>
-            {imgTrimmed && !IMG_RE.test(imgTrimmed) ? (
-              <p className="mt-1 text-xs font-medium text-bad">
-                Must look like /img/category/file-name.jpg — a path under this app&rsquo;s own approved-photography tree, not an upload or external URL.
-              </p>
-            ) : imgTrimmed && imgError ? (
-              <p className="mt-1 text-xs font-medium text-bad">
-                No file found at this path — confirm the photography programme has placed it under public/img/ first.
-              </p>
-            ) : (
-              <p className="mt-1 text-xs text-n600">
-                Links an already-approved photo already placed under public/img/ by the photography programme —
-                this does not upload a file. Leave blank if none exists yet; the product shows the placeholder hatch instead.
-              </p>
-            )}
-            {pickerOpen && (
-              <LibraryPicker
-                catSlug={form.catSlug}
-                onClose={() => setPickerOpen(false)}
-                onPick={(path) => { setImg(path); setImgError(false); setPickerOpen(false); }}
-              />
-            )}
+            <ImagePathField value={img} onChange={setImg} catSlug={form.catSlug} idPrefix="pf-img" />
           </div>
         </div>
 
@@ -367,6 +320,108 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
           </div>
         </div>
 
+        <div className="mt-5 border-t border-n200 pt-4">
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-wide text-n600">
+            Tax reference (optional)
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls} htmlFor="pf-hsn">HSN code</label>
+              <input
+                id="pf-hsn" type="text" inputMode="numeric" value={hsn}
+                onChange={(e) => setHsn(e.target.value)}
+                placeholder="e.g. 950630" className={`${inputCls} num max-w-xs`}
+              />
+              {!hsnValid && (
+                <p className="mt-1 text-xs font-medium text-warn">4 to 8 digits.</p>
+              )}
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="pf-gst">GST %</label>
+              <input
+                id="pf-gst" type="number" min={0} max={100} step="0.01" value={gstPercent}
+                onChange={(e) => setGstPercent(e.target.value)}
+                placeholder="e.g. 18" className={`${inputCls} num max-w-xs`}
+              />
+              {!gstValid && (
+                <p className="mt-1 text-xs font-medium text-warn">0 to 100.</p>
+              )}
+            </div>
+          </div>
+          <p className="mt-2 text-xs text-n600">
+            Record-keeping only — admin-entered, not auto-assigned. Not used in the pricing
+            preview above or in checkout/invoices yet (pending OBD-11/OBD-20 tax validation).
+          </p>
+        </div>
+
+        <div className="mt-5 border-t border-n200 pt-4">
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-wide text-n600">
+            Supplier reference (optional)
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label className={labelCls} htmlFor="pf-supplier-code">Supplier item code</label>
+              <input
+                id="pf-supplier-code" type="text" value={supplierCode}
+                onChange={(e) => setSupplierCode(e.target.value)}
+                placeholder="e.g. AYPU021-3" className={`${inputCls} font-mono max-w-xs`}
+              />
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="pf-msp">MSP, ₹</label>
+              <input
+                id="pf-msp" type="number" min={0.01} step="0.01" value={msp}
+                onChange={(e) => setMsp(e.target.value)}
+                placeholder="e.g. 18990.00" className={`${inputCls} num max-w-xs`}
+              />
+              {!mspValid && (
+                <p className="mt-1 text-xs font-medium text-warn">Must be a positive amount.</p>
+              )}
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="pf-color">Color</label>
+              <input
+                id="pf-color" type="text" value={color}
+                onChange={(e) => setColor(e.target.value)}
+                placeholder="e.g. Green/Purple" className={`${inputCls} max-w-xs`}
+              />
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="pf-size">Size</label>
+              <input
+                id="pf-size" type="text" value={size}
+                onChange={(e) => setSize(e.target.value)}
+                placeholder="e.g. UK 9, L, 4U" className={`${inputCls} max-w-xs`}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <label className={labelCls} htmlFor="pf-group-key">Group key</label>
+              <input
+                id="pf-group-key" type="text" value={groupKey}
+                onChange={(e) => setGroupKey(e.target.value)}
+                placeholder="e.g. AYTV079 — leave blank for a standalone product" className={`${inputCls} font-mono max-w-sm`}
+              />
+            </div>
+          </div>
+          <label className="mt-3 inline-flex items-center gap-2 text-[13px] text-ink">
+            <input
+              type="checkbox" checked={inStock}
+              onChange={(e) => setInStock(e.target.checked)}
+              className="h-3.5 w-3.5 accent-ember-deep"
+            />
+            In stock
+          </label>
+          <p className="mt-2 text-xs text-n600">
+            Supplier item code / MSP are record-keeping fields for importing supplier stock
+            sheets. Color / size / group key work together (ADR-0016): type the SAME group key
+            on two or more products (e.g. a shoe&apos;s colours/sizes) and the buyer-facing catalogue
+            shows them as ONE card/product page with a Size/Colour picker — each still has its
+            own price/stock/HSN/GST. Leave group key blank for a standalone product (unchanged
+            behaviour). In stock is separate from Active: Active controls catalogue visibility,
+            In stock flags temporary unavailability of a still-listed product.
+          </p>
+        </div>
+
         <ActionError error={error} />
         <button onClick={() => void submit()} disabled={!canSubmit} className={`${btnEmber} mt-4`}>
           {busy ? "Adding…" : "Add product"}
@@ -374,11 +429,12 @@ export function ProductForm({ brands }: { brands: { id: number; name: string }[]
         <NoteFlag className="mt-3">
           approved-buyer pricing is a separate per-buyer-category discount off
           the resolved visitor selling price — set on the Pricing page, unaffected
-          by this form (obd-05) · image path only links an already-approved file
-          already placed under public/img/ — browse library lists what&rsquo;s on
-          file for the selected category, no upload, no external urls, no
-          placeholder imagery · gst rate / hsn fields absent, pending obd-20 /
-          obd-11 + tax validation
+          by this form (obd-05) · image — upload from device (stored in
+          DigitalOcean Spaces, adr-0013), browse the approved library, or type
+          a known path; no arbitrary external urls accepted · hsn code / gst %
+          are optional admin-entered record-keeping fields (adr-0014) — not
+          wired into pricing, checkout or invoices, pending obd-20 / obd-11 +
+          tax validation
         </NoteFlag>
         <AuditNote />
       </div>

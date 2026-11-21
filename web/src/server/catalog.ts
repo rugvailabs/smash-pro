@@ -4,12 +4,21 @@ import { and, asc, eq } from "drizzle-orm";
 import { db, schema } from "@/server/db";
 import { getSession } from "@/server/auth";
 import { priceProducts, type PricedProduct } from "@/server/pricing";
+import { dedupeGroups } from "@/lib/group-products";
 
 /* ============================================================
    Catalogue service (B2). Pricing is role-resolved here: the
    applicable (buyer) price is computed and serialised ONLY for
    an approved buyer session — price isolation at the boundary
    (OBD-03/PLT-001), not in the client.
+
+   Variant grouping (ADR-0016): rows sharing a non-null `groupKey`
+   (ADR-0015 colour/size variants of one model, e.g. a bulk-imported
+   supplier stock sheet) are ONE buyer-facing listing, not N. Every
+   listing/search/related-products query below collapses a group down
+   to ONE representative row (dedupeGroups) before returning; the
+   product detail page is the one place that instead expands a group
+   out to its full sibling list, for the Size/Colour picker.
    ============================================================ */
 
 async function buyerOrgId(): Promise<number | null> {
@@ -40,14 +49,27 @@ export async function listProducts(cat?: string): Promise<PricedProduct[]> {
     .from(schema.products)
     .where(cat ? and(eq(schema.products.active, true), eq(schema.products.catSlug, cat)) : eq(schema.products.active, true))
     .orderBy(asc(schema.products.sku));
-  return priceProducts(rows, await buyerOrgId());
+  const priced = await priceProducts(rows, await buyerOrgId());
+  return dedupeGroups(priced);
 }
 
 export async function getProductBySku(sku: string): Promise<PricedProduct | undefined> {
   await connection();
   const [row] = await db.select().from(schema.products).where(eq(schema.products.sku, sku));
   if (!row || !row.active) return undefined;
-  const [priced] = await priceProducts([row], await buyerOrgId());
+  const orgId = await buyerOrgId();
+  const [priced] = await priceProducts([row], orgId);
+  // ADR-0016: grouped → attach every ACTIVE sibling variant (incl. this
+  // SKU), already fully priced, so the Size/Colour picker needs no
+  // further fetch when a buyer switches selection client-side.
+  if (row.groupKey) {
+    const siblingRows = await db
+      .select()
+      .from(schema.products)
+      .where(and(eq(schema.products.groupKey, row.groupKey), eq(schema.products.active, true)))
+      .orderBy(asc(schema.products.sku));
+    priced.variants = await priceProducts(siblingRows, orgId);
+  }
   return priced;
 }
 
@@ -59,7 +81,8 @@ export async function searchCatalog(q: string): Promise<PricedProduct[]> {
   const hits = rows.filter((p) =>
     `${p.name} ${p.sub} ${p.catSlug} ${p.sku}`.toLowerCase().includes(needle)
   );
-  return priceProducts(hits, await buyerOrgId());
+  const priced = await priceProducts(hits, await buyerOrgId());
+  return dedupeGroups(priced);
 }
 
 export async function relatedProducts(sku: string, limit = 4): Promise<PricedProduct[]> {
@@ -71,7 +94,14 @@ export async function relatedProducts(sku: string, limit = 4): Promise<PricedPro
     .from(schema.products)
     .where(and(eq(schema.products.active, true), eq(schema.products.catSlug, current.catSlug)))
     .orderBy(asc(schema.products.sku));
-  return priceProducts(rows.filter((p) => p.sku !== sku).slice(0, limit), await buyerOrgId());
+  // exclude every sibling of the CURRENT group too, not just the current sku
+  // itself — otherwise "often procured together" would recommend the same
+  // model's other sizes/colours back to the buyer already viewing it.
+  const others = rows.filter((p) =>
+    current.groupKey ? p.groupKey !== current.groupKey : p.sku !== sku
+  );
+  const priced = await priceProducts(others, await buyerOrgId());
+  return dedupeGroups(priced).slice(0, limit);
 }
 
 export interface SuggestionDto {
@@ -90,12 +120,22 @@ export async function suggestFor(q: string): Promise<SuggestionDto[]> {
   const out: SuggestionDto[] = [];
 
   const prods = await db
-    .select({ sku: schema.products.sku, name: schema.products.name, sub: schema.products.sub })
+    .select({
+      sku: schema.products.sku, name: schema.products.name, sub: schema.products.sub,
+      groupKey: schema.products.groupKey,
+    })
     .from(schema.products)
     .where(eq(schema.products.active, true));
+  // ADR-0016: one suggestion per group — don't list the same model's every
+  // colour/size as a separate "product" suggestion. Only mark a group seen
+  // once one of its variants actually matches and gets pushed, so a
+  // non-matching first variant never hides a later matching sibling.
+  const seenGroups = new Set<string>();
   for (const p of prods) {
+    if (p.groupKey && seenGroups.has(p.groupKey)) continue;
     if (`${p.name} ${p.sub} ${p.sku}`.toLowerCase().includes(needle)) {
       out.push({ group: "Products", label: p.name, meta: p.sku, href: `/product/${p.sku}` });
+      if (p.groupKey) seenGroups.add(p.groupKey);
       if (out.length >= 4) break;
     }
   }

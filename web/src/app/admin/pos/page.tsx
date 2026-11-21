@@ -75,9 +75,10 @@ async function AdminPosContent({ searchParams }: { searchParams: Promise<SP> }) 
       ) : (
         <>
           <AdminTable
-            minW={1160}
+            minW={1440}
             cols={[
               { h: "PO" }, { h: "Supplier" }, { h: "Destination" }, { h: "Item" }, { h: "Brand" }, { h: "Qty", right: true },
+              { h: "Price/unit", right: true }, { h: "MRP", right: true }, { h: "Disc. vs MRP", right: true },
               { h: "Issued" }, { h: "Fulfilment" },
               { h: "Value", right: true }, { h: "Received", right: true },
               { h: "Outstanding", right: true }, { h: "Pay status" },
@@ -91,6 +92,13 @@ async function AdminPosContent({ searchParams }: { searchParams: Promise<SP> }) 
                 <td className={tdCls}>{p.lineName}</td>
                 <td className={tdCls}>{p.brand ?? <span className="text-n400">—</span>}</td>
                 <td className={`${tdCls} num text-right`}>{p.lineQty}</td>
+                <td className={`${tdCls} num text-right`}>{inr(p.unit)}</td>
+                <td className={`${tdCls} num text-right ${p.mrp === null ? "text-n400" : "text-n600 line-through"}`}>
+                  {p.mrp !== null ? inr(p.mrp) : "—"}
+                </td>
+                <td className={`${tdCls} num text-right`}>
+                  {p.discountVsMrpPct !== null ? `${p.discountVsMrpPct}%` : <span className="text-n400">—</span>}
+                </td>
                 <td className={`${tdCls} whitespace-nowrap`}>{p.issued}</td>
                 <td className={tdCls}><Chip tone={statusTone(p.fulfilment)}>{p.fulfilmentLabel}</Chip></td>
                 <td className={`${tdCls} num text-right`}>{inr(p.value)}</td>
@@ -115,12 +123,14 @@ async function AdminPosContent({ searchParams }: { searchParams: Promise<SP> }) 
                       <DestTag direct={p.destination === "direct"} />
                       <span className="ml-auto"><Chip tone={statusTone(p.fulfilment)}>{p.fulfilmentLabel}</Chip></span>
                     </div>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3.5 sm:grid-cols-3 lg:grid-cols-7">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-3.5 sm:grid-cols-3 lg:grid-cols-9">
                       {([
                         ["Item", p.lineName, false],
                         ["Brand", p.brand ?? "—", false],
                         ["Qty", String(p.lineQty), true],
-                        ["Unit", inr(p.unit), true],
+                        ["Price/unit", inr(p.unit), true],
+                        ["MRP", p.mrp !== null ? inr(p.mrp) : "—", true],
+                        ["Disc. vs MRP", p.discountVsMrpPct !== null ? `${p.discountVsMrpPct}%` : "—", true],
                         ["PO value", inr(p.value), true],
                         ["Received", inr(p.received), true],
                         ["Outstanding", inr(p.outstanding), true],
@@ -148,8 +158,14 @@ async function AdminPosContent({ searchParams }: { searchParams: Promise<SP> }) 
       <NoteFlag className="mt-2.5">
         commission, settlement and payout policy pending obd-14 / obd-21 ◇ —
         this view records money movements only, no schedules are implied ·
-        brand resolves automatically from the catalogue product linked at PO
-        issue — nobody enters it per purchase
+        brand/mrp resolve automatically from the catalogue product linked at
+        po issue — nobody enters them per purchase · "disc. vs mrp" compares
+        this po's unit price to the linked product's mrp, it is not a
+        supplier-negotiated discount (no such field exists) · unit-of-measure
+        (pcs/set/pair) and gst rate/itc eligibility are deliberately absent —
+        no uom field exists in the catalogue yet, and gst/tax entry remains
+        pending obd-20 / obd-11 + professional tax validation, same as every
+        other gst-adjacent field in this app
       </NoteFlag>
       <AuditNote />
     </main>

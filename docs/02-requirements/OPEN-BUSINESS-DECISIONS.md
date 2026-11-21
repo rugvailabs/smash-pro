@@ -161,6 +161,16 @@ confirmation vs dispatch), e-invoicing/e-way bill applicability, HSN capture on
 products, inclusive vs exclusive price display.
 **Affects:** Workflows J, M, N · BUY-005/008, PLT-005.
 
+**Scoped addition, still OPEN (owner, 2026-11-20, ADR-0014):** `products.hsn`
+and new `products.gstPercent` are now admin-settable as plain,
+manually-entered record-keeping fields (format/range-checked only — 4–8
+digit HSN, 0–100 GST%). This is data capture only: nothing is auto-assigned,
+and neither field is read by any pricing, checkout, or invoice calculation.
+HSN capture itself remains the only part of this OBD touched; invoice
+timing, e-invoicing/e-way bill applicability, and inclusive-vs-exclusive
+display stay fully open, and the captured values are not yet validated
+against any tax classification authority.
+
 ### OBD-12 — Supplier discrepancy resolution policy
 **Question:** Standard remedies for short/damaged/non-conforming deliveries —
 replacement window, debit notes, payment holds? Who signs off?
@@ -447,19 +457,29 @@ price from cost inputs instead of taking it as a single direct entry.**
 1. Admin enters an **MRP (cut-off price)** per product — the reference price
    shown struck through against the visitor selling price.
 2. Admin enters **Dealer/Purchase Price** and **ProSmash Margin** as two
-   independent fields, each switchable between **% of MRP** or a **fixed ₹
-   amount**. Resolution is server-side, never trusted from a client total:
-   - `purchase_paise` = purchase% × MRP, or the fixed ₹ entry.
-   - `margin_paise` = margin% × MRP, or the fixed ₹ entry.
+   independent fields, each switchable between **% of their own base** or a
+   **fixed ₹ amount**. Resolution is server-side, never trusted from a
+   client total:
+   - `purchase_paise` = purchase% × **MRP**, or the fixed ₹ entry.
+   - `margin_paise` = margin% × **Dealer/Purchase Price** (amended
+     2026-11-20, see below), or the fixed ₹ entry.
    - **Visitor Selling Price** (`stdPaise` — unchanged column, same field
      every other buyer-pricing/display path already reads) = Purchase +
      Margin.
    - **Visitor Discount %** = `(MRP − Visitor Selling Price) / MRP`, floored
      at 0% (a resolved price at or above MRP shows no discount, not a
      negative one).
-3. Purchase price, margin and MRP are **admin-only** — never serialised to
-   any public, visitor, or buyer-facing API response (same access boundary
-   as the existing OBD-05 cost/margin rule).
+3. Purchase price and margin are **admin-only** — never serialised to any
+   public, visitor, or buyer-facing API response (same access boundary as
+   the existing OBD-05 cost/margin rule). **MRP is the one exception,
+   amended 2026-11-20**: it is a public marketing figure, not a cost/margin
+   figure, so it IS now serialised publicly — every visitor and pending
+   account sees "MRP ₹X, now ₹Y, Z% off" the same way the standard listed
+   price already works (`server/pricing.ts` `PricedProduct.mrp`,
+   `components/product.tsx` `PriceBlock`/`ProductCard`/`ProductListRow`).
+   An approved buyer still sees their own OBD-05 category discount as the
+   one highlighted saving (point 4) — MRP is not additionally surfaced on
+   top of it there, to keep one primary number in front of a signed-in buyer.
 4. **Approved-buyer pricing is unaffected and stays separate**: it remains
    the OBD-05 per-buyer-category discount applied off the resolved visitor
    selling price, set on the Pricing page — this decision only changes how
@@ -469,11 +489,13 @@ price from cost inputs instead of taking it as a single direct entry.**
    price edits and `updateProduct` continue to set the visitor selling price
    directly; retrofitting them to this cost-entry model is not in scope here.
 
-**Assumption flagged for owner review:** the % mode for *both* Purchase
-Price and Margin is interpreted as a percentage **of MRP** (not of purchase
-price, i.e. not a cost-plus markup). This reading best matched the request
-as given; if margin was intended as a markup on purchase price instead, say
-so and the resolution formula will be corrected.
+**Flagged assumption — RESOLVED (owner, 2026-11-20):** the originally
+flagged reading (margin % of MRP) was corrected. **ProSmash Margin is a
+markup on Dealer/Purchase Price, not on MRP** — Purchase Price's own %
+mode stays % of MRP; only Margin's base changed. Worked example (owner-
+supplied): MRP ₹1,000, Dealer Price ₹600, Margin 10% of Dealer Price = ₹60
+→ Visitor Selling Price ₹660 → Visitor Discount 34% off MRP. See
+ADR-0011 Amendment for the implementation detail.
 **Affects:** ADM-catalog (Add Product) · `products.mrpPaise`,
 `purchaseMode/Value/Paise`, `marginMode/Value/Paise` (new columns) ·
 no change to buyer pricing (`server/pricing.ts`, `/admin/pricing`).
@@ -499,4 +521,6 @@ no change to buyer pricing (`server/pricing.ts`, `/admin/pricing`).
 | OBD-03 | Public product catalogue with login-based discounts: anonymous visitors browse the full catalog with names, images, descriptions, specs and the standard listed selling price (OBD-05 base price, GST-inclusive per OBD-20); discounts and discounted prices require login; no supplier costs, margins or confidential commercial data on public pages; OBD-05/OBD-20 rules unchanged; existing approval/verification gates preserved (transactions still require approval). Clarified same day: discount visibility is approval-gated — pending accounts see standard prices; approved logged-in buyers see discounted prices. | Owner | 2026-11-13 |
 | PLT-001 amendment | Authentication and role-scoped access (unified website): one unified application for public catalogue, buyer and supplier workflows; Super Admin remains a separate application; shared screens limited to the public catalogue (PLT-006); one credential grants exactly one role (OBD-15 remains open); server-side role scoping of routes and data; access boundaries §3 items 2–8 unchanged. Applied to FUNCTIONAL-REQUIREMENTS.md, USER-ROLES-AND-PERMISSIONS.md §3.1 and UI-PREPARATION-PLAN.md §1. | Owner | 2026-11-16 |
 | OBD-22 | Buyer delivery method & free-delivery threshold: three options for warehouse-fulfilled orders — self-pickup (free), self-arranged courier e.g. Porter/Rapido/Uber (buyer pays the courier directly, free to ProSmash), or Smash-Pro-managed delivery (free, but only offered when the GST-inclusive items total is ≥ ₹50,000 — no paid managed tier below that). Confirms COD was never and is not a supported payment method. Removes the prior flat illustrative shipping-fee placeholder on warehouse-fulfilled orders. Pickup address confirmed to exist but exact address is PENDING CONFIRMATION. | Owner | 2026-11-20 |
-| OBD-23 | Product cost-price entry & visitor discount display: Add Product form takes MRP (cut-off price) plus Dealer/Purchase Price and ProSmash Margin, each entered as % of MRP or a fixed ₹ amount; server resolves Purchase + Margin into the visitor selling price (unchanged `stdPaise` field/column) and a floored Visitor Discount % off MRP; purchase/margin/MRP remain admin-only, never serialised publicly; approved-buyer category pricing is untouched and stays a separate discount off the resolved selling price; governs the Add Product form only, not bulk-catalogue price edits. Owner should confirm the flagged assumption that % mode is of MRP, not a purchase-price markup. | Owner | 2026-11-20 |
+| OBD-23 | Product cost-price entry & visitor discount display: Add Product form takes MRP (cut-off price) plus Dealer/Purchase Price and ProSmash Margin, each entered as % of MRP or a fixed ₹ amount; server resolves Purchase + Margin into the visitor selling price (unchanged `stdPaise` field/column) and a floored Visitor Discount % off MRP; purchase/margin remain admin-only, never serialised publicly; approved-buyer category pricing is untouched and stays a separate discount off the resolved selling price; governs the Add Product form only, not bulk-catalogue price edits. Owner should confirm the flagged assumption that % mode is of MRP, not a purchase-price markup. | Owner | 2026-11-20 |
+| OBD-23 (amendment) | MRP and the resulting Visitor Discount % are made PUBLIC (unlike purchase/margin, which stay admin-only): every visitor and pending account now sees "MRP ₹X, now ₹Y, Z% off" on product cards and the product page, the same way the standard listed price already displays. Approved buyers continue to see only their own OBD-05 category discount as the highlighted saving — MRP is not additionally shown stacked on top of it for a signed-in buyer. | Owner | 2026-11-20 |
+| OBD-23 (amendment) | Margin-base correction: ProSmash Margin resolves as a percentage of **Dealer/Purchase Price**, not MRP (Purchase Price's own % mode is unaffected, still % of MRP). `margin_amount = dealer_price × margin% / 100`; `visitor_selling_price = dealer_price + margin_amount`; `visitor_discount% = (MRP − visitor_selling_price) / MRP` unchanged, still vs MRP. Fixed-₹ margin mode was already base-agnostic and needed no change. | Owner | 2026-11-20 |

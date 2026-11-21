@@ -6,6 +6,7 @@ import { getCategory, getProduct, getRelatedProducts } from "@/lib/catalog";
 import { AddToOrder, BuyerAvailability, PriceBlock, ProductGrid } from "@/components/product";
 import { ProductGallery } from "@/components/product-gallery";
 import { RacquetConfigurator } from "@/components/configurator";
+import { VariantPicker } from "@/components/variant-picker";
 import { DetailConvertNote } from "@/components/page-bits";
 import { DetailSkeleton } from "@/components/skeletons";
 import { NoteFlag } from "@/components/buyer-ui";
@@ -72,7 +73,10 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
           <div className="mb-4 mt-1 text-sm text-n600">{p.meta}</div>
 
           <div className="mb-4 border-y border-n200 py-4">
-            <PriceBlock p={p} size="detail" />
+            {/* ADR-0016: a grouped listing's price depends on which Size/
+                Colour the buyer picks below — VariantPicker owns that
+                PriceBlock instead, so it isn't shown twice. */}
+            {!(p.variants && p.variants.length > 1) && <PriceBlock p={p} size="detail" />}
             <DetailConvertNote />
             <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
               illustrative sample pricing — configured discounts pending (OBD-20)
@@ -81,7 +85,13 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
 
           <BuyerAvailability />
 
-          {p.configurable ? <RacquetConfigurator p={p} /> : <AddToOrder p={p} />}
+          {p.configurable ? (
+            <RacquetConfigurator p={p} />
+          ) : p.variants && p.variants.length > 1 ? (
+            <VariantPicker initialSku={p.sku} variants={p.variants} />
+          ) : (
+            <AddToOrder p={p} />
+          )}
 
           {/* certainty block — confirmed rules only (managed fulfilment,
               OBD-08 advance payment); no dates or SLAs are promised */}

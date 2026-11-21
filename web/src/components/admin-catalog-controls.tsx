@@ -1,84 +1,42 @@
 "use client";
 
-import { useState } from "react";
-import { ActionError, useAdminCall } from "@/components/admin-actions";
-import { inr } from "@/lib/format";
+import { useAdminCall } from "@/components/admin-actions";
+import { ActionError } from "@/components/admin-actions";
 
 /* ============================================================
-   Inline catalogue row controls: standard-price edit (PATCH std)
-   and active toggle (PATCH active). Small, table-density
-   controls — no modals.
+   Inline catalogue row controls: just the two quick one-click
+   toggles (active / inStock) — single click, no typing, so they
+   stay directly actionable from the table. Every other field
+   (std price, HSN, GST %, MSP, supplier code, colour, size, image)
+   used to have its own per-cell "edit" mini-form here; those were
+   removed once the single row-level "Edit" action
+   (admin-product-edit.tsx) covered all of them in one consolidated
+   form — the table now just displays those values as plain text.
    ============================================================ */
 
-export function StdPriceCell({ sku, std }: { sku: string; std: number }) {
-  const { busy, error, call, setError } = useAdminCall();
-  const [editing, setEditing] = useState(false);
-  const [value, setValue] = useState(String(std));
-
-  const v = parseFloat(value);
-  const ok = Number.isFinite(v) && v > 0;
-
-  const save = async () => {
-    if (!ok) return;
-    if (
-      await call(`/api/admin/products/${encodeURIComponent(sku)}`, {
-        method: "PATCH",
-        body: { std: v },
-        done: `${sku} standard price set to ${inr(v)}.`,
-      })
-    ) {
-      setEditing(false);
-    }
-  };
-
-  if (!editing) {
-    return (
-      <span className="inline-flex items-center justify-end gap-2">
-        <span className="num">{inr(std)}</span>
-        <button
-          onClick={() => { setValue(String(std)); setError(null); setEditing(true); }}
-          aria-label={`Edit standard price of ${sku}`}
-          className="font-mono text-[10px] uppercase tracking-wide text-n600 underline-offset-2 hover:text-ink hover:underline"
-        >
-          edit
-        </button>
-      </span>
-    );
-  }
+export function InStockToggle({ sku, inStock }: { sku: string; inStock: boolean }) {
+  const { busy, error, call } = useAdminCall();
 
   return (
-    <span className="inline-flex flex-col items-end gap-1">
-      <span className="inline-flex items-center gap-1.5">
-        <input
-          type="number"
-          min={0.01}
-          step="0.01"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") void save();
-            if (e.key === "Escape") setEditing(false);
-          }}
-          aria-label={`Standard price of ${sku}`}
-          autoFocus
-          className="num h-8 w-28 rounded-[2px] border border-n400 bg-chalk px-2 text-right text-[13px] text-ink"
-        />
-        <button
-          onClick={() => void save()}
-          disabled={busy || !ok}
-          className="inline-flex h-8 items-center rounded-[2px] border border-n400 bg-chalk px-2 text-[12px] font-semibold text-ink hover:border-ink disabled:text-n400"
-        >
-          {busy ? "…" : "Save"}
-        </button>
-        <button
-          onClick={() => setEditing(false)}
-          disabled={busy}
-          className="font-mono text-[10px] uppercase text-n600 hover:text-ink"
-        >
-          esc
-        </button>
-      </span>
-      <ActionError error={error} className="mt-0 max-w-[220px] text-left" />
+    <span className="inline-flex flex-col gap-1">
+      <button
+        onClick={() =>
+          void call(`/api/admin/products/${encodeURIComponent(sku)}`, {
+            method: "PATCH",
+            body: { inStock: !inStock },
+            done: inStock ? `${sku} marked out of stock.` : `${sku} marked in stock.`,
+          })
+        }
+        disabled={busy}
+        aria-pressed={inStock}
+        className={
+          "inline-flex h-6 items-center whitespace-nowrap rounded-[2px] px-2 text-xs font-medium disabled:cursor-not-allowed " +
+          (inStock ? "bg-ok-t text-ok hover:opacity-80" : "bg-warn-t text-warn hover:opacity-80")
+        }
+      >
+        {busy ? "…" : inStock ? "In stock" : "No stock"}
+      </button>
+      <ActionError error={error} className="mt-0 max-w-[180px]" />
     </span>
   );
 }
@@ -106,6 +64,29 @@ export function ActiveToggle({ sku, active }: { sku: string; active: boolean }) 
         {busy ? "…" : active ? "Active" : "Inactive"}
       </button>
       <ActionError error={error} className="mt-0 max-w-[220px]" />
+    </span>
+  );
+}
+
+/** Read-only row thumbnail (or placeholder swatch) — no inline edit
+ *  affordance; the full Edit action (admin-product-edit.tsx) carries the
+ *  same ImagePathField for changing it. */
+export function ProductThumbnail({ img }: { img: string | null }) {
+  return (
+    <span className="relative inline-block h-8 w-8 shrink-0 overflow-hidden rounded-[2px] border border-n200 bg-n100 align-middle">
+      {img ? (
+        // eslint-disable-next-line @next/next/no-img-element -- fixed 32x32 table thumbnail, not worth next/image's overhead here
+        <img src={img} alt="" className="h-full w-full object-cover" />
+      ) : (
+        <span
+          aria-hidden
+          className="absolute inset-0"
+          style={{
+            backgroundImage:
+              "repeating-linear-gradient(74deg, transparent, transparent 4px, var(--color-n200) 4px, var(--color-n200) 5px)",
+          }}
+        />
+      )}
     </span>
   );
 }

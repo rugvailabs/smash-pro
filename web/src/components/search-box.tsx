@@ -10,7 +10,82 @@ import { fetchSuggestions, type Suggestion } from "@/lib/suggest";
    (signed-in buyer only). Min 2 chars; arrows/Enter/Esc;
    listbox semantics; matched substring in semibold, no
    highlight colour. Chalk panel, raised shadow, hairline groups.
+
+   Animated "Search for <keyword>" placeholder layered over the real
+   (blanked) native placeholder — decorative only, pointer-events-none,
+   so it never intercepts clicks and never touches the real `q` value.
+   Visible only while idle (unfocused + empty); hidden the instant the
+   field is focused, so there's never a fake cursor next to the real
+   caret. prefers-reduced-motion freezes it on the first keyword.
    ============================================================ */
+
+const ROTATING_WORDS = [
+  "cricket", "football", "badminton", "basketball", "tennis", "sports shoes", "gym equipment",
+];
+
+/** Drives the type → pause → delete → next-word cycle. Returns the
+ *  current partial keyword; the effect is a no-op while `active` is
+ *  false (so no timers run once the overlay is hidden).
+ *
+ *  `setText` is called with plain values only, never an updater
+ *  function — React's dev-mode Strict Mode intentionally invokes
+ *  updater functions TWICE to catch impurity, and the previous version
+ *  scheduled its next setTimeout *inside* the updater, so every single
+ *  tick silently scheduled itself twice (the entire animation ran at
+ *  ~2x speed). All side effects (timer scheduling, phase/position
+ *  tracking) now live in plain local variables mutated only from
+ *  `step()` itself, never from inside a setState callback. */
+function useTypewriterWord(active: boolean, reduced: boolean): string {
+  const [wordIndex, setWordIndex] = useState(0);
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    if (!active || reduced) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    let phase: "typing" | "pausing" | "deleting" = "typing";
+    let pos = 0;
+    const word = ROTATING_WORDS[wordIndex % ROTATING_WORDS.length];
+
+    const step = () => {
+      if (cancelled) return;
+      if (phase === "typing") {
+        pos += 1;
+        setText(word.slice(0, pos));
+        if (pos >= word.length) {
+          phase = "pausing";
+          timer = setTimeout(step, 2200);
+        } else {
+          timer = setTimeout(step, 280 + Math.random() * 60);
+        }
+        return;
+      }
+      if (phase === "pausing") {
+        phase = "deleting";
+        timer = setTimeout(step, 120);
+        return;
+      }
+      // deleting
+      pos -= 1;
+      setText(word.slice(0, Math.max(pos, 0)));
+      if (pos <= 0) {
+        setWordIndex((i) => (i + 1) % ROTATING_WORDS.length);
+      } else {
+        timer = setTimeout(step, 150 + Math.random() * 30);
+      }
+    };
+
+    setText("");
+    timer = setTimeout(step, 800);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [active, reduced, wordIndex]);
+
+  return reduced ? ROTATING_WORDS[0] : text;
+}
 
 function Match({ text, q }: { text: string; q: string }) {
   const i = text.toLowerCase().indexOf(q.trim().toLowerCase());
@@ -40,6 +115,26 @@ export function SearchBox({
   const [active, setActive] = useState(-1);
   const [items, setItems] = useState<Suggestion[]>([]);
   const rootRef = useRef<HTMLFormElement>(null);
+  const [focused, setFocused] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [reduced, setReduced] = useState(false);
+
+  // avoids a hydration mismatch: SSR/first client render both show the
+  // plain native placeholder; the animated overlay takes over post-mount
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const set = () => setReduced(mq.matches);
+    set();
+    mq.addEventListener("change", set);
+    return () => mq.removeEventListener("change", set);
+  }, []);
+
+  // idle only: hidden the instant the field is focused or holds text —
+  // never fights the user's own caret, never touches their typed value
+  const showTypewriter = mounted && !focused && q.length === 0;
+  const typedWord = useTypewriterWord(showTypewriter, reduced);
 
   // debounced server suggestions (integration point I2)
   useEffect(() => {
@@ -121,7 +216,7 @@ export function SearchBox({
       <input
         name="q"
         type="search"
-        placeholder="Search equipment, categories…"
+        placeholder={mounted ? "" : "Search equipment, categories…"}
         aria-label="Search"
         autoComplete="off"
         role="combobox"
@@ -130,7 +225,8 @@ export function SearchBox({
         aria-activedescendant={active >= 0 ? `${listId}-${active}` : undefined}
         value={q}
         onChange={(e) => { setQ(e.target.value); setOpen(true); setActive(-1); }}
-        onFocus={() => setOpen(true)}
+        onFocus={() => { setOpen(true); setFocused(true); }}
+        onBlur={() => setFocused(false)}
         onKeyDown={onKeyDown}
         className={
           variant === "header"
@@ -138,6 +234,20 @@ export function SearchBox({
             : "h-10 w-full rounded-[4px] border border-white/25 bg-ink2 pl-10 pr-3 text-base text-white placeholder:text-white/45 md:text-sm"
         }
       />
+      {showTypewriter && (
+        <div
+          aria-hidden
+          className={
+            "pointer-events-none absolute top-1/2 flex -translate-y-1/2 items-center overflow-hidden whitespace-nowrap text-base md:text-sm " +
+            (variant === "header" ? "left-11 right-4 text-n600" : "left-10 right-3 text-white/45")
+          }
+        >
+          <span className="truncate">
+            Search for {typedWord ? <>&ldquo;{typedWord}&rdquo;</> : null}
+          </span>
+          <span className="search-cursor ml-px inline-block w-px shrink-0 self-stretch bg-current" />
+        </div>
+      )}
       {showPanel && (
         <ul
           id={listId}

@@ -18,6 +18,21 @@ import { normalizeBuyerType } from "@/lib/buyer-types";
    responses never carry the field (price isolation at the
    boundary). One buyer's rate never reveals another's: the rate
    is keyed only by the requesting buyer's own org type.
+
+   MRP (owner-directed, 2026-11-20): unlike purchase/margin cost
+   figures, MRP is a PUBLIC marketing fact — every visitor, pending
+   account and buyer sees "MRP ₹X, now ₹Y" the same way std pricing
+   already works. It is never cost/margin data, so it carries no
+   access-boundary restriction the way `buyer` does.
+
+   Variant grouping (ADR-0016, owner-directed, 2026-11-21): colour/
+   size (ADR-0015) and groupKey are now PUBLIC — a buyer-facing Size/
+   Colour picker needs them to render. `variantCount`/`variants` are
+   populated by server/catalog.ts (which owns the sibling-row query),
+   not by this module's per-row mapping — see listProducts/
+   getProductBySku there. Every sibling in `variants` still goes
+   through the SAME role-aware pricing/price-isolation as any other
+   product; grouping never bypasses OBD-03.
    ============================================================ */
 
 export interface PricedProduct {
@@ -28,12 +43,39 @@ export interface PricedProduct {
   img?: string;
   gallery?: string[];
   meta: string;
-  /** standard listed price in rupees (two decimals) */
+  /** standard listed price in rupees (two decimals) — this IS the visitor
+   *  selling price shown to every visitor, pending account and buyer */
   std: number;
+  /** MRP / cut-off price in rupees — a public marketing figure (OBD-23),
+   *  not a cost or margin; present only for products entered via the
+   *  cost-based Add Product form. Lets every visitor see "MRP ₹X, now ₹Y"
+   *  the same way std/buyer pricing already works. */
+  mrp?: number;
   /** approved-buyer applicable price — present only when priced for one */
   buyer?: number;
   configurable?: boolean;
   specs: [string, string][];
+  /** ADR-0015/0016 — free-text descriptive attributes; present when set. */
+  color?: string;
+  size?: string;
+  /** ADR-0015 amendment (ADR-0016) — current sellability, now public: a
+   *  buyer picking a Size/Colour combination needs to know if THAT specific
+   *  combination is in stock. Unlike HSN/GST/MSP/supplier code (which stay
+   *  admin-only cost/tax data), in-stock status is an ordinary availability
+   *  fact, same posture as the pre-existing `active` gate. */
+  inStock?: boolean;
+  /** ADR-0016 — buyer-facing variant grouping key; present only when this
+   *  SKU is grouped with sibling colour/size variants. */
+  groupKey?: string;
+  /** ADR-0016 — set ONLY on the representative row a listing/search/
+   *  related-products query returns for a group (server/catalog.ts); the
+   *  count of active variants in the group, so a card can show "N options". */
+  variantCount?: number;
+  /** ADR-0016 — set ONLY by getProductBySku (the product detail page) when
+   *  this SKU belongs to a group: every ACTIVE sibling in the group
+   *  (including this SKU itself), each already fully role-aware-priced,
+   *  for an instant client-side Size/Colour picker with no extra fetch. */
+  variants?: PricedProduct[];
 }
 
 const toRupees = (paise: number) => Math.round(paise) / 100;
@@ -73,8 +115,13 @@ function toDto(p: typeof schema.products.$inferSelect): PricedProduct {
     gallery: p.gallery ?? undefined,
     meta: p.meta,
     std: toRupees(p.stdPaise),
+    mrp: p.mrpPaise !== null ? toRupees(p.mrpPaise) : undefined,
     configurable: p.configurable || undefined,
     specs: p.specs,
+    color: p.color ?? undefined,
+    size: p.size ?? undefined,
+    inStock: p.inStock,
+    groupKey: p.groupKey ?? undefined,
   };
 }
 

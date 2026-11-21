@@ -5,13 +5,16 @@
 
 export type PriceMode = "percent" | "fixed";
 
-/** Resolve a percent-of-MRP or fixed-₹ entry to paise. Percent is of MRP,
- *  not of purchase price, for both purchase price and margin — so an admin
- *  pricing by "cost is 65% of MRP, margin is 10% of MRP" gets consistent
- *  numbers without doing the arithmetic by hand. */
-export function resolveToPaise(mode: PriceMode, value: number, mrpPaise: number): number {
+/** Resolve a percent-of-`basePaise` or fixed-₹ entry to paise. Caller picks
+ *  the base: Purchase/Dealer Price is entered as % of MRP, while ProSmash
+ *  Margin (OBD-23 amendment, 2026-11-20 — owner-confirmed, corrects the
+ *  flagged assumption in ADR-0011) is entered as % of the resolved
+ *  Dealer/Purchase Price, not of MRP. Fixed-₹ mode ignores the base
+ *  entirely in both cases — it is already "on top of" whatever it's added
+ *  to by the caller's addition, e.g. `stdPaise = purchasePaise + marginPaise`. */
+export function resolveToPaise(mode: PriceMode, value: number, basePaise: number): number {
   if (!Number.isFinite(value) || value < 0) return 0;
-  return mode === "percent" ? Math.round((mrpPaise * value) / 100) : Math.round(value * 100);
+  return mode === "percent" ? Math.round((basePaise * value) / 100) : Math.round(value * 100);
 }
 
 /** Visitor discount vs MRP, one decimal place, floored at 0% — a resolved

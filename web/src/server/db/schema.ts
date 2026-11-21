@@ -5,7 +5,10 @@ import {
 /* ============================================================
    Smash Pro schema (ADR-0003). Conventions:
    - money = integer paise (`*_paise`); UI renders two-decimal ₹
-   - GST amounts only; `hsn` stays NULL until OBD-20/OBD-11 resolve
+   - GST: `hsn`/`gstPercent` are optional admin-entered record-keeping
+     fields only (ADR-0014) — NOT wired into checkout/invoice/pricing
+     GST calculations, which stay NULL/absent until OBD-11/OBD-20
+     resolve with professional tax validation
    - business refs (ORD-/PO-/REQ-) are text primary keys
    - quotation versions are immutable rows (never updated)
    - every state transition appends to audit_log (PLT-003)
@@ -94,14 +97,61 @@ export const products = pgTable("products", {
   purchaseValue: doublePrecision("purchase_value"), // raw entered number
   purchasePaise: integer("purchase_paise"), // resolved ₹ paise
   /** ProSmash margin — admin-only, never serialised publicly */
-  marginMode: text("margin_mode"), // 'percent' (of MRP) | 'fixed'
+  marginMode: text("margin_mode"), // 'percent' (of Dealer/Purchase price, OBD-23 amendment 2026-11-20) | 'fixed'
   marginValue: doublePrecision("margin_value"), // raw entered number
   marginPaise: integer("margin_paise"), // resolved ₹ paise
   configurable: boolean("configurable").notNull().default(false),
   specs: jsonb("specs").$type<[string, string][]>().notNull(),
   directShip: boolean("direct_ship").notNull().default(false),
-  /** stays NULL until OBD-20/OBD-11 (tax professional) */
+  /** ADR-0014: optional, admin-entered record-keeping field — a free-text
+   *  HSN/SAC code, not validated against any tax classification authority.
+   *  Null for products predating this field / not yet classified. Not read
+   *  by any checkout, invoice, or pricing calculation (OBD-11/OBD-20 still
+   *  pending professional tax validation for that). */
   hsn: text("hsn"),
+  /** ADR-0014: optional, admin-entered record-keeping field — a GST rate
+   *  (0–100) the admin believes applies, not a system-computed or
+   *  validated rate. Null for products predating this field / not yet
+   *  classified. Not read by any checkout, invoice, or pricing
+   *  calculation (OBD-11/OBD-20 still pending professional tax
+   *  validation for that). */
+  gstPercent: doublePrecision("gst_percent"),
+  /** ADR-0015: optional, admin-entered record-keeping field — the
+   *  original vendor/supplier item code (e.g. a LI-NING or HUNDRED stock
+   *  sheet code), distinct from this app's own `sku` primary key. Used to
+   *  trace an imported row back to its source line / re-match on future
+   *  stock-sheet updates. Never read by pricing, checkout, or invoices. */
+  supplierCode: text("supplier_code"),
+  /** ADR-0015: optional, admin-entered record-keeping field — a third
+   *  reference price point (seen in supplier stock sheets, between Dealer
+   *  Price and MRP) ProSmash does not otherwise model. Entered directly
+   *  in rupees, same as MRP; not wired into the Dealer→Margin→Visitor
+   *  price calculation. */
+  mspPaise: integer("msp_paise"),
+  /** ADR-0015: optional, admin-entered descriptive attribute — free text.
+   *  (ADR-0016 amendment: this CAN now be a structured variant dimension —
+   *  see `groupKey` below. Rows ungrouped — `groupKey` null — still treat
+   *  this as purely descriptive, exactly as ADR-0015 shipped it.) */
+  color: text("color"),
+  /** ADR-0015: optional, admin-entered descriptive attribute — free text
+   *  (shoe size, apparel size, grip size, etc. all share this one field;
+   *  format varies by category and is never validated/converted). */
+  size: text("size"),
+  /** ADR-0016: optional, admin/importer-assigned grouping key. Rows sharing
+   *  a non-null groupKey are ONE buyer-facing listing (one catalogue card,
+   *  one product page) with a Size/Colour picker across them — each row is
+   *  still the real sellable unit (own price/stock/HSN/GST); picking an
+   *  option just resolves which sku a buyer is actually ordering. Null
+   *  (the default, and every pre-ADR-0016 row) = a standalone, ungrouped
+   *  product — behaviour is completely unchanged from before this column
+   *  existed. Free text, e.g. the base model code shared across a shoe's
+   *  colourways/sizes; never validated against anything, admin/importer
+   *  is solely responsible for which rows share one. */
+  groupKey: text("group_key"),
+  /** ADR-0015: current sellability, separate from `active` — `active`
+   *  controls catalogue visibility, `inStock` flags temporary unavailability
+   *  of a still-listed product. Defaults true (unknown = assumed available). */
+  inStock: boolean("in_stock").notNull().default(true),
   active: boolean("active").notNull().default(true),
 });
 

@@ -1,11 +1,18 @@
+import type { PriceMode } from "@/lib/pricing-calc";
+
 /* ============================================================
    Super Admin Dashboard — shared contract types (B5).
    Owned by the orchestrator; backend (server/admin.ts +
    lib/admin-api.ts) implements against these, frontend
    (app/admin/**) consumes them. Money is two-decimal RUPEES at
    this boundary (paise stay server-side). Pending OBD items
-   (GST rates/HSN, commission/settlement, cancellation windows,
-   verification checklists) are deliberately ABSENT — do not add.
+   (commission/settlement, cancellation windows, verification
+   checklists) are deliberately ABSENT — do not add. Product
+   `hsn`/`gstPercent` (ADR-0014) and `supplierCode`/`msp`/
+   `color`/`size`/`inStock` (ADR-0015, supplier stock-sheet import)
+   ARE present as optional, admin-entered record-keeping fields —
+   none of them feed any GST/pricing computation, which stays
+   pending OBD-11/OBD-20.
    ============================================================ */
 
 export interface AdminCounts {
@@ -42,11 +49,47 @@ export interface AdminProductRow {
   name: string;
   catSlug: string;
   sub: string;
+  meta: string;
   std: number; // rupees
   active: boolean;
   configurable: boolean;
   hasImg: boolean;
+  /** the actual path/URL, or null — lets the row's "Edit image" control
+   *  show the current image as its starting value */
+  img: string | null;
   brand: string | null;
+  /** the brand's id, for pre-selecting it in an edit form; null when unbranded */
+  brandId: number | null;
+  /** ADR-0014 — optional, admin-entered record-keeping field; null until set */
+  hsn: string | null;
+  /** ADR-0014 — optional, admin-entered record-keeping field; null until set */
+  gstPercent: number | null;
+  /** ADR-0015 — original vendor/supplier item code; null until set */
+  supplierCode: string | null;
+  /** ADR-0015 — optional third reference price point, rupees; null until set */
+  msp: number | null;
+  /** ADR-0015 — optional free-text colour; null until set */
+  color: string | null;
+  /** ADR-0015 — optional free-text size; null until set */
+  size: string | null;
+  /** ADR-0015 — current sellability, separate from `active`; defaults true */
+  inStock: boolean;
+  /** ADR-0016 — buyer-facing variant grouping key; rows sharing one are
+   *  ONE catalogue card/product page with a Size/Colour picker; null until
+   *  set (standalone, ungrouped product — the default). */
+  groupKey: string | null;
+  /** ADR-0011 cost breakdown — MRP is shown for context; Dealer/Purchase
+   *  price stays creation-only (read-only here). Margin mode/value ARE
+   *  editable (ADR-0017 amendment) so a batch-imported placeholder margin
+   *  can be corrected per product; null for products predating the
+   *  cost-based entry form. */
+  mrp: number | null;
+  /** resolved Dealer/Purchase price, rupees — the margin base */
+  purchase: number | null;
+  purchaseMode: PriceMode | null;
+  purchaseValue: number | null;
+  marginMode: PriceMode | null;
+  marginValue: number | null;
 }
 
 export interface AdminBrandRow {
@@ -184,7 +227,15 @@ export interface AdminPoRow {
    *  linked product has no brand assigned */
   brand: string | null;
   lineQty: number;
+  /** price per unit, rupees — resolves to reference's "PRICE/UNIT" */
   unit: number;
+  /** linked product's MRP (OBD-23), rupees — null when no SKU is linked or
+   *  the linked product predates cost-based pricing entry */
+  mrp: number | null;
+  /** how far this PO's unit price sits below the linked product's MRP —
+   *  NOT a supplier-negotiated discount (no such field exists anywhere in
+   *  the quotation/PO model); null whenever `mrp` is null */
+  discountVsMrpPct: number | null;
   value: number;
   fulfilment: "issued" | "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";
   fulfilmentLabel: string;
