@@ -80,7 +80,7 @@ export async function requirementsForSession(): Promise<SupplierRequirement[]> {
   const cats = org?.approvedCategories ?? [];
   const rows = await db.select().from(schema.requirements).orderBy(desc(schema.requirements.id));
   return rows
-    .filter((x) => cats.includes(x.catSlug))
+    .filter((x) => (x.items?.length ? x.items.some((it) => cats.includes(it.catSlug)) : cats.includes(x.catSlug)))
     .map((x) => ({
       id: x.id, title: x.title, category: CAT_LABELS[x.catSlug] ?? x.catSlug,
       qty: x.qty, destination: x.destination,
@@ -89,6 +89,7 @@ export async function requirementsForSession(): Promise<SupplierRequirement[]> {
       status: x.status as SupplierRequirement["status"], statusLabel: x.statusLabel,
       spec: x.spec ?? undefined, requiredBy: x.requiredBy ?? undefined,
       attachments: x.attachments ?? undefined, poId: x.poId ?? undefined,
+      items: x.items ?? undefined,
     }));
 }
 
@@ -119,8 +120,10 @@ async function composeQuote(
     qty: req.qty, closes: req.closes, statusLabel: q.statusLabel,
     unit: r(cur.unitPaise), quantity: cur.quantity, lead: cur.lead,
     validTill: cur.validTill, terms: cur.terms, attachments: cur.attachments,
+    items: cur.items?.map((it) => ({ title: it.title, catSlug: it.catSlug, qty: it.qty, unit: r(it.unitPaise) })),
+    total: cur.items ? r(cur.totalPaise) : undefined,
     versions: versions.map((v, i) => ({
-      v: `v${v.v}`, unit: r(v.unitPaise), summary: v.summary, date: v.date,
+      v: `v${v.v}`, unit: v.items ? r(v.totalPaise) : r(v.unitPaise), summary: v.summary, date: v.date,
       current: i === 0 || undefined,
     })),
     thread: msgs.map((m) => ({
@@ -161,12 +164,34 @@ export async function quoteForSession(reqId: string): Promise<SupplierQuote | un
 export async function submitQuotation(input: {
   reqId: string; unit: number; quantity: string; lead: string;
   validTill: string; terms: string; note?: string;
+  /** itemized unit prices, aligned by index with the requirement's own
+   *  `items` — required when the requirement is multi-product. */
+  itemUnits?: number[];
 }): Promise<{ version: number }> {
   const s = await approvedSupplier();
   if (!s) throw new Error("401");
   const req = await requirementForSession(input.reqId);
   if (!req) throw new Error("404"); // not matched to this supplier's categories
   const date = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+
+  let items: { title: string; catSlug: string; qty: string; unitPaise: number }[] | null = null;
+  let totalPaise = 0;
+  if (req.items && req.items.length > 1) {
+    if (!input.itemUnits || input.itemUnits.length !== req.items.length) {
+      throw new Error("400:A unit price for every product line is required");
+    }
+    items = req.items.map((it, i) => {
+      const unit = input.itemUnits![i];
+      if (typeof unit !== "number" || !Number.isFinite(unit) || unit <= 0 || unit > 1_000_000) {
+        throw new Error("400:Each unit price must be between ₹0.01 and ₹10,00,000");
+      }
+      return { title: it.title, catSlug: it.catSlug, qty: it.qty, unitPaise: Math.round(unit * 100) };
+    });
+    totalPaise = items.reduce((sum, it) => {
+      const qty = parseInt(it.qty, 10) || 0;
+      return sum + it.unitPaise * qty;
+    }, 0);
+  }
 
   let [q] = await db
     .select()
@@ -190,10 +215,13 @@ export async function submitQuotation(input: {
     .orderBy(desc(schema.quotationVersions.v));
   const v = (versions[0]?.v ?? 0) + 1;
   await db.insert(schema.quotationVersions).values({
-    quotationId: q.id, v, unitPaise: Math.round(input.unit * 100),
-    quantity: input.quantity, lead: input.lead, validTill: input.validTill,
+    quotationId: q.id, v,
+    unitPaise: items ? 0 : Math.round(input.unit * 100),
+    quantity: items ? `${items.length} products` : input.quantity,
+    lead: input.lead, validTill: input.validTill,
     terms: input.terms, summary: input.note || (v === 1 ? "initial submission" : "revision"),
     date, attachments: 0,
+    items, totalPaise,
   });
   await db.insert(schema.negotiationMessages).values({
     quotationId: q.id, fromRole: "system", meta: "",
@@ -500,7 +528,10 @@ export async function setSupplyItemAvailability(id: number, available: boolean):
 
 export async function submitRevision(
   reqId: string,
-  input: { unit: number; quantity: string; lead: string; validTill: string; terms: string; note?: string }
+  input: {
+    unit: number; quantity: string; lead: string; validTill: string; terms: string; note?: string;
+    itemUnits?: number[];
+  }
 ): Promise<{ version: number }> {
   const s = await approvedSupplier();
   if (!s) throw new Error("401");
@@ -510,10 +541,25 @@ export async function submitRevision(
     .where(and(eq(schema.quotations.reqId, reqId), eq(schema.quotations.supplierOrgId, s.orgId!)));
   if (!q) throw new Error("404");
   if (q.status === "awarded" || q.status === "closed" || q.status === "withdrawn") throw new Error("409");
-  const [req] = await db.select().from(schema.requirements).where(eq(schema.requirements.id, reqId));
+  const req = await requirementForSession(reqId);
   if (!req) throw new Error("404");
   if (req.status !== "open" && req.status !== "quoted-revision") throw new Error("409");
-  if (typeof input.unit !== "number" || !Number.isFinite(input.unit) || input.unit <= 0) {
+
+  let items: { title: string; catSlug: string; qty: string; unitPaise: number }[] | null = null;
+  let totalPaise = 0;
+  if (req.items && req.items.length > 1) {
+    if (!input.itemUnits || input.itemUnits.length !== req.items.length) {
+      throw new Error("400:A unit price for every product line is required");
+    }
+    items = req.items.map((it, i) => {
+      const unit = input.itemUnits![i];
+      if (typeof unit !== "number" || !Number.isFinite(unit) || unit <= 0 || unit > 1_000_000) {
+        throw new Error("400:Each unit price must be between ₹0.01 and ₹10,00,000");
+      }
+      return { title: it.title, catSlug: it.catSlug, qty: it.qty, unitPaise: Math.round(unit * 100) };
+    });
+    totalPaise = items.reduce((sum, it) => sum + it.unitPaise * (parseInt(it.qty, 10) || 0), 0);
+  } else if (typeof input.unit !== "number" || !Number.isFinite(input.unit) || input.unit <= 0) {
     throw new Error("400:Unit price must be a positive amount in rupees");
   }
   const date = displayDate();
@@ -524,9 +570,12 @@ export async function submitRevision(
     .orderBy(desc(schema.quotationVersions.v));
   const v = (versions[0]?.v ?? 0) + 1;
   await db.insert(schema.quotationVersions).values({
-    quotationId: q.id, v, unitPaise: Math.round(input.unit * 100),
-    quantity: input.quantity, lead: input.lead, validTill: input.validTill,
+    quotationId: q.id, v,
+    unitPaise: items ? 0 : Math.round(input.unit * 100),
+    quantity: items ? `${items.length} products` : input.quantity,
+    lead: input.lead, validTill: input.validTill,
     terms: input.terms, summary: input.note || "revision", date, attachments: 0,
+    items, totalPaise,
   });
   await db.insert(schema.negotiationMessages).values({
     quotationId: q.id, fromRole: "system", meta: "",

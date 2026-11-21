@@ -27,7 +27,7 @@ const ROLE_LABELS: Record<Role, string> = {
 export function PreviewRibbon() {
   const { role, setRole, email } = useRole();
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-n900 px-5 py-1.5 font-mono text-[11px] tracking-wide text-white/75 md:px-10">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-n900 px-5 py-1.5 font-mono text-[11px] tracking-wide text-white/75 md:px-10 print:hidden">
       <b className="font-medium text-white">DEMO</b>
       {/* compact one-liner on phones; full explainer from sm: up */}
       <span className="sm:hidden">sample data · illustrative prices</span>
@@ -115,7 +115,7 @@ export function SiteHeader() {
     <>
       {/* Light chrome — Smash Pro navy (Ink) wordmark/icons on white, Ember
           reserved for the accent/badges. */}
-      <header className="sticky top-0 z-40 border-b border-n200 bg-chalk">
+      <header className="sticky top-0 z-40 border-b border-n200 bg-chalk print:hidden">
         <div className="mx-auto flex h-20 max-w-[1280px] items-center gap-5 px-4 md:gap-7 md:px-10">
           <button
             onClick={() => setDrawerOpen(true)}
@@ -271,7 +271,7 @@ export function SiteFooter() {
   const col = "mb-3.5 font-mono text-[11px] uppercase tracking-[.08em] text-white/45";
   const item = "text-sm text-white/75 hover:text-white hover:underline hover:underline-offset-[3px]";
   return (
-    <footer className="mt-16 bg-ink text-white/70">
+    <footer className="mt-16 bg-ink text-white/70 print:hidden">
       <div className="mx-auto grid max-w-[1280px] gap-8 px-4 pb-7 pt-11 sm:grid-cols-2 md:px-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] lg:gap-9 lg:pb-9 lg:pt-14">
         <div>
           <span className="stretch-xp font-display text-[22px] font-extrabold tracking-wide text-chalk">
@@ -367,7 +367,7 @@ export function WhatsAppFloat() {
       rel="noopener"
       aria-label="Chat with Smash Pro on WhatsApp (placeholder link — official number pending)"
       title="WhatsApp contact — placeholder link, official number pending"
-      className="fixed bottom-5 right-5 z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink shadow-overlay transition-colors hover:bg-ink2"
+      className="fixed bottom-5 right-5 z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink shadow-overlay transition-colors hover:bg-ink2 print:hidden"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-none stroke-white" strokeWidth="1.8">
         <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H9l-4.2 3.5c-.5.4-.8.2-.8-.4V5.5Z" />

@@ -8,12 +8,16 @@ export async function POST(req: Request, ctx: { params: Promise<{ reqId: string 
     const { reqId } = await ctx.params;
     const body = (await req.json()) as {
       unit?: number; quantity?: string; lead?: string;
-      validTill?: string; terms?: string; note?: string;
+      validTill?: string; terms?: string; note?: string; itemUnits?: number[];
     };
-    for (const k of ["quantity", "lead", "validTill"] as const) {
+    const itemized = Array.isArray(body.itemUnits);
+    const requiredFields = itemized
+      ? (["lead", "validTill"] as const)
+      : (["quantity", "lead", "validTill"] as const);
+    for (const k of requiredFields) {
       if (!body[k]) return json({ error: `Missing field: ${k}` }, 400);
     }
-    if (typeof body.unit !== "number" || !Number.isFinite(body.unit) || body.unit <= 0 || body.unit > 1_000_000) {
+    if (!itemized && (typeof body.unit !== "number" || !Number.isFinite(body.unit) || body.unit <= 0 || body.unit > 1_000_000)) {
       return json({ error: "Unit price must be between ₹0.01 and ₹10,00,000" }, 400);
     }
     for (const [k, max] of [["quantity", 120], ["lead", 120], ["validTill", 120], ["terms", 300], ["note", 2000]] as const) {
@@ -21,8 +25,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ reqId: string 
       if (typeof v === "string" && v.length > max) return json({ error: `${k} is too long` }, 400);
     }
     const out = await submitRevision(decodeURIComponent(reqId).toUpperCase(), {
-      unit: body.unit, quantity: body.quantity!, lead: body.lead!,
+      unit: body.unit ?? 0, quantity: body.quantity ?? "", lead: body.lead!,
       validTill: body.validTill!, terms: body.terms ?? "", note: body.note,
+      itemUnits: body.itemUnits,
     });
     return json(out);
   });

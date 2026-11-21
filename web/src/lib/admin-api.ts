@@ -1,5 +1,6 @@
 import type {
-  AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
+  AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminInvoiceDetail,
+  AdminInvoiceRow, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminReport, AdminRequirementDetail,
   AdminRequirementRow, AuditLogPage, BuyerTypeDiscountRow, Reconciliation,
@@ -8,6 +9,7 @@ import type {
 import {
   adminCountsForSession, brandsForAdmin, buyerTypeDiscountsForAdmin, complaintsForAdmin, getAnalytics,
   getAuditLog, getOrganizationsFull, getReconciliation, getSupplierPerformance,
+  invoiceablePosForRequirement, invoiceForAdmin, invoicesForAdmin,
   orderForAdmin, ordersForAdmin, organizationForAdmin, organizationsForAdmin,
   paymentsForAdmin, posForAdmin, priceRulesForAdmin, productRequestsForAdmin,
   productsForAdmin, reportForAdmin, requirementForAdmin, requirementsForAdmin,
@@ -106,4 +108,16 @@ export async function getReconciliationAdmin(): Promise<Reconciliation> {
 
 export async function getAnalyticsAdmin(): Promise<AdminAnalytics | null> {
   return getAnalytics();
+}
+
+export async function getInvoicesAdmin(): Promise<AdminInvoiceRow[]> {
+  return invoicesForAdmin();
+}
+
+export async function getInvoiceAdmin(id: string): Promise<AdminInvoiceDetail | null> {
+  return invoiceForAdmin(id);
+}
+
+export async function getInvoiceablePos(reqId: string) {
+  return invoiceablePosForRequirement(reqId);
 }

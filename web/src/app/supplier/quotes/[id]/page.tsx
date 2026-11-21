@@ -62,20 +62,67 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
               <span className="font-mono text-[11px] text-n600">{currentVersion} · current</span>
               <span className="ml-auto"><Chip tone="warn">{q.statusLabel}</Chip></span>
             </div>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:grid-cols-5">
-              {[
-                ["Unit price", inr(q.unit), true],
-                ["Quantity", q.quantity, true],
-                ["Lead time", q.lead, false],
-                ["Valid till", q.validTill, false],
-                ["Terms", q.terms, false],
-              ].map(([l, v, num]) => (
-                <div key={l as string}>
-                  <div className="font-mono text-[10px] uppercase tracking-wide text-n600">{l}</div>
-                  <div className={`mt-0.5 text-sm font-semibold text-ink ${num ? "num" : ""}`}>{v}</div>
+            {q.items && q.items.length > 0 ? (
+              <div className="px-4 py-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[420px] text-[13px]">
+                    <thead>
+                      <tr className="border-b border-n200 text-left font-mono text-[10px] uppercase tracking-wide text-n600">
+                        <th className="pb-1.5 font-normal">Product</th>
+                        <th className="pb-1.5 text-right font-normal">Qty</th>
+                        <th className="pb-1.5 text-right font-normal">Unit</th>
+                        <th className="pb-1.5 text-right font-normal">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {q.items.map((it, i) => (
+                        <tr key={i} className="border-b border-n100 last:border-b-0">
+                          <td className="py-1.5 pr-2 text-ink">{it.title}</td>
+                          <td className="py-1.5 text-right num text-n800">{it.qty}</td>
+                          <td className="py-1.5 text-right num text-n800">{inr(it.unit)}</td>
+                          <td className="py-1.5 text-right num font-semibold text-ink">
+                            {inr(it.unit * (parseInt(it.qty, 10) || 0))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ))}
-            </div>
+                <div className="mt-2 flex flex-wrap gap-x-6 gap-y-2">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Total</div>
+                    <div className="mt-0.5 num text-sm font-semibold text-ink">{inr(q.total ?? 0)}</div>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Lead time</div>
+                    <div className="mt-0.5 text-sm font-semibold text-ink">{q.lead}</div>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Valid till</div>
+                    <div className="mt-0.5 text-sm font-semibold text-ink">{q.validTill}</div>
+                  </div>
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Terms</div>
+                    <div className="mt-0.5 text-sm font-semibold text-ink">{q.terms}</div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:grid-cols-5">
+                {[
+                  ["Unit price", inr(q.unit), true],
+                  ["Quantity", q.quantity, true],
+                  ["Lead time", q.lead, false],
+                  ["Valid till", q.validTill, false],
+                  ["Terms", q.terms, false],
+                ].map(([l, v, num]) => (
+                  <div key={l as string}>
+                    <div className="font-mono text-[10px] uppercase tracking-wide text-n600">{l}</div>
+                    <div className={`mt-0.5 text-sm font-semibold text-ink ${num ? "num" : ""}`}>{v}</div>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="flex items-center gap-4 border-t border-n100 px-4 py-2.5 text-xs text-n600">
               <span>⎙ {q.attachments} attachment</span>
               <span className="ml-auto font-mono">{q.reqId}</span>
@@ -88,6 +135,7 @@ async function QuoteDetailContent({ params }: { params: Promise<{ id: string }> 
               <SupplierRevisionForm
                 reqId={q.reqId}
                 current={{ unit: q.unit, quantity: q.quantity, lead: q.lead, validTill: q.validTill, terms: q.terms }}
+                items={q.items}
               />
             </>
           )}

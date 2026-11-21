@@ -47,7 +47,7 @@ function QuoteCard({
         <span className="ml-auto inline-flex items-center gap-2">
           {lowest && (
             <span className="inline-flex h-6 items-center rounded-[2px] border border-ink px-2 font-mono text-[10px] uppercase tracking-wide text-ink">
-              Lowest unit
+              Lowest total
             </span>
           )}
           <Chip tone={statusTone(q.status)}>{q.statusLabel}</Chip>
@@ -56,23 +56,64 @@ function QuoteCard({
 
       {/* current terms — the comparison row, identical anatomy per card */}
       {cur ? (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-3 px-3.5 py-3.5 sm:grid-cols-4">
-          {([
-            ["Unit price", inr(cur.unit), true],
-            ["Quantity", cur.quantity, true],
-            ["Lead time", cur.lead, false],
-            ["Valid till", cur.validTill, false],
-          ] as [string, string, boolean][]).map(([l, v, num]) => (
-            <div key={l}>
-              <div className="font-mono text-[10px] uppercase tracking-wide text-n600">{l}</div>
-              <div className={`mt-0.5 text-sm font-semibold text-ink ${num ? "num" : ""} ${l === "Unit price" ? "text-[15px]" : ""}`}>
-                {v}
+        <div className="px-3.5 py-3.5">
+          {cur.items && cur.items.length > 0 ? (
+            <div className="mb-3 overflow-x-auto">
+              <table className="w-full min-w-[420px] text-[13px]">
+                <thead>
+                  <tr className="border-b border-n200 text-left font-mono text-[10px] uppercase tracking-wide text-n600">
+                    <th className="pb-1.5 font-normal">Product</th>
+                    <th className="pb-1.5 text-right font-normal">Qty</th>
+                    <th className="pb-1.5 text-right font-normal">Unit</th>
+                    <th className="pb-1.5 text-right font-normal">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cur.items.map((it, i) => (
+                    <tr key={i} className="border-b border-n100 last:border-b-0">
+                      <td className="py-1.5 pr-2 text-ink">{it.title}</td>
+                      <td className="py-1.5 text-right num text-n800">{it.qty}</td>
+                      <td className="py-1.5 text-right num text-n800">{inr(it.unit)}</td>
+                      <td className="py-1.5 text-right num font-semibold text-ink">
+                        {inr(it.unit * (parseInt(it.qty, 10) || 0))}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <div className="mt-1.5 flex justify-end gap-2 text-sm">
+                <span className="font-mono text-[10px] uppercase tracking-wide text-n600">Total</span>
+                <b className="num font-semibold text-ink">{inr(cur.total ?? 0)}</b>
               </div>
             </div>
-          ))}
-          <div className="col-span-2 sm:col-span-4">
-            <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Terms</div>
-            <div className="mt-0.5 text-[13px] text-n800">{cur.terms}</div>
+          ) : (
+            <div className="mb-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+              {([
+                ["Unit price", inr(cur.unit), true],
+                ["Quantity", cur.quantity, true],
+              ] as [string, string, boolean][]).map(([l, v, num]) => (
+                <div key={l}>
+                  <div className="font-mono text-[10px] uppercase tracking-wide text-n600">{l}</div>
+                  <div className={`mt-0.5 text-sm font-semibold text-ink ${num ? "num" : ""} ${l === "Unit price" ? "text-[15px]" : ""}`}>
+                    {v}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Lead time</div>
+              <div className="mt-0.5 text-sm font-semibold text-ink">{cur.lead}</div>
+            </div>
+            <div>
+              <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Valid till</div>
+              <div className="mt-0.5 text-sm font-semibold text-ink">{cur.validTill}</div>
+            </div>
+            <div className="col-span-2">
+              <div className="font-mono text-[10px] uppercase tracking-wide text-n600">Terms</div>
+              <div className="mt-0.5 text-[13px] text-n800">{cur.terms}</div>
+            </div>
           </div>
         </div>
       ) : (
@@ -95,7 +136,7 @@ function QuoteCard({
                 <span className={`font-mono text-[11px] ${v.current ? "text-ember-deep" : "text-n400"}`}>
                   v{v.v}
                 </span>
-                <b className="num font-semibold">{inr(v.unit)}</b>
+                <b className="num font-semibold">{inr(v.items ? v.total ?? 0 : v.unit)}</b>
                 <span className="truncate">· {v.quantity} · {v.lead}</span>
                 <span className="ml-auto shrink-0 font-mono text-[10px] uppercase text-n400">{v.date}</span>
               </div>
@@ -151,10 +192,12 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
 
   const awarded = req.quotes.find((q) => q.status === "awarded");
   const canAward = !awarded && !req.poId;
-  const currentUnits = req.quotes
-    .map((q) => q.versions.find((v) => v.current)?.unit)
+  const comparableTotal = (v?: { unit: number; total?: number }) =>
+    v ? v.total ?? v.unit : undefined;
+  const currentTotals = req.quotes
+    .map((q) => comparableTotal(q.versions.find((v) => v.current)))
     .filter((u): u is number => u !== undefined);
-  const lowestUnit = currentUnits.length > 1 ? Math.min(...currentUnits) : null;
+  const lowestTotal = currentTotals.length > 1 ? Math.min(...currentTotals) : null;
 
   return (
     <main>
@@ -188,6 +231,20 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
             <KV k="Required by">{req.requiredBy ?? "—"}</KV>
             <KV k="Quotations"><span className="num">{req.quoteCount}</span></KV>
           </Panel>
+          {req.items && req.items.length > 1 && (
+            <>
+              <Sect>Products in this requirement</Sect>
+              <Panel className="divide-y divide-n100">
+                {req.items.map((it, i) => (
+                  <div key={i} className="flex flex-wrap items-center gap-3 px-4 py-2.5">
+                    <span className="min-w-0 flex-1 text-sm text-ink">{it.title}</span>
+                    <span className="font-mono text-[11px] uppercase tracking-wide text-n600">{catLabel(it.catSlug)}</span>
+                    <span className="text-[13px] font-semibold text-ink">{it.qty}</span>
+                  </div>
+                ))}
+              </Panel>
+            </>
+          )}
           {req.spec && req.spec.length > 0 && (
             <>
               <Sect>Specification</Sect>
@@ -205,9 +262,8 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
               <IssuePo
                 quotationId={awarded.quotationId}
                 supplierName={awarded.supplierName}
-                products={products
-                  .filter((p) => p.catSlug === req.catSlug)
-                  .map((p) => ({ sku: p.sku, name: p.name, brand: p.brand }))}
+                items={awarded.versions.find((v) => v.current)?.items?.map((it) => it.title)}
+                products={products.map((p) => ({ sku: p.sku, name: p.name, brand: p.brand, catSlug: p.catSlug }))}
               />
             </div>
           )}
@@ -217,7 +273,12 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
               <Link href="/admin/pos" className="font-mono text-[12.5px] underline underline-offset-2">
                 {req.poId}
               </Link>{" "}
-              carries fulfilment and payment records for this procurement.
+              carries fulfilment and payment records for this procurement
+              {req.items && req.items.length > 1 ? <> (one PO line per product)</> : null}.
+              Once goods are received, generate the supplier&rsquo;s invoice from{" "}
+              <Link href={`/admin/invoices/new?reqId=${req.id}`} className="underline underline-offset-2">
+                Purchase orders
+              </Link>.
             </Banner>
           )}
         </div>
@@ -236,8 +297,8 @@ async function SourcingDetailContent({ params }: { params: Promise<{ id: string 
                   key={q.quotationId}
                   q={q}
                   lowest={
-                    lowestUnit !== null &&
-                    q.versions.find((v) => v.current)?.unit === lowestUnit
+                    lowestTotal !== null &&
+                    comparableTotal(q.versions.find((v) => v.current)) === lowestTotal
                   }
                   canAward={canAward && q.status !== "withdrawn" && q.status !== "closed"}
                 />

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Banner, KV, NoteFlag, Panel, PanelHead } from "@/components/buyer-ui";
 import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
+import type { RequirementItem } from "@/lib/types";
 
 /* ============================================================
    Quotation submission — SUP-006 · Workflow E step 1, now REAL
@@ -15,11 +16,13 @@ import { inr } from "@/lib/format";
    (attachments remain metadata-only, ADR-0005).
    ============================================================ */
 
-export function QuoteForm({ reqId }: { reqId: string }) {
+export function QuoteForm({ reqId, items }: { reqId: string; items?: RequirementItem[] }) {
   const router = useRouter();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const itemized = (items?.length ?? 0) > 1;
+  const [itemPrices, setItemPrices] = useState<string[]>(() => (items ?? []).map(() => ""));
   const [form, setForm] = useState({
     price: "2340", qty: "120", lead: "18 days from PO",
     valid: "05 Dec 2026", terms: "50% advance, balance on delivery",
@@ -36,15 +39,22 @@ export function QuoteForm({ reqId }: { reqId: string }) {
       const res = await fetch("/api/supplier/quotes", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          reqId,
-          unit: parseFloat(form.price) || 0,
-          quantity: form.qty,
-          lead: form.lead,
-          validTill: form.valid,
-          terms: form.terms,
-          note: form.notes.trim() || undefined,
-        }),
+        body: JSON.stringify(itemized
+          ? {
+              reqId,
+              itemUnits: itemPrices.map((p) => parseFloat(p) || 0),
+              lead: form.lead, validTill: form.valid, terms: form.terms,
+              note: form.notes.trim() || undefined,
+            }
+          : {
+              reqId,
+              unit: parseFloat(form.price) || 0,
+              quantity: form.qty,
+              lead: form.lead,
+              validTill: form.valid,
+              terms: form.terms,
+              note: form.notes.trim() || undefined,
+            }),
       });
       const data = (await res.json()) as { version?: number; error?: string };
       if (!res.ok || !data.version) {
@@ -63,6 +73,11 @@ export function QuoteForm({ reqId }: { reqId: string }) {
 
   const price = parseFloat(form.price) || 0;
   const qty = parseInt(form.qty) || 0;
+  const itemTotal = (items ?? []).reduce((sum, it, i) => {
+    const unit = parseFloat(itemPrices[i] ?? "") || 0;
+    return sum + unit * (parseInt(it.qty, 10) || 0);
+  }, 0);
+  const itemizedValid = itemized && itemPrices.every((p) => parseFloat(p) > 0);
 
   const input = "h-10 w-full rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink placeholder:text-n400";
   const label = "mb-1.5 block text-[13px] font-medium text-ink";
@@ -76,16 +91,59 @@ export function QuoteForm({ reqId }: { reqId: string }) {
           attachment upload records metadata only (adr-0005)
         </NoteFlag>
         <div className="grid gap-3.5 sm:grid-cols-2">
-          <div>
-            <label className={label} htmlFor="q-price">Unit price, incl. GST where applicable (required)</label>
-            <input id="q-price" type="number" min={0} step="0.01" className={`${input} num`} value={form.price} onChange={set("price")} />
-            <p className={help}>Line total auto-calculates at quoted quantity</p>
-          </div>
-          <div>
-            <label className={label} htmlFor="q-qty">Quantity offered (required)</label>
-            <input id="q-qty" type="number" min={1} className={input} value={form.qty} onChange={set("qty")} />
-            <p className={help}>Partial-quantity quotes: policy pending confirmation</p>
-          </div>
+          {itemized ? (
+            <div className="sm:col-span-2">
+              <span className={label}>Unit price per product, incl. GST where applicable (required)</span>
+              <div className="overflow-x-auto rounded-[2px] border border-n200">
+                <table className="w-full min-w-[480px] text-[13px]">
+                  <thead>
+                    <tr className="border-b border-n200 bg-paper text-left font-mono text-[10px] uppercase tracking-wide text-n600">
+                      <th className="px-3 py-2 font-normal">Product</th>
+                      <th className="px-3 py-2 text-right font-normal">Qty</th>
+                      <th className="px-3 py-2 text-right font-normal">Unit price</th>
+                      <th className="px-3 py-2 text-right font-normal">Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items!.map((it, i) => {
+                      const unit = parseFloat(itemPrices[i] ?? "") || 0;
+                      const lineQty = parseInt(it.qty, 10) || 0;
+                      return (
+                        <tr key={i} className="border-b border-n100 last:border-b-0">
+                          <td className="px-3 py-2 text-ink">{it.title}</td>
+                          <td className="px-3 py-2 text-right num text-n800">{it.qty}</td>
+                          <td className="px-3 py-1.5 text-right">
+                            <input
+                              type="number" min={0} step="0.01"
+                              value={itemPrices[i] ?? ""}
+                              onChange={(e) => setItemPrices(itemPrices.map((p, idx) => (idx === i ? e.target.value : p)))}
+                              aria-label={`Unit price for ${it.title}`}
+                              className="h-9 w-28 rounded-[2px] border border-n400 bg-chalk px-2 text-right text-sm num"
+                            />
+                          </td>
+                          <td className="px-3 py-2 text-right num font-semibold text-ink">{inr(unit * lineQty)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <p className={help}>Partial-quantity quotes: policy pending confirmation</p>
+            </div>
+          ) : (
+            <>
+              <div>
+                <label className={label} htmlFor="q-price">Unit price, incl. GST where applicable (required)</label>
+                <input id="q-price" type="number" min={0} step="0.01" className={`${input} num`} value={form.price} onChange={set("price")} />
+                <p className={help}>Line total auto-calculates at quoted quantity</p>
+              </div>
+              <div>
+                <label className={label} htmlFor="q-qty">Quantity offered (required)</label>
+                <input id="q-qty" type="number" min={1} className={input} value={form.qty} onChange={set("qty")} />
+                <p className={help}>Partial-quantity quotes: policy pending confirmation</p>
+              </div>
+            </>
+          )}
           <div>
             <label className={label} htmlFor="q-lead">Lead time (required)</label>
             <input id="q-lead" type="text" className={input} value={form.lead} onChange={set("lead")} />
@@ -118,7 +176,7 @@ export function QuoteForm({ reqId }: { reqId: string }) {
         <div className="mt-4 flex gap-3">
           <button
             onClick={() => void submit()}
-            disabled={busy || !(parseFloat(form.price) > 0) || !(parseInt(form.qty) > 0)}
+            disabled={busy || (itemized ? !itemizedValid : !(parseFloat(form.price) > 0) || !(parseInt(form.qty) > 0))}
             className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
           >
             {busy ? "Submitting…" : "Submit quotation"}
@@ -133,9 +191,15 @@ export function QuoteForm({ reqId }: { reqId: string }) {
         <Panel>
           <PanelHead title="Offer summary" />
           <div className="px-4 py-3">
-            <KV k="Unit price"><span className="num">{inr(price)}</span></KV>
-            <KV k="Quantity"><span className="num">{qty}</span></KV>
-            <KV k="Line total"><b className="num">{inr(price * qty)}</b></KV>
+            {itemized ? (
+              <KV k="Total offer"><b className="num">{inr(itemTotal)}</b></KV>
+            ) : (
+              <>
+                <KV k="Unit price"><span className="num">{inr(price)}</span></KV>
+                <KV k="Quantity"><span className="num">{qty}</span></KV>
+                <KV k="Line total"><b className="num">{inr(price * qty)}</b></KV>
+              </>
+            )}
             <KV k="Lead time">{form.lead}</KV>
             <KV k="Valid till">{form.valid}</KV>
           </div>

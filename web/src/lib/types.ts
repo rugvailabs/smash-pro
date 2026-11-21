@@ -170,6 +170,13 @@ export interface Institution {
 
 export type ReqStatus = "open" | "quoted-revision" | "awarded" | "closed";
 
+/** One product line within a multi-product requirement. */
+export interface RequirementItem {
+  title: string;
+  catSlug: string;
+  qty: string;
+}
+
 export interface SupplierRequirement {
   id: string;
   title: string;
@@ -187,6 +194,9 @@ export interface SupplierRequirement {
   attachments?: { file: string; meta: string }[];
   /** Linked PO when awarded. */
   poId?: string;
+  /** Present (length > 1) for a multi-product requirement; `title`/`qty`
+   *  above stay a derived summary across all items. */
+  items?: RequirementItem[];
 }
 
 export interface QuoteVersion {
@@ -201,6 +211,11 @@ export interface NegotiationMsg {
   from: "smash pro" | "you" | "system";
   meta: string;
   text: string;
+}
+
+/** One priced product line within an itemized (multi-product) quotation. */
+export interface QuoteItem extends RequirementItem {
+  unit: number;
 }
 
 export interface SupplierQuote {
@@ -218,6 +233,10 @@ export interface SupplierQuote {
   attachments: number;
   versions: QuoteVersion[];
   thread: NegotiationMsg[];
+  /** present for a multi-product requirement's quotation — one unit price
+   *  per line item; `unit`/`quantity` above are a legacy single-line view. */
+  items?: QuoteItem[];
+  total?: number;
 }
 
 export type PoFulfilment = "issued" | "acknowledged" | "awaiting-proof" | "delivered-proof" | "closed";

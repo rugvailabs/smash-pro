@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Banner, NoteFlag, Panel } from "@/components/buyer-ui";
 import { useToast } from "@/components/toast";
 import { inr } from "@/lib/format";
+import type { QuoteItem } from "@/lib/types";
 
 /* ============================================================
    Quotation revision + withdrawal (Workflow E), real endpoints.
@@ -21,12 +22,21 @@ interface CurrentOffer {
   terms: string;
 }
 
-export function SupplierRevisionForm({ reqId, current }: { reqId: string; current: CurrentOffer }) {
+export function SupplierRevisionForm({
+  reqId, current, items,
+}: {
+  reqId: string;
+  current: CurrentOffer;
+  /** present when this is an itemized (multi-product) quotation */
+  items?: QuoteItem[];
+}) {
   const router = useRouter();
   const { toast } = useToast();
+  const itemized = (items?.length ?? 0) > 0;
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [itemPrices, setItemPrices] = useState<string[]>(() => (items ?? []).map((it) => String(it.unit)));
   const [form, setForm] = useState({
     price: String(current.unit),
     qty: current.quantity,
@@ -46,14 +56,20 @@ export function SupplierRevisionForm({ reqId, current }: { reqId: string; curren
       const res = await fetch(`/api/supplier/quotes/${reqId}/revise`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          unit: parseFloat(form.price) || 0,
-          quantity: form.qty,
-          lead: form.lead,
-          validTill: form.valid,
-          terms: form.terms,
-          note: form.notes.trim() || undefined,
-        }),
+        body: JSON.stringify(itemized
+          ? {
+              itemUnits: itemPrices.map((p) => parseFloat(p) || 0),
+              lead: form.lead, validTill: form.valid, terms: form.terms,
+              note: form.notes.trim() || undefined,
+            }
+          : {
+              unit: parseFloat(form.price) || 0,
+              quantity: form.qty,
+              lead: form.lead,
+              validTill: form.valid,
+              terms: form.terms,
+              note: form.notes.trim() || undefined,
+            }),
       });
       const data = (await res.json().catch(() => null)) as { version?: number; error?: string } | null;
       if (!res.ok || !data?.version) {
@@ -102,14 +118,50 @@ export function SupplierRevisionForm({ reqId, current }: { reqId: string; curren
         prefilled below
       </NoteFlag>
       <div className="grid gap-3.5 sm:grid-cols-2">
-        <div>
-          <label className={label} htmlFor="r-price">Unit price, incl. GST where applicable (required)</label>
-          <input id="r-price" type="number" min={0} step="0.01" className={`${input} num`} value={form.price} onChange={set("price")} />
-        </div>
-        <div>
-          <label className={label} htmlFor="r-qty">Quantity offered (required)</label>
-          <input id="r-qty" type="text" className={input} value={form.qty} onChange={set("qty")} />
-        </div>
+        {itemized ? (
+          <div className="sm:col-span-2">
+            <span className={label}>Unit price per product</span>
+            <div className="overflow-x-auto rounded-[2px] border border-n200">
+              <table className="w-full min-w-[420px] text-[13px]">
+                <thead>
+                  <tr className="border-b border-n200 bg-paper text-left font-mono text-[10px] uppercase tracking-wide text-n600">
+                    <th className="px-3 py-2 font-normal">Product</th>
+                    <th className="px-3 py-2 text-right font-normal">Qty</th>
+                    <th className="px-3 py-2 text-right font-normal">Unit price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items!.map((it, i) => (
+                    <tr key={i} className="border-b border-n100 last:border-b-0">
+                      <td className="px-3 py-2 text-ink">{it.title}</td>
+                      <td className="px-3 py-2 text-right num text-n800">{it.qty}</td>
+                      <td className="px-3 py-1.5 text-right">
+                        <input
+                          type="number" min={0} step="0.01"
+                          value={itemPrices[i] ?? ""}
+                          onChange={(e) => setItemPrices(itemPrices.map((p, idx) => (idx === i ? e.target.value : p)))}
+                          aria-label={`Unit price for ${it.title}`}
+                          className="h-9 w-28 rounded-[2px] border border-n400 bg-chalk px-2 text-right text-sm num"
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div>
+              <label className={label} htmlFor="r-price">Unit price, incl. GST where applicable (required)</label>
+              <input id="r-price" type="number" min={0} step="0.01" className={`${input} num`} value={form.price} onChange={set("price")} />
+            </div>
+            <div>
+              <label className={label} htmlFor="r-qty">Quantity offered (required)</label>
+              <input id="r-qty" type="text" className={input} value={form.qty} onChange={set("qty")} />
+            </div>
+          </>
+        )}
         <div>
           <label className={label} htmlFor="r-lead">Lead time (required)</label>
           <input id="r-lead" type="text" className={input} value={form.lead} onChange={set("lead")} />
@@ -129,16 +181,27 @@ export function SupplierRevisionForm({ reqId, current }: { reqId: string; curren
             className="w-full rounded-[2px] border border-n400 bg-chalk p-3 text-sm text-ink placeholder:text-n400" />
         </div>
       </div>
-      <Banner tone="info" className="mt-3.5">
-        <b className="text-ink">New line total {inr(price * qty)}</b> at {inr(price)} × {qty || "—"}.
-      </Banner>
+      {itemized ? (
+        <Banner tone="info" className="mt-3.5">
+          <b className="text-ink">
+            New total {inr((items ?? []).reduce((sum, it, i) => sum + (parseFloat(itemPrices[i] ?? "") || 0) * (parseInt(it.qty, 10) || 0), 0))}
+          </b>
+        </Banner>
+      ) : (
+        <Banner tone="info" className="mt-3.5">
+          <b className="text-ink">New line total {inr(price * qty)}</b> at {inr(price)} × {qty || "—"}.
+        </Banner>
+      )}
       {error && (
         <p role="alert" className="mt-3.5 border-l-[3px] border-bad bg-bad-t px-3 py-2 text-[13px] text-ink">{error}</p>
       )}
       <div className="mt-4 flex gap-3">
         <button
           onClick={() => void submit()}
-          disabled={busy || !(price > 0) || !form.qty.trim() || !form.lead.trim() || !form.valid.trim()}
+          disabled={
+            busy || !form.lead.trim() || !form.valid.trim() ||
+            (itemized ? !itemPrices.every((p) => parseFloat(p) > 0) : !(price > 0) || !form.qty.trim())
+          }
           className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
         >
           {busy ? "Submitting…" : "Submit revision"}

@@ -22,6 +22,7 @@ const NAV: { group: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/organizations", label: "Organizations" },
       { href: "/admin/sourcing", label: "Sourcing" },
       { href: "/admin/pos", label: "Purchase orders" },
+      { href: "/admin/invoices", label: "Invoices" },
     ],
   },
   {

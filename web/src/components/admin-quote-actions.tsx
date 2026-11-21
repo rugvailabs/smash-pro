@@ -145,72 +145,96 @@ export function QuoteActions({
 /* ---------- post-award: issue the purchase order ---------- */
 
 export function IssuePo({
-  quotationId, supplierName, products = [],
+  quotationId, supplierName, products = [], items,
 }: {
   quotationId: number;
   supplierName: string;
-  /** catalogue products to optionally link this PO line to, so Brand (and
-   *  any future product-linked data) resolves automatically — purely
+  /** catalogue products to optionally link PO line(s) to, so Brand (and any
+   *  future product-linked data) resolves automatically — purely
    *  informational, never changes the quotation's own price/qty/terms */
-  products?: { sku: string; name: string; brand: string | null }[];
+  products?: { sku: string; name: string; brand: string | null; catSlug: string }[];
+  /** product titles, when the awarded quotation is itemized (multi-product)
+   *  — one PO line (and optional SKU link) issues per entry */
+  items?: string[];
 }) {
   const { busy, error, call } = useAdminCall();
   const [destination, setDestination] = useState<"warehouse" | "direct">("warehouse");
   const [sku, setSku] = useState("");
+  const [itemSkus, setItemSkus] = useState<string[]>(() => (items ?? []).map(() => ""));
+
+  const skuSelect = (value: string, onChange: (v: string) => void, id: string) => (
+    <select
+      id={id}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="h-10 w-full rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink"
+    >
+      <option value="">Not linked to a catalogue product</option>
+      {products.map((p) => (
+        <option key={p.sku} value={p.sku}>
+          {p.sku} — {p.name}{p.brand ? ` (${p.brand})` : ""}
+        </option>
+      ))}
+    </select>
+  );
 
   return (
     <div className="rounded-[2px] border border-n200 bg-chalk p-4">
       <div className="mb-1 font-display text-base font-semibold text-ink">Issue purchase order</div>
       <p className="mb-3 text-[13px] text-n600">
-        Awarded to {supplierName}. Issuing the PO opens fulfilment and the
-        payment record for this procurement.
+        Awarded to {supplierName}. Issuing the PO{items && items.length > 1 ? "s" : ""} opens
+        fulfilment and the payment record for this procurement
+        {items && items.length > 1 ? <> — one PO line per product</> : null}.
       </p>
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label className="mb-1.5 block text-[13px] font-medium text-ink" htmlFor="po-dest">
-            Fulfilment destination
-          </label>
-          <select
-            id="po-dest"
-            value={destination}
-            onChange={(e) => setDestination(e.target.value as "warehouse" | "direct")}
-            className="h-10 rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink"
-          >
-            <option value="warehouse">Smash Pro warehouse</option>
-            <option value="direct">Direct to buyer</option>
-          </select>
+      <div className="mb-3">
+        <label className="mb-1.5 block text-[13px] font-medium text-ink" htmlFor="po-dest">
+          Fulfilment destination
+        </label>
+        <select
+          id="po-dest"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value as "warehouse" | "direct")}
+          className="h-10 w-64 rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink"
+        >
+          <option value="warehouse">Smash Pro warehouse</option>
+          <option value="direct">Direct to buyer</option>
+        </select>
+      </div>
+
+      {items && items.length > 1 ? (
+        <div className="mb-3 space-y-2.5">
+          {items.map((title, i) => (
+            <div key={i} className="flex flex-wrap items-center gap-2.5">
+              <span className="min-w-0 flex-1 text-[13px] text-ink">{title}</span>
+              <div className="w-64">
+                {skuSelect(itemSkus[i] ?? "", (v) => setItemSkus(itemSkus.map((s, idx) => (idx === i ? v : s))), `po-sku-${i}`)}
+              </div>
+            </div>
+          ))}
         </div>
-        <div>
+      ) : (
+        <div className="mb-3 w-64">
           <label className="mb-1.5 block text-[13px] font-medium text-ink" htmlFor="po-sku">
             Catalogue product (optional)
           </label>
-          <select
-            id="po-sku"
-            value={sku}
-            onChange={(e) => setSku(e.target.value)}
-            className="h-10 w-64 rounded-[2px] border border-n400 bg-chalk px-3 text-sm text-ink"
-          >
-            <option value="">Not linked to a catalogue product</option>
-            {products.map((p) => (
-              <option key={p.sku} value={p.sku}>
-                {p.sku} — {p.name}{p.brand ? ` (${p.brand})` : ""}
-              </option>
-            ))}
-          </select>
+          {skuSelect(sku, setSku, "po-sku")}
         </div>
-        <button
-          onClick={() =>
-            void call("/api/admin/pos", {
-              body: { quotationId, destination, sku: sku || null },
-              done: "Purchase order issued.",
-            })
-          }
-          disabled={busy}
-          className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
-        >
-          {busy ? "Issuing…" : "Issue purchase order"}
-        </button>
-      </div>
+      )}
+
+      <button
+        onClick={() =>
+          void call("/api/admin/pos", {
+            body: items && items.length > 1
+              ? { quotationId, destination, itemSkus: itemSkus.map((s) => s || null) }
+              : { quotationId, destination, sku: sku || null },
+            done: items && items.length > 1 ? "Purchase orders issued." : "Purchase order issued.",
+          })
+        }
+        disabled={busy}
+        className="inline-flex h-10 items-center rounded-[2px] bg-ember-deep px-4 text-sm font-semibold text-white hover:bg-ember-press disabled:cursor-not-allowed disabled:bg-n200 disabled:text-n400"
+      >
+        {busy ? "Issuing…" : items && items.length > 1 ? "Issue purchase orders" : "Issue purchase order"}
+      </button>
       <NoteFlag className="mt-2">
         direct shipment requires the supplier&rsquo;s direct privilege
         (obd-19) — the server enforces this on issue · linking a catalogue

@@ -81,7 +81,7 @@ async function AdminPosContent({ searchParams }: { searchParams: Promise<SP> }) 
               { h: "Price/unit", right: true }, { h: "MRP", right: true }, { h: "Disc. vs MRP", right: true },
               { h: "Issued" }, { h: "Fulfilment" },
               { h: "Value", right: true }, { h: "Received", right: true },
-              { h: "Outstanding", right: true }, { h: "Pay status" },
+              { h: "Outstanding", right: true }, { h: "Pay status" }, { h: "Invoice" },
             ]}
           >
             {pos.map((p) => (
@@ -107,6 +107,19 @@ async function AdminPosContent({ searchParams }: { searchParams: Promise<SP> }) 
                   {inr(p.outstanding)}
                 </td>
                 <td className={`${tdCls} whitespace-nowrap text-[13px] text-n600`}>{p.payStatusLabel}</td>
+                <td className={`${tdCls} whitespace-nowrap`}>
+                  {p.invoiceId ? (
+                    <Link href={`/admin/invoices/${p.invoiceId}`} className="font-mono text-[12.5px] text-ink hover:underline">
+                      {p.invoiceId}
+                    </Link>
+                  ) : p.reqId ? (
+                    <Link href={`/admin/invoices/new?reqId=${p.reqId}`} className="text-[13px] font-semibold text-ember-deep hover:underline">
+                      Generate
+                    </Link>
+                  ) : (
+                    <span className="text-n400">—</span>
+                  )}
+                </td>
               </tr>
             ))}
           </AdminTable>

@@ -3,19 +3,27 @@
 import { useState } from "react";
 import { NoteFlag, Panel, PanelHead } from "@/components/buyer-ui";
 import { ActionError, useAdminCall } from "@/components/admin-actions";
-import { ADMIN_CATEGORIES, AuditNote, btnEmber, inputCls, labelCls } from "@/components/admin-ui";
+import { ADMIN_CATEGORIES, AuditNote, btnEmber, btnGhostSm, inputCls, labelCls } from "@/components/admin-ui";
 
 /* ============================================================
    Publish a sourcing requirement — Workflow: admin-managed
-   supplier procurement. Matched suppliers (approved for the
-   category) see it and quote; supplier identities and competing
-   quotes stay isolated per the boundary rules.
+   supplier procurement. One requirement can carry several product
+   lines (a single publish, a single close date, a single set of
+   matched suppliers) — each line gets its own title/category/qty
+   and is quoted, awarded and PO'd per line. Matched suppliers
+   (approved for the category) see it and quote; supplier
+   identities and competing quotes stay isolated per the boundary
+   rules.
    ============================================================ */
+
+type Item = { title: string; catSlug: string; qty: string };
+
+const blankItem = (catSlug: string): Item => ({ title: "", catSlug, qty: "" });
 
 export function RequirementForm() {
   const { busy, error, call } = useAdminCall();
+  const [items, setItems] = useState<Item[]>([blankItem("cricket")]);
   const [form, setForm] = useState({
-    title: "", catSlug: "cricket", qty: "",
     destination: "warehouse" as "warehouse" | "direct",
     closes: "", requiredBy: "",
   });
@@ -23,8 +31,16 @@ export function RequirementForm() {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm({ ...form, [k]: e.target.value });
 
+  const setItem = (i: number, k: keyof Item) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setItems(items.map((it, idx) => (idx === i ? { ...it, [k]: e.target.value } : it)));
+
+  const addItem = () => setItems([...items, blankItem(items[items.length - 1]?.catSlug ?? "cricket")]);
+  const removeItem = (i: number) => setItems(items.filter((_, idx) => idx !== i));
+
   const canSubmit =
-    form.title.trim().length > 0 && form.qty.trim().length > 0 &&
+    items.length > 0 &&
+    items.every((it) => it.title.trim().length > 0 && it.qty.trim().length > 0) &&
     form.closes.trim().length > 0 && !busy;
 
   const submit = async () => {
@@ -32,17 +48,18 @@ export function RequirementForm() {
     if (
       await call("/api/admin/requirements", {
         body: {
-          title: form.title.trim(),
-          catSlug: form.catSlug,
-          qty: form.qty.trim(),
+          items: items.map((it) => ({ title: it.title.trim(), catSlug: it.catSlug, qty: it.qty.trim() })),
           destination: form.destination,
           closes: form.closes.trim(),
           requiredBy: form.requiredBy.trim() || undefined,
         },
-        done: "Requirement published to matched suppliers.",
+        done: items.length > 1
+          ? `Requirement published with ${items.length} product lines.`
+          : "Requirement published to matched suppliers.",
       })
     ) {
-      setForm({ title: "", catSlug: form.catSlug, qty: "", destination: "warehouse", closes: "", requiredBy: "" });
+      setItems([blankItem(items[items.length - 1]?.catSlug ?? "cricket")]);
+      setForm({ destination: form.destination, closes: "", requiredBy: "" });
     }
   };
 
@@ -52,23 +69,50 @@ export function RequirementForm() {
       <div className="p-4">
         <div className="grid gap-3.5">
           <div>
-            <label className={labelCls} htmlFor="rf-title">Title (required)</label>
-            <input id="rf-title" type="text" value={form.title} onChange={set("title")}
-              placeholder="e.g. Competition basketballs, size 7 — FIBA approved" className={inputCls} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className={labelCls} htmlFor="rf-cat">Category (required)</label>
-              <select id="rf-cat" value={form.catSlug} onChange={set("catSlug")} className={inputCls}>
-                {ADMIN_CATEGORIES.map((c) => (
-                  <option key={c.slug} value={c.slug}>{c.label}</option>
-                ))}
-              </select>
+            <div className="mb-1.5 flex items-center justify-between">
+              <span className={labelCls}>Products (required)</span>
+              <button type="button" onClick={addItem} disabled={busy} className={btnGhostSm}>
+                + Add product
+              </button>
             </div>
-            <div>
-              <label className={labelCls} htmlFor="rf-qty">Quantity (required)</label>
-              <input id="rf-qty" type="text" value={form.qty} onChange={set("qty")}
-                placeholder="e.g. 300 units" className={inputCls} />
+            <div className="space-y-2.5">
+              {items.map((it, i) => (
+                <div key={i} className="rounded-[2px] border border-n200 bg-paper p-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-[10px] uppercase tracking-wide text-n400">
+                      Product {i + 1}
+                    </span>
+                    {items.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeItem(i)}
+                        disabled={busy}
+                        className="font-mono text-[10px] uppercase tracking-wide text-n600 hover:text-bad"
+                      >
+                        remove
+                      </button>
+                    )}
+                  </div>
+                  <div className="mt-1.5 grid gap-2.5">
+                    <input
+                      type="text" value={it.title} onChange={setItem(i, "title")}
+                      placeholder="e.g. Competition basketballs, size 7 — FIBA approved"
+                      className={inputCls} aria-label={`Product ${i + 1} title`}
+                    />
+                    <div className="grid grid-cols-2 gap-2.5">
+                      <select value={it.catSlug} onChange={setItem(i, "catSlug")} className={inputCls} aria-label={`Product ${i + 1} category`}>
+                        {ADMIN_CATEGORIES.map((c) => (
+                          <option key={c.slug} value={c.slug}>{c.label}</option>
+                        ))}
+                      </select>
+                      <input
+                        type="text" value={it.qty} onChange={setItem(i, "qty")}
+                        placeholder="e.g. 300 units" className={inputCls} aria-label={`Product ${i + 1} quantity`}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <div>
@@ -102,7 +146,7 @@ export function RequirementForm() {
         </div>
         <ActionError error={error} />
         <button onClick={() => void submit()} disabled={!canSubmit} className={`${btnEmber} mt-4`}>
-          {busy ? "Publishing…" : "Publish requirement"}
+          {busy ? "Publishing…" : items.length > 1 ? `Publish requirement (${items.length} products)` : "Publish requirement"}
         </button>
         <AuditNote />
       </div>

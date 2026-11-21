@@ -289,6 +289,13 @@ export const requirements = pgTable("requirements", {
   requiredBy: text("required_by"),
   attachments: jsonb("attachments").$type<{ file: string; meta: string }[]>(),
   poId: text("po_id"),
+  /** ADR-0018: multi-product requirements — one admin publish, several line items.
+   *  `title`/`catSlug`/`qty` above stay a derived summary (first item's
+   *  title when one item, "N products"/"mixed" when several) so every
+   *  existing list/filter keeps working unchanged; this is the source of
+   *  truth once present. Null for requirements predating this field
+   *  (single-item, as `title`/`catSlug`/`qty` already describe it). */
+  items: jsonb("items").$type<{ title: string; catSlug: string; qty: string }[]>(),
 });
 
 export const quotations = pgTable("quotations", {
@@ -315,6 +322,13 @@ export const quotationVersions = pgTable("quotation_versions", {
   date: text("date").notNull().default(""),
   attachments: integer("attachments").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  /** ADR-0018: itemized pricing for a multi-product requirement — one unit price per
+   *  line item, matching `requirements.items`. Null for a single-product
+   *  quotation, where `unitPaise`/`quantity` above remain authoritative.
+   *  When present, `unitPaise` is unused (0) and `quantity` is a display
+   *  summary ("N products") — `totalPaise` is the comparable grand total. */
+  items: jsonb("items").$type<{ title: string; catSlug: string; qty: string; unitPaise: number }[]>(),
+  totalPaise: integer("total_paise").notNull().default(0),
 });
 
 export const negotiationMessages = pgTable("negotiation_messages", {
@@ -330,6 +344,10 @@ export const purchaseOrders = pgTable("purchase_orders", {
   id: text("id").primaryKey(), // PO-YYYY-NNNNN
   supplierOrgId: integer("supplier_org_id").notNull().references(() => organizations.id),
   quotationId: integer("quotation_id").references(() => quotations.id),
+  /** ADR-0018: denormalized from the quotation for direct lookup — "every PO line
+   *  issued from this requirement's award" (a multi-product award issues
+   *  one PO row per line item, all sharing a quotationId and reqId). */
+  reqId: text("req_id").references(() => requirements.id),
   destination: text("destination").notNull(), // 'warehouse' | 'direct' (OBD-19 Option C)
   issued: text("issued").notNull(),
   lineName: text("line_name").notNull(),
@@ -355,6 +373,48 @@ export const purchaseOrders = pgTable("purchase_orders", {
   payStatusLabel: text("pay_status_label").notNull().default(""),
   minDeliveryInfo: jsonb("min_delivery_info").$type<[string, string][]>(),
   shipment: jsonb("shipment").$type<{ dispatched: string; lr: string; qtyShipped: string }>(),
+});
+
+/** ADR-0018: a supplier's tax invoice for goods received against one or
+ *  more POs from the same award — recorded by admin in the structure of a
+ *  standard GST
+ *  tax invoice (seller/buyer blocks, HSN-coded line items, CGST/SGST/IGST
+ *  split, HSN-wise tax summary, amount in words). This is a RECORD-KEEPING
+ *  transcription of a document the supplier already issued — every GST/HSN
+ *  figure here is admin-entered (optionally pre-filled from the linked
+ *  product's own ADR-0014 hsn/gstPercent) and the CGST+SGST vs IGST split
+ *  is a structural same-state/different-state check, never a computed or
+ *  asserted tax position. Still pending OBD-11/OBD-20 professional tax
+ *  validation, same as every other GST-adjacent field in this app. */
+export const invoices = pgTable("invoices", {
+  id: text("id").primaryKey(), // INV-YYYY-NNNNN (internal reference only)
+  reqId: text("req_id").notNull().references(() => requirements.id),
+  quotationId: integer("quotation_id").references(() => quotations.id),
+  supplierOrgId: integer("supplier_org_id").notNull().references(() => organizations.id),
+  poIds: jsonb("po_ids").$type<string[]>().notNull(),
+  /** draft | sent */
+  status: text("status").notNull().default("draft"),
+  /** as printed on the supplier's own invoice — SMASH PRO does not assign this */
+  supplierInvoiceNo: text("supplier_invoice_no").notNull().default(""),
+  supplierInvoiceDate: text("supplier_invoice_date").notNull().default(""),
+  placeOfSupply: text("place_of_supply").notNull().default(""),
+  transportMode: text("transport_mode").notNull().default(""),
+  paymentTerms: text("payment_terms").notNull().default(""),
+  /** 'intra' = CGST+SGST, 'inter' = IGST */
+  taxMode: text("tax_mode").notNull().default("intra"),
+  lines: jsonb("lines").$type<{
+    poId: string; description: string; hsn: string; qty: number; uom: string;
+    ratePaise: number; discPaise: number; taxableValuePaise: number;
+    gstPercent: number; cgstPaise: number; sgstPaise: number; igstPaise: number;
+  }[]>().notNull(),
+  taxableTotalPaise: integer("taxable_total_paise").notNull().default(0),
+  cgstTotalPaise: integer("cgst_total_paise").notNull().default(0),
+  sgstTotalPaise: integer("sgst_total_paise").notNull().default(0),
+  igstTotalPaise: integer("igst_total_paise").notNull().default(0),
+  roundOffPaise: integer("round_off_paise").notNull().default(0),
+  grandTotalPaise: integer("grand_total_paise").notNull().default(0),
+  createdAt: text("created_at").notNull().default(""),
+  sentAt: text("sent_at"),
 });
 
 export const deliveryProofs = pgTable("delivery_proofs", {

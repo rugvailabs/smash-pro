@@ -42,9 +42,13 @@ async function QuoteContent({ params }: { params: Promise<{ id: string }> }) {
           </>
         }
         title={<>Quotation — <span className="font-mono text-lg tracking-normal">{r.id}</span></>}
-        sub={`${r.title.split(" — ")[0]} × ${r.qty.split(" ")[0]} · deadline today 18:00 IST`}
+        sub={
+          r.items && r.items.length > 1
+            ? `${r.items.length} products · quotes close ${r.closes}`
+            : `${r.title.split(" — ")[0]} × ${r.qty.split(" ")[0]} · quotes close ${r.closes}`
+        }
       />
-      <QuoteForm reqId={r.id} />
+      <QuoteForm reqId={r.id} items={r.items} />
     </main>
   );
 }

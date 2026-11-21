@@ -10,8 +10,10 @@ import {
   normalizeColor, normalizeGroupKey, normalizeMsp, normalizeSize, normalizeSupplierCode,
 } from "@/lib/product-catalog-fields";
 import { trustedImageHosts } from "@/server/storage";
+import { SMASH_PRO_PROFILE } from "@/lib/company-profile";
 import type {
-  AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminOrderDetail, AdminOrderRow,
+  AdminAnalytics, AdminBrandRow, AdminComplaintRow, AdminCounts, AdminInvoiceablePo,
+  AdminInvoiceDetail, AdminInvoiceRow, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminQuoteView, AdminReport,
   AdminRequirementDetail, AdminRequirementRow, AuditLogPage, AuditLogRow,
@@ -1119,6 +1121,7 @@ export async function requirementsForAdmin(): Promise<AdminRequirementRow[]> {
     status: x.status, statusLabel: x.statusLabel,
     quoteCount: quoteCount.get(x.id) ?? 0,
     poId: x.poId,
+    items: x.items ?? null,
   }));
 }
 
@@ -1155,6 +1158,8 @@ export async function requirementForAdmin(id: string): Promise<AdminRequirementD
       versions: versions.map((v, i) => ({
         v: v.v, unit: r(v.unitPaise), quantity: v.quantity, lead: v.lead,
         validTill: v.validTill, terms: v.terms, date: v.date, current: i === 0,
+        items: v.items?.map((it) => ({ title: it.title, catSlug: it.catSlug, qty: it.qty, unit: r(it.unitPaise) })),
+        total: v.items ? r(v.totalPaise) : undefined,
       })),
       // supplier-side rows store "you" for the supplier's own messages
       messages: msgs.map((m) => ({
@@ -1170,34 +1175,43 @@ export async function requirementForAdmin(id: string): Promise<AdminRequirementD
     status: req.status, statusLabel: req.statusLabel,
     quoteCount: quotes.length,
     poId: req.poId,
+    items: req.items ?? null,
     spec: req.spec, requiredBy: req.requiredBy,
     quotes,
   };
 }
 
 export async function createRequirement(input: {
-  title: string; catSlug: string; qty: string; destination: string; closes: string;
+  items: { title: string; catSlug: string; qty: string }[];
+  destination: string; closes: string;
   requiredBy?: string; spec?: [string, string][]; fromProductRequestId?: string;
 }): Promise<{ id: string }> {
   const s = await requireAdmin();
-  const title = input.title.trim();
-  const qty = input.qty.trim();
   const closes = input.closes.trim();
   const requiredBy = input.requiredBy?.trim() || null;
-  if (!title || title.length > 200) throw new Error("400:A title up to 200 characters is required");
-  if (!qty || qty.length > 120) throw new Error("400:A quantity up to 120 characters is required");
   if (!closes || closes.length > 120) throw new Error("400:A closing time up to 120 characters is required");
   if (requiredBy && requiredBy.length > 120) throw new Error("400:required-by is too long");
   if (input.destination !== "warehouse" && input.destination !== "direct") {
     throw new Error("400:Destination must be warehouse or direct");
   }
+  const items = (input.items ?? []).map((it) => ({
+    title: (it.title ?? "").trim(), catSlug: it.catSlug, qty: (it.qty ?? "").trim(),
+  }));
+  if (items.length === 0 || items.length > 20) {
+    throw new Error("400:A requirement needs 1 to 20 product lines");
+  }
+  for (const it of items) {
+    if (!it.title || it.title.length > 200) throw new Error("400:Each product title up to 200 characters is required");
+    if (!it.qty || it.qty.length > 120) throw new Error("400:Each product quantity up to 120 characters is required");
+  }
   const spec = input.spec ?? null;
   if (spec) assertSpecs(spec);
-  const [cat] = await db
+  const catSlugs = [...new Set(items.map((it) => it.catSlug))];
+  const cats = await db
     .select({ slug: schema.categories.slug })
     .from(schema.categories)
-    .where(eq(schema.categories.slug, input.catSlug));
-  if (!cat) throw new Error("400:Unknown category");
+    .where(inArray(schema.categories.slug, catSlugs));
+  if (cats.length !== catSlugs.length) throw new Error("400:Unknown category");
 
   let fromRequest: typeof schema.productRequests.$inferSelect | undefined;
   if (input.fromProductRequestId) {
@@ -1208,15 +1222,21 @@ export async function createRequirement(input: {
     if (!fromRequest) throw new Error("400:Unknown product request");
   }
 
+  // title/catSlug/qty stay a derived summary so every existing list/filter
+  // keeps working unchanged — `items` (when >1) is the source of truth
+  const title = items.length === 1 ? items[0].title : `${items[0].title} + ${items.length - 1} more`;
+  const qty = items.length === 1 ? items[0].qty : `${items.length} products`;
+
   const rows = await db.select({ id: schema.requirements.id }).from(schema.requirements);
   const max = rows.reduce((m, x) => Math.max(m, Number(x.id.slice(-4)) || 0), 0);
   const id = `REQ-2026-${String(max + 1).padStart(4, "0")}`;
   await db.insert(schema.requirements).values({
-    id, title, catSlug: cat.slug, qty,
+    id, title, catSlug: items[0].catSlug, qty,
     destination: input.destination,
     published: fullDate(), closes,
     status: "open", statusLabel: "Open · not quoted",
     spec, requiredBy,
+    items: items.length > 1 ? items : null,
   });
   if (fromRequest) {
     // keep the originating buyer request in sourcing review and record linkage
@@ -1331,12 +1351,19 @@ export async function posForAdmin(): Promise<AdminPoRow[]> {
   const brands = await db.select({ id: schema.brands.id, name: schema.brands.name }).from(schema.brands);
   const brandName = new Map(brands.map((b) => [b.id, b.name]));
   const bySku = new Map(prods.map((p) => [p.sku, p]));
+  const allInvoices = await db
+    .select({ id: schema.invoices.id, poIds: schema.invoices.poIds })
+    .from(schema.invoices);
+  const invoiceByPo = new Map<string, string>();
+  for (const inv of allInvoices) for (const poId of inv.poIds) invoiceByPo.set(poId, inv.id);
   return rows.map((p) => {
     const linked = p.sku ? bySku.get(p.sku) : undefined;
     const mrpPaise = linked?.mrpPaise ?? null;
     return {
       id: p.id,
+      supplierOrgId: p.supplierOrgId,
       supplierName: orgName.get(p.supplierOrgId) ?? "",
+      reqId: p.reqId ?? null,
       destination: p.destination as AdminPoRow["destination"],
       issued: p.issued,
       lineName: p.lineName,
@@ -1351,6 +1378,7 @@ export async function posForAdmin(): Promise<AdminPoRow[]> {
       received: r(p.receivedPaise), outstanding: r(p.outstandingPaise),
       payStatusLabel: p.payStatusLabel,
       nextFulfilment: nextPoFulfilment(p),
+      invoiceId: invoiceByPo.get(p.id) ?? null,
     };
   });
 }
@@ -1359,6 +1387,9 @@ export async function posForAdmin(): Promise<AdminPoRow[]> {
  *  admin-set (OBD-19 Option C — the supplier never chooses). */
 export async function createPo(input: {
   quotationId: number; destination: string; sku?: string | null;
+  /** one optional catalogue SKU per line item, aligned by index — only
+   *  meaningful when the awarded quotation is itemized (multi-product) */
+  itemSkus?: (string | null)[];
 }): Promise<{ id: string }> {
   const s = await requireAdmin();
   if (input.destination !== "warehouse" && input.destination !== "direct") {
@@ -1380,55 +1411,72 @@ export async function createPo(input: {
   const v = await latestVersion(q.id);
   if (!v) throw new Error("409");
 
-  // optional — links this PO line to a catalogue product so Brand resolves
+  // optional — links a PO line to a catalogue product so Brand resolves
   // automatically; does not change pricing (that stays the quotation's own)
-  let sku: string | null = null;
-  if (input.sku) {
-    const [p] = await db.select({ sku: schema.products.sku }).from(schema.products).where(eq(schema.products.sku, input.sku));
+  async function resolveSku(raw: string | null | undefined): Promise<string | null> {
+    if (!raw) return null;
+    const [p] = await db.select({ sku: schema.products.sku }).from(schema.products).where(eq(schema.products.sku, raw));
     if (!p) throw new Error("400:Unknown product SKU");
-    sku = p.sku;
+    return p.sku;
   }
 
-  const lineQty = parseLeadingInt(v.quantity) ?? parseLeadingInt(req.qty);
-  if (!lineQty) {
-    throw new Error("400:Could not determine the PO quantity from the quotation or requirement");
-  }
-  const valuePaise = v.unitPaise * lineQty;
-  // integer-paise storage bound (technical, not a business rule)
-  if (valuePaise > 1_900_000_000) {
-    throw new Error("400:PO value is too large to process in one PO — please split it");
-  }
+  // a multi-product award issues one PO row per line item; a single-product
+  // award issues exactly one, same as before
+  const lines = v.items && v.items.length > 0
+    ? v.items.map((it, i) => ({
+        lineName: it.title, lineQty: parseLeadingInt(it.qty) ?? 0,
+        unitPaise: it.unitPaise, skuRaw: input.itemSkus?.[i] ?? null,
+      }))
+    : [{
+        lineName: req.title, lineQty: parseLeadingInt(v.quantity) ?? parseLeadingInt(req.qty) ?? 0,
+        unitPaise: v.unitPaise, skuRaw: input.sku ?? null,
+      }];
 
   const rows = await db.select({ id: schema.purchaseOrders.id }).from(schema.purchaseOrders);
-  const max = rows.reduce((m, x) => Math.max(m, Number(x.id.slice(-5)) || 0), 0);
-  const id = `PO-2026-${String(max + 1).padStart(5, "0")}`;
+  let max = rows.reduce((m, x) => Math.max(m, Number(x.id.slice(-5)) || 0), 0);
   const issued = fullDate();
-  await db.insert(schema.purchaseOrders).values({
-    id, supplierOrgId: q.supplierOrgId, quotationId: q.id,
-    destination: input.destination, issued,
-    lineName: req.title, sku, lineQty,
-    unitPaise: v.unitPaise, valuePaise,
-    // PO contract: a PO is issued in the `issued` state awaiting supplier
-    // acknowledgement — the admin never short-circuits that step
-    fulfilment: "issued", fulfilmentLabel: "Issued · awaiting acknowledgement",
-    acknowledgedAt: null,
-    dispatchBy: v.lead,
-    dispatchedQty: `0 of ${lineQty}`, receivedQty: `0 of ${lineQty}`,
-    awardedFrom: { reqId: q.reqId, version: `v${v.v}` },
-    terms: { unit: r(v.unitPaise), qty: lineQty, lead: v.lead, validTill: v.validTill, payment: v.terms },
-    paymentTerms: v.terms,
-    receivedPaise: 0, outstandingPaise: valuePaise,
-    payStatusLabel: /adv/i.test(v.terms) ? "Advance pending" : "As quoted",
-    minDeliveryInfo: null, shipment: null,
-  });
+  const poIds: string[] = [];
+
+  for (const line of lines) {
+    if (!line.lineQty) {
+      throw new Error("400:Could not determine the PO quantity from the quotation or requirement");
+    }
+    const valuePaise = line.unitPaise * line.lineQty;
+    // integer-paise storage bound (technical, not a business rule)
+    if (valuePaise > 1_900_000_000) {
+      throw new Error("400:PO value is too large to process in one PO — please split it");
+    }
+    const sku = await resolveSku(line.skuRaw);
+    max += 1;
+    const id = `PO-2026-${String(max).padStart(5, "0")}`;
+    poIds.push(id);
+    await db.insert(schema.purchaseOrders).values({
+      id, supplierOrgId: q.supplierOrgId, quotationId: q.id, reqId: q.reqId,
+      destination: input.destination, issued,
+      lineName: line.lineName, sku, lineQty: line.lineQty,
+      unitPaise: line.unitPaise, valuePaise,
+      // PO contract: a PO is issued in the `issued` state awaiting supplier
+      // acknowledgement — the admin never short-circuits that step
+      fulfilment: "issued", fulfilmentLabel: "Issued · awaiting acknowledgement",
+      acknowledgedAt: null,
+      dispatchBy: v.lead,
+      dispatchedQty: `0 of ${line.lineQty}`, receivedQty: `0 of ${line.lineQty}`,
+      awardedFrom: { reqId: q.reqId, version: `v${v.v}` },
+      terms: { unit: r(line.unitPaise), qty: line.lineQty, lead: v.lead, validTill: v.validTill, payment: v.terms },
+      paymentTerms: v.terms,
+      receivedPaise: 0, outstandingPaise: valuePaise,
+      payStatusLabel: /adv/i.test(v.terms) ? "Advance pending" : "As quoted",
+      minDeliveryInfo: null, shipment: null,
+    });
+  }
   await db
     .update(schema.requirements)
-    .set({ poId: id })
+    .set({ poId: poIds[0] })
     .where(eq(schema.requirements.id, q.reqId));
-  await audit(s.userId, "po.create", "purchase_order", id, {
-    quotationId: q.id, reqId: q.reqId, destination: input.destination, sku, value: r(valuePaise),
+  await audit(s.userId, "po.create", "purchase_order", poIds.join(","), {
+    quotationId: q.id, reqId: q.reqId, destination: input.destination, poIds,
   });
-  return { id };
+  return { id: poIds[0] };
 }
 
 export async function advancePo(poId: string) {
@@ -1479,6 +1527,202 @@ export async function recordPoPayment(poId: string, amount: number, title?: stri
     meta: `${rupees(r(amountPaise))} · ${fullDate()}`,
   });
   await audit(s.userId, "po.record-payment", "purchase_order", poId, { amount: r(amountPaise) });
+}
+
+/* ---------- invoices (supplier → Smash Pro, recorded against a PO award) ----------
+   A supplier's tax invoice for goods received, transcribed into the app in
+   the structure of a standard GST tax invoice. This is RECORD-KEEPING only:
+   every GST/HSN figure is admin-entered (as the supplier's own invoice
+   states it) and the CGST+SGST vs IGST split is a structural same-state /
+   different-state check — never a computed or asserted tax position. Still
+   pending OBD-11/OBD-20 professional tax validation, same as every other
+   GST-adjacent field in this app. */
+
+export async function invoiceablePosForRequirement(reqId: string): Promise<{
+  reqTitle: string; supplierOrgId: number; supplierName: string; supplierGstin: string;
+  pos: AdminInvoiceablePo[];
+} | null> {
+  if (!(await adminSession())) return null;
+  const [req] = await db.select().from(schema.requirements).where(eq(schema.requirements.id, reqId));
+  if (!req) return null;
+  const poRows = await db.select().from(schema.purchaseOrders).where(eq(schema.purchaseOrders.reqId, reqId));
+  if (poRows.length === 0) return null;
+  const already = await db
+    .select({ poIds: schema.invoices.poIds })
+    .from(schema.invoices)
+    .where(eq(schema.invoices.reqId, reqId));
+  const invoiced = new Set(already.flatMap((a) => a.poIds));
+  const [org] = await db
+    .select({ name: schema.organizations.name, gstin: schema.organizations.gstin })
+    .from(schema.organizations)
+    .where(eq(schema.organizations.id, poRows[0].supplierOrgId));
+  return {
+    reqTitle: req.title,
+    supplierOrgId: poRows[0].supplierOrgId,
+    supplierName: org?.name ?? "",
+    supplierGstin: org?.gstin ?? "",
+    pos: poRows
+      .filter((p) => !invoiced.has(p.id))
+      .map((p) => ({
+        id: p.id, lineName: p.lineName, sku: p.sku ?? null, lineQty: p.lineQty,
+        unit: r(p.unitPaise), value: r(p.valuePaise),
+      })),
+  };
+}
+
+export async function createInvoice(input: {
+  reqId: string;
+  supplierInvoiceNo: string; supplierInvoiceDate: string;
+  placeOfSupply: string; transportMode: string; paymentTerms: string;
+  taxMode: "intra" | "inter";
+  lines: {
+    poId: string; description?: string; hsn?: string | null; qty: number; uom: string;
+    rate: number; disc?: number; gstPercent?: number | null;
+  }[];
+}): Promise<{ id: string }> {
+  const s = await requireAdmin();
+  if (input.taxMode !== "intra" && input.taxMode !== "inter") {
+    throw new Error("400:Tax mode must be intra-state or inter-state");
+  }
+  if (!Array.isArray(input.lines) || input.lines.length === 0) {
+    throw new Error("400:Select at least one purchase order line");
+  }
+  const [req] = await db.select().from(schema.requirements).where(eq(schema.requirements.id, input.reqId));
+  if (!req) throw new Error("404");
+  const poIds = input.lines.map((l) => l.poId);
+  const poRows = await db.select().from(schema.purchaseOrders).where(inArray(schema.purchaseOrders.id, poIds));
+  if (poRows.length !== poIds.length) throw new Error("400:Unknown purchase order line");
+  const supplierOrgId = poRows[0].supplierOrgId;
+  if (poRows.some((p) => p.supplierOrgId !== supplierOrgId)) {
+    throw new Error("400:All lines on one invoice must share one supplier");
+  }
+  const already = await db
+    .select({ poIds: schema.invoices.poIds })
+    .from(schema.invoices)
+    .where(eq(schema.invoices.reqId, input.reqId));
+  const invoicedSet = new Set(already.flatMap((a) => a.poIds));
+  if (poIds.some((id) => invoicedSet.has(id))) throw new Error("409");
+
+  const supplierInvoiceNo = input.supplierInvoiceNo.trim();
+  if (!supplierInvoiceNo || supplierInvoiceNo.length > 60) {
+    throw new Error("400:The supplier's invoice number is required");
+  }
+  const supplierInvoiceDate = input.supplierInvoiceDate.trim();
+  if (!supplierInvoiceDate || supplierInvoiceDate.length > 60) {
+    throw new Error("400:The supplier's invoice date is required");
+  }
+
+  const lines = input.lines.map((ln) => {
+    const po = poRows.find((p) => p.id === ln.poId);
+    if (!po) throw new Error("400:Line does not match a selected purchase order");
+    const qty = ln.qty;
+    if (!Number.isFinite(qty) || qty <= 0) throw new Error("400:Quantity must be positive");
+    const ratePaise = Math.round(ln.rate * 100);
+    if (!Number.isFinite(ratePaise) || ratePaise < 0) throw new Error("400:Rate must be zero or more");
+    const discPaise = Math.round((ln.disc ?? 0) * 100);
+    if (!Number.isFinite(discPaise) || discPaise < 0) throw new Error("400:Discount must be zero or more");
+    const hsn = normalizeHsn(ln.hsn ?? null) ?? "";
+    const gstPercent = normalizeGstPercent(ln.gstPercent ?? null) ?? 0;
+    const uom = (ln.uom || "Pcs").trim().slice(0, 20);
+    const description = (ln.description || po.lineName).trim().slice(0, 300);
+    const taxableValuePaise = Math.max(0, ratePaise * qty - discPaise);
+    const taxPaise = Math.round((taxableValuePaise * gstPercent) / 100);
+    const cgstPaise = input.taxMode === "intra" ? Math.round(taxPaise / 2) : 0;
+    const sgstPaise = input.taxMode === "intra" ? taxPaise - cgstPaise : 0;
+    const igstPaise = input.taxMode === "inter" ? taxPaise : 0;
+    return {
+      poId: po.id, description, hsn, qty, uom,
+      ratePaise, discPaise, taxableValuePaise, gstPercent, cgstPaise, sgstPaise, igstPaise,
+    };
+  });
+
+  const taxableTotalPaise = lines.reduce((sum, l) => sum + l.taxableValuePaise, 0);
+  const cgstTotalPaise = lines.reduce((sum, l) => sum + l.cgstPaise, 0);
+  const sgstTotalPaise = lines.reduce((sum, l) => sum + l.sgstPaise, 0);
+  const igstTotalPaise = lines.reduce((sum, l) => sum + l.igstPaise, 0);
+  const rawTotalPaise = taxableTotalPaise + cgstTotalPaise + sgstTotalPaise + igstTotalPaise;
+  const grandTotalPaise = Math.round(rawTotalPaise / 100) * 100;
+  const roundOffPaise = grandTotalPaise - rawTotalPaise;
+
+  const rows = await db.select({ id: schema.invoices.id }).from(schema.invoices);
+  const max = rows.reduce((m, x) => Math.max(m, Number(x.id.slice(-5)) || 0), 0);
+  const id = `INV-2026-${String(max + 1).padStart(5, "0")}`;
+  await db.insert(schema.invoices).values({
+    id, reqId: input.reqId, quotationId: poRows[0].quotationId ?? null, supplierOrgId,
+    poIds, status: "draft",
+    supplierInvoiceNo, supplierInvoiceDate,
+    placeOfSupply: input.placeOfSupply.trim().slice(0, 120),
+    transportMode: input.transportMode.trim().slice(0, 120),
+    paymentTerms: input.paymentTerms.trim().slice(0, 120),
+    taxMode: input.taxMode, lines,
+    taxableTotalPaise, cgstTotalPaise, sgstTotalPaise, igstTotalPaise,
+    roundOffPaise, grandTotalPaise,
+    createdAt: fullDate(),
+  });
+  await audit(s.userId, "invoice.create", "invoice", id, { reqId: input.reqId, poIds });
+  return { id };
+}
+
+export async function invoicesForAdmin(): Promise<AdminInvoiceRow[]> {
+  if (!(await adminSession())) return [];
+  const rows = await db.select().from(schema.invoices).orderBy(desc(schema.invoices.id));
+  const orgs = await db
+    .select({ id: schema.organizations.id, name: schema.organizations.name })
+    .from(schema.organizations);
+  const orgName = new Map(orgs.map((o) => [o.id, o.name]));
+  const reqs = await db.select({ id: schema.requirements.id, title: schema.requirements.title }).from(schema.requirements);
+  const reqTitle = new Map(reqs.map((rr) => [rr.id, rr.title]));
+  return rows.map((x) => ({
+    id: x.id, reqId: x.reqId, reqTitle: reqTitle.get(x.reqId) ?? x.reqId,
+    supplierOrgId: x.supplierOrgId, supplierName: orgName.get(x.supplierOrgId) ?? "",
+    poIds: x.poIds, status: x.status as "draft" | "sent",
+    supplierInvoiceNo: x.supplierInvoiceNo, supplierInvoiceDate: x.supplierInvoiceDate,
+    grandTotal: r(x.grandTotalPaise), createdAt: x.createdAt, sentAt: x.sentAt,
+  }));
+}
+
+export async function invoiceForAdmin(id: string): Promise<AdminInvoiceDetail | null> {
+  if (!(await adminSession())) return null;
+  const [x] = await db.select().from(schema.invoices).where(eq(schema.invoices.id, id));
+  if (!x) return null;
+  const [org] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, x.supplierOrgId));
+  const [req] = await db
+    .select({ title: schema.requirements.title })
+    .from(schema.requirements)
+    .where(eq(schema.requirements.id, x.reqId));
+  return {
+    id: x.id, reqId: x.reqId, reqTitle: req?.title ?? x.reqId,
+    supplierOrgId: x.supplierOrgId, supplierName: org?.name ?? "",
+    poIds: x.poIds, status: x.status as "draft" | "sent",
+    supplierInvoiceNo: x.supplierInvoiceNo, supplierInvoiceDate: x.supplierInvoiceDate,
+    grandTotal: r(x.grandTotalPaise), createdAt: x.createdAt, sentAt: x.sentAt,
+    placeOfSupply: x.placeOfSupply, transportMode: x.transportMode, paymentTerms: x.paymentTerms,
+    taxMode: x.taxMode as "intra" | "inter",
+    lines: x.lines.map((l) => ({
+      poId: l.poId, description: l.description, hsn: l.hsn, qty: l.qty, uom: l.uom,
+      rate: r(l.ratePaise), disc: r(l.discPaise), taxableValue: r(l.taxableValuePaise),
+      gstPercent: l.gstPercent, cgst: r(l.cgstPaise), sgst: r(l.sgstPaise), igst: r(l.igstPaise),
+    })),
+    taxableTotal: r(x.taxableTotalPaise), cgstTotal: r(x.cgstTotalPaise), sgstTotal: r(x.sgstTotalPaise),
+    igstTotal: r(x.igstTotalPaise), roundOff: r(x.roundOffPaise),
+    seller: {
+      legalName: org?.legalName || org?.name || "", address: org?.worksAddress ?? "",
+      gstin: org?.gstin ?? "", phone: org?.contactPhone ?? "", email: org?.email ?? "",
+    },
+    buyer: {
+      legalName: SMASH_PRO_PROFILE.legalName, address: SMASH_PRO_PROFILE.address,
+      gstin: SMASH_PRO_PROFILE.gstin, pan: SMASH_PRO_PROFILE.pan,
+    },
+  };
+}
+
+export async function markInvoiceSent(id: string): Promise<void> {
+  const s = await requireAdmin();
+  const [x] = await db.select().from(schema.invoices).where(eq(schema.invoices.id, id));
+  if (!x) throw new Error("404");
+  if (x.status !== "draft") throw new Error("409");
+  await db.update(schema.invoices).set({ status: "sent", sentAt: fullDate() }).where(eq(schema.invoices.id, id));
+  await audit(s.userId, "invoice.send", "invoice", id);
 }
 
 /* ---------- complaints ---------- */

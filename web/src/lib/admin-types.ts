@@ -1,4 +1,5 @@
 import type { PriceMode } from "@/lib/pricing-calc";
+import type { QuoteItem, RequirementItem } from "@/lib/types";
 
 /* ============================================================
    Super Admin Dashboard — shared contract types (B5).
@@ -183,6 +184,10 @@ export interface AdminQuoteVersion {
   terms: string;
   date: string;
   current: boolean;
+  /** present for a multi-product requirement's quotation — one unit price
+   *  per line item; `unit`/`quantity` above are a legacy single-line view. */
+  items?: QuoteItem[];
+  total?: number;
 }
 
 export interface AdminQuoteView {
@@ -207,6 +212,9 @@ export interface AdminRequirementRow {
   statusLabel: string;
   quoteCount: number;
   poId: string | null;
+  /** present (length > 1) for a multi-product requirement; `title`/
+   *  `catSlug`/`qty` above stay a derived summary across all items. */
+  items: RequirementItem[] | null;
 }
 
 export interface AdminRequirementDetail extends AdminRequirementRow {
@@ -217,7 +225,12 @@ export interface AdminRequirementDetail extends AdminRequirementRow {
 
 export interface AdminPoRow {
   id: string;
+  supplierOrgId: number;
   supplierName: string;
+  /** the requirement this PO's award traces back to, when known — lets
+   *  sibling PO lines from the same multi-product award group together
+   *  (e.g. for invoicing). */
+  reqId: string | null;
   destination: "warehouse" | "direct";
   issued: string;
   lineName: string;
@@ -244,6 +257,67 @@ export interface AdminPoRow {
   payStatusLabel: string;
   /** next legal fulfilment advance, or null */
   nextFulfilment: { fulfilment: string; label: string } | null;
+  /** the invoice already recorded against this PO's requirement, if any */
+  invoiceId: string | null;
+}
+
+/* ---------- supplier invoices (recorded against a PO award) ---------- */
+
+export interface AdminInvoiceLine {
+  poId: string;
+  description: string;
+  hsn: string;
+  qty: number;
+  uom: string;
+  rate: number; // rupees
+  disc: number; // rupees
+  taxableValue: number; // rupees
+  gstPercent: number;
+  cgst: number; // rupees
+  sgst: number; // rupees
+  igst: number; // rupees
+}
+
+export interface AdminInvoiceRow {
+  id: string;
+  reqId: string;
+  reqTitle: string;
+  supplierOrgId: number;
+  supplierName: string;
+  poIds: string[];
+  status: "draft" | "sent";
+  supplierInvoiceNo: string;
+  supplierInvoiceDate: string;
+  grandTotal: number; // rupees
+  createdAt: string;
+  sentAt: string | null;
+}
+
+export interface AdminInvoiceDetail extends AdminInvoiceRow {
+  placeOfSupply: string;
+  transportMode: string;
+  paymentTerms: string;
+  taxMode: "intra" | "inter";
+  lines: AdminInvoiceLine[];
+  taxableTotal: number;
+  cgstTotal: number;
+  sgstTotal: number;
+  igstTotal: number;
+  roundOff: number;
+  /** seller (supplier) letterhead details, as recorded on their organization */
+  seller: { legalName: string; address: string; gstin: string; phone: string; email: string };
+  /** buyer (Smash Pro) letterhead details — the platform's own registration */
+  buyer: { legalName: string; address: string; gstin: string; pan: string };
+}
+
+/** A PO line still awaiting an invoice (or already on one), scoped to one requirement award. */
+export interface AdminInvoiceablePo {
+  id: string;
+  lineName: string;
+  sku: string | null;
+  lineQty: number;
+  unit: number; // rupees
+  value: number; // rupees
 }
 
 export interface AdminComplaintRow {
