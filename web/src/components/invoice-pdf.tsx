@@ -39,8 +39,8 @@ const s = StyleSheet.create({
   table: { marginTop: 8, borderWidth: 1, borderColor: C.line },
   trHead: { flexDirection: "row", backgroundColor: C.bg, borderBottomWidth: 1, borderBottomColor: C.line },
   tr: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.line },
-  th: { fontSize: 7, color: C.muted, textTransform: "uppercase", padding: 4 },
-  td: { fontSize: 8.5, padding: 4 },
+  th: { fontSize: 7, color: C.muted, textTransform: "uppercase", padding: 3 },
+  td: { fontSize: 7.5, padding: 3 },
   right: { textAlign: "right" },
   totals: { marginTop: 6, alignItems: "flex-end" },
   totalRow: { flexDirection: "row", justifyContent: "space-between", width: 220, paddingVertical: 1.5 },
@@ -56,8 +56,12 @@ const s = StyleSheet.create({
 });
 
 // column widths shared by the header row and every data row, sr/desc/hsn/qty/uom/rate/disc/taxable/gst/tax.../amount
-const COLS_INTRA = [5, 23, 9, 6, 7, 8, 7, 9, 6, 7, 7, 6];
-const COLS_INTER = [5, 25, 10, 6, 7, 9, 7, 10, 6, 9, 6];
+// Currency cells ("Rs. 1,20,000.00") need real room at this font size — too narrow and
+// react-pdf silently wraps them onto a second line, which looked like garbled/misaligned
+// figures in the rendered PDF. Amount/Taxable/Rate/tax columns are sized generously here;
+// Description/HSN give up the slack since description already wraps gracefully.
+const COLS_INTRA = [4, 17, 9, 5, 5, 9, 6, 11, 5, 8, 8, 13];
+const COLS_INTER = [4, 21, 9, 5, 5, 10, 6, 12, 5, 10, 13];
 
 export function InvoicePdfDocument({ inv }: { inv: AdminInvoiceDetail }) {
   const cols = inv.taxMode === "intra" ? COLS_INTRA : COLS_INTER;

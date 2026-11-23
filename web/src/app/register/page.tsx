@@ -22,6 +22,10 @@ export default function RegisterBuyerPage() {
         <Link href="/register/supplier" className="font-semibold text-ember-deep hover:underline">
           Supplying instead?
         </Link>
+        {" "}·{" "}
+        <Link href="/register/visitor" className="font-semibold text-ember-deep hover:underline">
+          Just you? Quick sign-up, no approval
+        </Link>
       </p>
       <RegisterForm kind="buyer" />
     </main>

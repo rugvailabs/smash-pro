@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className={`${archivo.variable} ${inter.variable} ${plex.variable}`}>
         <Providers>
-          <PreviewRibbon />
+          {process.env.DEMO_MODE === "1" && <PreviewRibbon />}
           {/* usePathname (active-tab highlight) needs a Suspense boundary to prerender */}
           <Suspense fallback={null}>
             <SiteHeader />

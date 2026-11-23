@@ -76,6 +76,8 @@ export function SignInForm() {
         <Link href="/register" className="font-semibold text-ember-deep hover:underline">Register your institution</Link>
         {" "}·{" "}
         <Link href="/register/supplier" className="font-semibold text-ember-deep hover:underline">Register as a supplier</Link>
+        {" "}·{" "}
+        <Link href="/register/visitor" className="font-semibold text-ember-deep hover:underline">Quick sign-up</Link>
       </p>
       <NoteFlag className="mt-3">
         demo accounts: buyer@demo.prosmash.in · supplier@demo.prosmash.in ·
@@ -250,6 +252,86 @@ export function RegisterForm({ kind }: { kind: "buyer" | "supplier" }) {
         <p className="mt-2.5 text-[13px] text-n600">
           Your registration is reviewed by Smash Pro before {kind === "buyer" ? "ordering" : "the workspace"} is
           enabled — you can sign in meanwhile and track its status.
+        </p>
+      </form>
+    </Panel>
+  );
+}
+
+/* Visitor buyer registration (ADR-0011): a minimal, no-approval signup —
+   sign in and start ordering immediately, no institution review. */
+export function VisitorRegisterForm() {
+  const router = useRouter();
+  const { refresh } = useRole();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState({ name: "", phone: "", email: "", password: "" });
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    setForm({ ...form, [k]: e.target.value });
+
+  const canSubmit = form.name.trim() && form.email.trim() && form.password.length >= 8 && !busy;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          kind: "buyer",
+          visitor: true,
+          contactName: form.name,
+          contactPhone: form.phone,
+          email: form.email,
+          password: form.password,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        setError(data.error ?? "Registration failed — please try again.");
+        return;
+      }
+      await refresh();
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("Registration failed — check your connection and try again.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <Panel className="p-6">
+      <form onSubmit={submit}>
+        <div className="grid gap-3.5 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <label className={label} htmlFor="vr-name">Full name (required)</label>
+            <input id="vr-name" type="text" required className={input} value={form.name} onChange={set("name")} />
+          </div>
+          <div>
+            <label className={label} htmlFor="vr-phone">Phone</label>
+            <input id="vr-phone" type="tel" className={input} value={form.phone} onChange={set("phone")} />
+          </div>
+          <div>
+            <label className={label} htmlFor="vr-email">Email (required)</label>
+            <input id="vr-email" type="email" autoComplete="email" required className={input} value={form.email} onChange={set("email")} />
+          </div>
+          <div className="sm:col-span-2">
+            <label className={label} htmlFor="vr-pw">Password (required, 8+ characters)</label>
+            <input id="vr-pw" type="password" autoComplete="new-password" required minLength={8} className={input} value={form.password} onChange={set("password")} />
+          </div>
+        </div>
+        {error && <Banner tone="bad" className="mt-4">{error}</Banner>}
+        <button type="submit" disabled={!canSubmit} className={`${primary} mt-5`}>
+          {busy ? "Creating account…" : "Create account"}
+        </button>
+        <p className="mt-2.5 text-[13px] text-n600">
+          No review, no waiting — your account is active immediately and you
+          can order right away.
         </p>
       </form>
     </Panel>

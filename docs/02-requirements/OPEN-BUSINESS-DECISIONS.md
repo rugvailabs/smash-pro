@@ -89,6 +89,14 @@ buyers both see standard listed prices only; **approved and logged-in buyers**
 see their applicable discounted prices. Ordering remains approval-gated.
 OBD-05 and OBD-20 pricing rules apply unmodified.
 
+**Exception DECIDED (2026-11-23, ADR-0011):** a second, lightweight "visitor"
+buyer registration path (`/register/visitor`) skips the approval queue
+entirely — the organization is created `active` and can order immediately,
+at standard (non-discounted) pricing. This applies **only** to that
+registration path; the institutional buyer flow at `/register` and the
+supplier flow remain approval-gated as decided above. OBD-02 verification is
+explicitly not applied to visitor buyers.
+
 Resolves roles-doc **P-03**; by making the catalog public it also effectively
 resolves **P-05** (suppliers, like anyone, can view the public catalog with
 standard prices only — discounts and margins remain invisible to them).
@@ -507,6 +515,7 @@ no change to buyer pricing (`server/pricing.ts`, `/admin/pricing`).
 
 | ID | Decision | Decided by | Date |
 |---|---|---|---|
+| OBD-03 (exception) | Visitor Buyer Self-Registration (ADR-0011): a second buyer registration path (`/register/visitor`) skips admin approval entirely — account created `active`, orders immediately at standard pricing. Applies only to this path; institutional buyer/supplier registration remain approval-gated. OBD-02 verification not applied to visitor buyers. | Owner | 2026-11-23 |
 | OBD-01 | Hybrid Fulfilment Model (Option B): warehouse stocking for selected products + supplier direct shipping for selected products; ProSmash owns the buyer relationship; method varies by product and supplier. Operational details split out to OBD-19. | Owner | 2026-11-13 |
 | OBD-05 | Category-Based Discounts with Individual Customer Overrides: admin-controlled base selling price; default discount % per buyer category; per-buyer special discount overrides; system-calculated applicable price; costs/margins admin-only; buyers see only their own prices. Calculation mechanics split out to OBD-20. | Owner | 2026-11-13 |
 | OBD-08 | 100% Advance Payment: full payment before dispatch on every order; dispatch gated on confirmed payment; no postpaid/credit facilities; every order carries a payment status; admin has full payment-transaction visibility. Operational details split out to OBD-21. | Owner | 2026-11-13 |

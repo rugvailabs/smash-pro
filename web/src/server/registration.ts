@@ -9,6 +9,14 @@ import { audit, createSession, hashPassword } from "@/server/auth";
    org), records document METADATA only (ADR-0005), signs the
    user in, and leaves approval to the admin side (ADM-001/002).
    OBD-02 verification workflow stays ◇ — no review checklists.
+
+   Exception — visitor buyers (ADR-0011, owner-directed 2026-11-23):
+   a lightweight buyer registration that skips the approval queue
+   entirely, landing straight in `active` status so they can order
+   immediately. This is a deliberate carve-out from the OBD-03
+   clarification ("ordering remains approval-gated") for this one
+   registration path only — institutional buyer/supplier
+   registration below is unaffected.
    ============================================================ */
 
 export interface RegistrationInput {
@@ -28,6 +36,8 @@ export interface RegistrationInput {
   categories?: string[];
   /** document METADATA (filenames) — bytes are not retained (ADR-0005) */
   documents?: string[];
+  /** buyer only — skip admin approval, org is created `active` (ADR-0011) */
+  visitor?: boolean;
 }
 
 export async function registerOrganization(input: RegistrationInput) {
@@ -35,13 +45,15 @@ export async function registerOrganization(input: RegistrationInput) {
   const [existing] = await db.select().from(schema.users).where(eq(schema.users.email, email));
   if (existing) throw new Error("email-taken");
 
+  const isVisitor = input.kind === "buyer" && input.visitor === true;
+
   const [org] = await db
     .insert(schema.organizations)
     .values({
       kind: input.kind,
-      status: "pending",
+      status: isVisitor ? "active" : "pending",
       name: input.orgName,
-      legalName: input.legalName,
+      legalName: input.legalName || input.orgName,
       orgType: input.orgType,
       gstin: input.gstin,
       city: input.city,
@@ -70,7 +82,7 @@ export async function registerOrganization(input: RegistrationInput) {
     );
   }
 
-  await audit(user.id, "org.register", "organization", String(org.id), { kind: input.kind });
+  await audit(user.id, "org.register", "organization", String(org.id), { kind: input.kind, visitor: isVisitor });
   await createSession(user.id);
   return { orgId: org.id, userId: user.id };
 }

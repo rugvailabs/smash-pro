@@ -1,6 +1,11 @@
 # ADR-0008 — Standalone `storefront/` frontend project
 
-> Status: Accepted (owner-directed) · Date: 2026-11-20
+> Status: Superseded — project removed 2026-11-23 (owner-directed) · Date: 2026-11-20
+
+**2026-11-23 update:** the owner confirmed `storefront/` is no longer needed
+and had it removed from the repo (`git rm -r storefront/`, staged for commit,
+fully recoverable from git history if needed later). This ADR is kept as a
+record of the decision; the directory no longer exists in the working tree.
 
 ## Context
 
