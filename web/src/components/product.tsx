@@ -246,7 +246,7 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
                   "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)",
               }}
             >
-              <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">
+              <span className="bg-n100 px-1 text-center font-mono text-[10px] uppercase tracking-wide text-n400">
                 awaiting approved photography
               </span>
             </div>
@@ -256,18 +256,18 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
         <WishlistButton sku={p.sku} name={p.name} />
       </div>
       <div className="flex min-w-0 flex-1 flex-col p-3.5 md:p-4">
-        <span className="truncate font-mono text-[10.5px] uppercase tracking-widest text-n600">{p.sub}</span>
+        <span className="truncate font-mono text-[11px] uppercase tracking-widest text-n600">{p.sub}</span>
         <Link href={href} className="mt-1 line-clamp-2 text-[14px] font-semibold leading-snug text-ink underline-offset-2 hover:underline md:text-[15px]">
           {p.name}
         </Link>
         <div className="mt-0.5 line-clamp-1 text-[12.5px] text-n600">{p.meta}</div>
         {p.configurable && (
-          <span className="mt-1.5 inline-flex self-start rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-info">
+          <span className="mt-1.5 inline-flex self-start rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-info">
             Configure to order
           </span>
         )}
         {!p.configurable && p.variantCount && p.variantCount > 1 && (
-          <span className="mt-1.5 inline-flex self-start rounded-[2px] bg-n100 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-n600">
+          <span className="mt-1.5 inline-flex self-start rounded-[2px] bg-n100 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-n600">
             {p.variantCount} options
           </span>
         )}
@@ -311,7 +311,7 @@ export function ProductListRow({ p, priority = false }: { p: Product; priority?:
               className="absolute inset-0 flex items-center justify-center"
               style={{ backgroundImage: "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)" }}
             >
-              <span className="bg-n100 px-1 text-center font-mono text-[8px] uppercase tracking-wide text-n400">awaiting photography</span>
+              <span className="bg-n100 px-1 text-center font-mono text-[9px] uppercase tracking-wide text-n400">awaiting photography</span>
             </div>
           )}
         </Link>
@@ -319,18 +319,18 @@ export function ProductListRow({ p, priority = false }: { p: Product; priority?:
       </div>
       <div className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-center sm:gap-6">
         <div className="min-w-0 flex-1">
-          <span className="truncate font-mono text-[10.5px] uppercase tracking-widest text-n600">{p.sub}</span>
+          <span className="truncate font-mono text-[11px] uppercase tracking-widest text-n600">{p.sub}</span>
           <Link href={href} className="mt-1 block text-[15px] font-semibold leading-snug text-ink underline-offset-2 hover:underline">
             {p.name}
           </Link>
           <div className="mt-0.5 line-clamp-1 text-[12.5px] text-n600">{p.meta}</div>
           {p.configurable && (
-            <span className="mt-1.5 inline-flex rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-info">
+            <span className="mt-1.5 inline-flex rounded-[2px] bg-info-t px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-info">
               Configure to order
             </span>
           )}
           {!p.configurable && p.variantCount && p.variantCount > 1 && (
-            <span className="mt-1.5 inline-flex rounded-[2px] bg-n100 px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wide text-n600">
+            <span className="mt-1.5 inline-flex rounded-[2px] bg-n100 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-n600">
               {p.variantCount} options
             </span>
           )}
@@ -366,7 +366,7 @@ export function ProductGrid({
     );
   }
   return (
-    <div className="grid grid-cols-2 gap-2.5 min-[900px]:grid-cols-3 md:gap-4 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2.5 min-[900px]:grid-cols-3 md:gap-4 lg:grid-cols-4 xl:grid-cols-5">
       {items.map((p, i) => (
         <ProductCard key={p.sku} p={p} priority={i < priorityCount} />
       ))}

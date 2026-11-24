@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import {
   SMASH_PRO_MAPS_LINK, SMASH_PRO_PHONE_DISPLAY, SMASH_PRO_PROFILE, SMASH_PRO_TEL_LINK, SMASH_PRO_WHATSAPP_LINK,
 } from "@/lib/company-profile";
+import { Container } from "@/components/container";
 
 export const metadata: Metadata = { title: "Support" };
 
@@ -14,7 +15,7 @@ const TOPICS = [
 
 export default function SupportPage() {
   return (
-    <main className="mx-auto max-w-[760px] px-4 py-14 md:px-10">
+    <Container as="main" maxW="max-w-[760px]" className="py-14">
       <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[33px]">Help centre</h1>
       <p className="mt-2 text-[14px] text-n600">Common questions from institutional buyers.</p>
 
@@ -50,6 +51,6 @@ export default function SupportPage() {
         </a>
         <p className="mt-1 text-[13.5px] text-n600">{SMASH_PRO_PROFILE.hours}</p>
       </div>
-    </main>
+    </Container>
   );
 }

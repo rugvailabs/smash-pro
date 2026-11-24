@@ -13,6 +13,7 @@ import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
 import { Pagination } from "@/components/pagination";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
+import { Container } from "@/components/container";
 import { CATEGORY_INTRO, defaultIntro, TYPE_FILTER_LABEL } from "@/lib/catalog-copy";
 import { getCategoryHeroMap, getCategoryIntroMap } from "@/server/content";
 
@@ -81,7 +82,7 @@ async function CatalogContent({
       {/* image-led category rail (shared with search) */}
       <CategoryStrip categories={categories} active={cat} />
 
-      <div className="mx-auto max-w-[1280px] px-4 pb-16 md:px-10">
+      <Container className="pb-16">
         <div className="grid gap-x-8 gap-y-4 pt-6 lg:grid-cols-[232px_1fr]">
           {/* LEFT — professional sidebar filters */}
           <Suspense fallback={<div className="h-10" />}>
@@ -142,7 +143,7 @@ async function CatalogContent({
             </div>
           </div>
         </div>
-      </div>
+      </Container>
     </main>
   );
 }

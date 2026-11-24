@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useRole } from "@/components/providers";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Supplier workspace shell: role gate + side navigation.
@@ -16,7 +17,7 @@ function SupplierGate() {
   const { role, setRole } = useRole();
 
   return (
-    <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-10 md:px-10">
+    <Container as="main" className="pb-16 pt-10">
       <div className="mx-auto max-w-[620px] rounded-[2px] border border-n200 bg-chalk p-8">
         <div className="font-mono text-[11px] uppercase tracking-[.08em] text-ember-deep">
           Supplier workspace
@@ -59,7 +60,7 @@ function SupplierGate() {
           preview gate — production enforces this server-side (plt-001)
         </p>
       </div>
-    </main>
+    </Container>
   );
 }
 
@@ -144,13 +145,13 @@ export function SupplierShell({ children }: { children: React.ReactNode }) {
       {ready && !allowed && <SupplierGate />}
       {!ready && <main className="min-h-[50vh]" />}
       <div hidden={!allowed}>
-        <div className="mx-auto flex max-w-[1280px] flex-col gap-6 px-4 pb-16 pt-5 md:px-10 lg:flex-row lg:gap-8">
+        <Container className="flex flex-col gap-6 pb-16 pt-5 lg:flex-row lg:gap-8">
           {/* usePathname (active item) needs a Suspense boundary to prerender */}
           <Suspense fallback={<nav className="shrink-0 lg:w-[232px]" />}>
             <SupplierNav />
           </Suspense>
           <div className="min-w-0 flex-1">{children}</div>
-        </div>
+        </Container>
       </div>
     </>
   );

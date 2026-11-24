@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PanelSkeleton } from "@/components/skeletons";
+import { Container } from "@/components/container";
 import { Banner, Chip, NoteFlag, PageHead, type ChipTone } from "@/components/buyer-ui";
 import { getOrders } from "@/lib/buyer-api";
 import { inr } from "@/lib/format";
@@ -19,7 +20,7 @@ const PAY_TONE: Record<string, ChipTone> = {
 export default function PaymentsPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)
   return (
-    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+    <Suspense fallback={<Container as="main" className="pb-16 pt-7"><PanelSkeleton /></Container>}>
       <PaymentsContent />
     </Suspense>
   );
@@ -30,7 +31,7 @@ async function PaymentsContent() {
 
   return (
     <RequireBuyer>
-      <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10">
+      <Container as="main" className="pb-16 pt-7">
         <PageHead
           title={<>Payments &amp; invoices</>}
           sub="Every payment on record — 100% advance, verified before dispatch."
@@ -100,7 +101,7 @@ async function PaymentsContent() {
           references only — timing &amp; format pending obd-11 · refund rules
           admin-configurable (obd-21)
         </NoteFlag>
-      </main>
+      </Container>
     </RequireBuyer>
   );
 }

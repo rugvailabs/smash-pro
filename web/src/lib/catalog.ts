@@ -31,28 +31,51 @@ export async function searchProducts(q: string): Promise<Product[]> {
   return (await searchCatalog(q)) as Product[];
 }
 
-export async function getFeatured(): Promise<Product[]> {
-  const picks = ["CR-0417", "BD-2001", "BB-0101", "SW-3001"];
+const MERCHANDISE_ROW_SIZE = 5;
+
+/** Resolves a curated SKU list, then backfills from the live active
+ *  catalogue (never invented data — real, currently-sold products only)
+ *  up to `target` so a few stale/retired picks never collapse a
+ *  merchandising row down to one lonely card. `exclude` keeps a second
+ *  row (e.g. Recommended) from repeating whatever the first row already
+ *  showed. Order is preserved: curated hits first, backfill after. */
+async function curatedRow(picks: string[], target: number, exclude: string[] = []): Promise<Product[]> {
+  const seen = new Set(exclude);
   const out: Product[] = [];
   for (const sku of picks) {
+    if (seen.has(sku)) continue;
     const p = await getProductBySku(sku);
-    if (p) out.push(p as Product);
+    if (p) {
+      out.push(p as Product);
+      seen.add(sku);
+    }
+  }
+  if (out.length < target) {
+    const pool = await listProducts();
+    for (const p of pool) {
+      if (out.length >= target) break;
+      if (seen.has(p.sku)) continue;
+      out.push(p as Product);
+      seen.add(p.sku);
+    }
   }
   return out;
+}
+
+export async function getFeatured(): Promise<Product[]> {
+  const picks = ["CR-0417", "BD-2001", "BB-0101", "SW-3001"];
+  return curatedRow(picks, MERCHANDISE_ROW_SIZE);
 }
 
 /** A second curated real-SKU row, distinct from getFeatured() — same
  *  mechanism (fixed catalogue picks), different products. No "new arrivals"
  *  equivalent exists: the schema carries no created/listed-date field, so
- *  that section is never built from invented recency. */
-export async function getRecommended(): Promise<Product[]> {
+ *  that section is never built from invented recency. `excludeSkus` is the
+ *  first row's resolved SKUs, so a backfill never duplicates a card already
+ *  shown in Featured. */
+export async function getRecommended(excludeSkus: string[] = []): Promise<Product[]> {
   const picks = ["FB-0105", "TN-0103", "AT-0115", "GF-0104"];
-  const out: Product[] = [];
-  for (const sku of picks) {
-    const p = await getProductBySku(sku);
-    if (p) out.push(p as Product);
-  }
-  return out;
+  return curatedRow(picks, MERCHANDISE_ROW_SIZE, excludeSkus);
 }
 
 /** Procurement-relevant cross-sell: same-category items only. Returns an

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRole } from "@/components/providers";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Role gate for the buyer workspace (PLT-001 role-scoped access).
@@ -19,7 +20,7 @@ export function RequireBuyer({ children }: { children: React.ReactNode }) {
   if (role === "buyer") return <>{children}</>;
 
   return (
-    <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-10 md:px-10">
+    <Container as="main" className="pb-16 pt-10">
       <div className="mx-auto max-w-[620px] rounded-[2px] border border-n200 bg-chalk p-8">
         <div className="font-mono text-[11px] uppercase tracking-[.08em] text-ember-deep">
           Approved buyer area
@@ -63,6 +64,6 @@ export function RequireBuyer({ children }: { children: React.ReactNode }) {
           preview gate — production enforces this server-side (plt-001)
         </p>
       </div>
-    </main>
+    </Container>
   );
 }

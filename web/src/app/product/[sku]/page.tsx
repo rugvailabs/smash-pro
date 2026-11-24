@@ -10,6 +10,7 @@ import { VariantPicker } from "@/components/variant-picker";
 import { DetailConvertNote } from "@/components/page-bits";
 import { DetailSkeleton } from "@/components/skeletons";
 import { NoteFlag } from "@/components/buyer-ui";
+import { Container } from "@/components/container";
 import { SMASH_PRO_WHATSAPP_LINK } from "@/lib/company-profile";
 
 /* Product detail — gallery, role-aware pricing, specs; racquets route
@@ -48,7 +49,7 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
   const [category, related] = await Promise.all([getCategory(p.cat), getRelatedProducts(p.sku)]);
 
   return (
-    <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-6 md:px-10">
+    <Container as="main" className="pb-16 pt-6">
       <div className="mb-4.5 text-[13px] text-n600">
         <Link href="/" className="hover:underline">Home</Link> /{" "}
         <Link href={`/catalog?cat=${p.cat}`} className="hover:underline">{category?.name ?? p.cat}</Link> /{" "}
@@ -151,6 +152,6 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
           <ProductGrid items={related} />
         </>
       )}
-    </main>
+    </Container>
   );
 }

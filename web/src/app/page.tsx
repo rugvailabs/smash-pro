@@ -10,6 +10,7 @@ import { FirstOrderBanner } from "@/components/first-order-banner";
 import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { Bone } from "@/components/skeletons";
+import { Container } from "@/components/container";
 
 /* Two-journey promo band (PORTAL-PRINCIPLES §2: "Buy for your institution" /
    "Supply to Smash Pro" are the site's only conversions). The supplier half
@@ -18,8 +19,8 @@ import { Bone } from "@/components/skeletons";
    (public-nav.tsx InstitutionsPanel) — no new imagery introduced. */
 function InstitutionPromoBand() {
   return (
-    <section className="py-11 md:py-16">
-      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+    <section className="py-7 md:py-10 lg:py-12">
+      <Container>
         <div className="relative grid overflow-hidden rounded-[2px] border border-n200 bg-chalk md:grid-cols-[1fr_1.1fr]">
           <div className="flex flex-col justify-center px-6 py-9 md:px-10 md:py-0">
             <Kick>For schools · academies · colleges · retailers</Kick>
@@ -52,7 +53,7 @@ function InstitutionPromoBand() {
             <span aria-hidden className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-chalk/10" />
           </div>
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
@@ -76,7 +77,7 @@ function Kick({ children, onInk = false }: { children: React.ReactNode; onInk?: 
 
 function SectionHead({ title, more, moreHref, onInk = false }: { title: string; more?: string; moreHref?: string; onInk?: boolean }) {
   return (
-    <div className="mb-7 flex flex-wrap items-baseline gap-5">
+    <div className="mb-5 flex flex-wrap items-baseline gap-5 md:mb-6">
       <h2 className={`stretch-xp font-display text-2xl font-bold tracking-tight md:text-[33px] ${onInk ? "text-chalk" : "text-ink"}`}>
         {title}
       </h2>
@@ -100,8 +101,8 @@ function ProofStrip() {
     ["1", "counterparty for order, delivery and resolution"],
   ];
   return (
-    <div className="border-t border-white/10 bg-ink">
-      <div className="mx-auto grid max-w-[1280px] grid-cols-1 gap-x-6 gap-y-4 px-4 py-5 sm:grid-cols-3 md:px-10 md:py-6">
+    <Container className="py-3">
+      <div className="grid grid-cols-1 gap-x-6 gap-y-4 rounded-[2px] border-t border-white/10 bg-ink px-6 py-5 sm:grid-cols-3 md:px-10 md:py-6 lg:px-14">
         {FACTS.map(([n, label]) => (
           <div key={label} className="flex items-baseline gap-2.5">
             <span className="num font-display text-xl font-bold text-ember md:text-2xl">{n}</span>
@@ -109,7 +110,7 @@ function ProofStrip() {
           </div>
         ))}
       </div>
-    </div>
+    </Container>
   );
 }
 
@@ -124,8 +125,8 @@ function FeatureDuo({ heroMap }: { heroMap: Record<string, string | null> }) {
     { slug: "football", label: "Football", note: "Match & training balls for every squad size" },
   ];
   return (
-    <section className="border-b border-n200 bg-chalk py-11 md:py-16">
-      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+    <section className="bg-chalk py-9 md:py-12 lg:py-14">
+      <Container>
         <Kick>Popular with institutions</Kick>
         <SectionHead title="Shop the essentials." />
         <div className="grid gap-4 sm:grid-cols-2">
@@ -157,7 +158,7 @@ function FeatureDuo({ heroMap }: { heroMap: Record<string, string | null> }) {
             );
           })}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
@@ -169,71 +170,72 @@ function FeatureDuo({ heroMap }: { heroMap: Record<string, string | null> }) {
 function SingleCollectionBanner({ heroMap }: { heroMap: Record<string, string | null> }) {
   const hero = heroMap["gym-fitness"] ?? CATEGORY_HERO["gym-fitness"] ?? null;
   return (
-    <section className="border-b border-n200">
-      <Link href="/catalog?cat=gym-fitness" className="group relative block h-[280px] w-full overflow-hidden bg-ink md:h-[360px]">
-        {hero && (
-          <Image src={hero} alt="" fill sizes="100vw" className="object-cover opacity-80 transition-transform duration-300 ease-out group-hover:scale-[1.03]" />
-        )}
-        <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-ink/10" />
-        <div className="relative mx-auto flex h-full max-w-[1280px] items-center px-4 md:px-10">
-          <div className="max-w-[520px]">
-            <span className="font-mono text-[11px] uppercase tracking-[.09em] text-ember">Gym &amp; Fitness</span>
-            <h2 className="stretch-xp mt-2 font-display text-[30px] font-bold leading-[1.05] tracking-tight text-chalk md:text-[42px]">
-              Strength &amp; conditioning, outfitted.
-            </h2>
-            <p className="mt-3 max-w-[42ch] text-[14px] text-white/80 md:text-[15px]">
-              Free weights, plates and training essentials for institutional gyms and conditioning programmes.
-            </p>
-            <span className="mt-5 inline-flex h-11 items-center rounded-[2px] border border-white/35 px-5 text-sm font-semibold text-white transition-colors group-hover:border-white">
-              Shop gym &amp; fitness
-            </span>
+    <section className="py-3">
+      <Container>
+        <Link href="/catalog?cat=gym-fitness" className="group relative block h-[280px] w-full overflow-hidden rounded-[2px] bg-ink md:h-[360px]">
+          {hero && (
+            <Image src={hero} alt="" fill sizes="100vw" className="object-cover opacity-80 transition-transform duration-300 ease-out group-hover:scale-[1.03]" />
+          )}
+          <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-ink via-ink/70 to-ink/10" />
+          <div className="relative flex h-full items-center px-6 md:px-10 lg:px-14">
+            <div className="max-w-[520px]">
+              <span className="font-mono text-[11px] uppercase tracking-[.09em] text-ember">Gym &amp; Fitness</span>
+              <h2 className="stretch-xp mt-2 font-display text-[30px] font-bold leading-[1.05] tracking-tight text-chalk md:text-[42px]">
+                Strength &amp; conditioning, outfitted.
+              </h2>
+              <p className="mt-3 max-w-[42ch] text-[14px] text-white/80 md:text-[15px]">
+                Free weights, plates and training essentials for institutional gyms and conditioning programmes.
+              </p>
+              <span className="mt-5 inline-flex h-11 items-center rounded-[2px] border border-white/35 px-5 text-sm font-semibold text-white transition-colors group-hover:border-white">
+                Shop gym &amp; fitness
+              </span>
+            </div>
           </div>
-        </div>
-      </Link>
+        </Link>
+      </Container>
     </section>
   );
 }
 
-/** 16° section seam (VISUAL-IDENTITY §6) — the upper ink surface carries
- *  into the next band along the brand angle. Decorative only. */
-function SectionCut() {
-  return (
-    <div aria-hidden className="relative h-10 overflow-hidden bg-chalk md:h-14">
-      <div
-        className="absolute -left-10 -top-px bottom-0 w-[42%] bg-ink"
-        style={{ transform: "skewX(-16deg)", transformOrigin: "top left" }}
-      />
-    </div>
-  );
-}
 
 /* Fixed-row category cards (not scrollable — a set 6, matching the
    reference's tile-row placement around the hero). Real categories/
    imagery only, split into two halves by CATEGORIES' own order. */
 function CategoryCardsRow({ items, heroMap }: { items: typeof CATEGORIES; heroMap: Record<string, string | null> }) {
   return (
-    <section className="border-b border-n200 bg-chalk py-7 md:py-9">
-      <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+    <section className="bg-chalk py-6 md:py-8 lg:py-9">
+      <Container>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-6">
           {items.map((c) => {
             const hero = heroMap[c.slug] ?? CATEGORY_HERO[c.slug] ?? null;
             return (
               <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block">
-                <div className="relative aspect-square overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
+                <div className="relative aspect-square overflow-hidden rounded-[2px] bg-n100 transition-shadow group-hover:shadow-raised">
                   {hero ? (
-                    <Image src={hero} alt={c.name} fill sizes="(min-width:1024px) 16vw, (min-width:640px) 32vw, 48vw" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]" />
+                    <Image src={hero} alt="" fill sizes="(min-width:1024px) 16vw, (min-width:640px) 32vw, 48vw" className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]" />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundImage: "repeating-linear-gradient(74deg, transparent, transparent 7px, var(--color-n200) 7px, var(--color-n200) 8px)" }}>
                       <span className="relative font-mono text-[9px] uppercase tracking-wide text-n400">imagery pending</span>
                     </div>
                   )}
+                  {/* blend the image into the card ground — a light scrim rather
+                      than the ink one used elsewhere, so it reads against the
+                      chalk card background regardless of the photo underneath */}
+                  <span
+                    aria-hidden
+                    className="pointer-events-none absolute inset-x-0 bottom-0 h-[46%] bg-gradient-to-t from-chalk via-chalk/80 to-transparent"
+                  />
+                  <span className="pointer-events-none absolute inset-x-0 bottom-0 px-2.5 pb-2">
+                    <span className="block truncate font-display text-[14px] font-bold leading-tight text-ink group-hover:text-ember-deep md:text-[15px]">
+                      {c.name}
+                    </span>
+                  </span>
                 </div>
-                <div className="mt-2.5 text-center font-display text-[14px] font-bold leading-tight text-ink group-hover:text-ember-deep md:text-[15px]">{c.name}</div>
               </Link>
             );
           })}
         </div>
-      </div>
+      </Container>
     </section>
   );
 }
@@ -262,7 +264,6 @@ export default function HomePage() {
         <HeroSection firstHalf={firstHalf} secondHalf={secondHalf} />
       </Suspense>
       <ProofStrip />
-      <SectionCut />
       <Suspense fallback={<HomeSectionsSkeleton />}>
         <HomeSections />
       </Suspense>
@@ -293,17 +294,18 @@ async function HeroSection({ firstHalf, secondHalf }: { firstHalf: typeof CATEGO
 
 function HomeSectionsSkeleton() {
   return (
-    <div aria-busy="true" className="mx-auto max-w-[1280px] px-4 py-12 md:px-10">
+    <Container aria-busy="true" className="py-12">
       <Bone className="mb-6 h-8 w-72" />
       <div className="grid grid-cols-2 gap-x-3 gap-y-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
         {Array.from({ length: 12 }).map((_, i) => <Bone key={i} className="aspect-[4/5] w-full rounded-[2px]" />)}
       </div>
-    </div>
+    </Container>
   );
 }
 
 async function HomeSections() {
-  const [featured, recommended, heroMap] = await Promise.all([getFeatured(), getRecommended(), getCategoryHeroMap()]);
+  const [featured, heroMap] = await Promise.all([getFeatured(), getCategoryHeroMap()]);
+  const recommended = await getRecommended(featured.map((p) => p.sku));
 
   return (
     <>
@@ -314,8 +316,8 @@ async function HomeSections() {
       <SingleCollectionBanner heroMap={heroMap} />
 
       {/* featured + recommended — homepage merchandising */}
-      <section className="py-11 md:py-16">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+      <section className="py-9 md:py-12 lg:py-14">
+        <Container>
           <Kick>Public pricing</Kick>
           <SectionHead title="Wholesale standards, in the open." more="All products →" moreHref="/catalog?cat=cricket" />
           <ProductGrid items={featured} />
@@ -324,11 +326,11 @@ async function HomeSections() {
             percentages pending owner approval (OBD-20) · imagery is
             representative, CC-licensed (see credits)
           </p>
-        </div>
+        </Container>
       </section>
 
-      <section className="border-t border-n200 bg-chalk py-11 md:py-16">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+      <section className="bg-chalk py-9 md:py-12 lg:py-14">
+        <Container>
           <Kick>Recommended</Kick>
           <SectionHead title="Recommended for institutions." more="All products →" moreHref="/catalog?cat=badminton" />
           <ProductGrid items={recommended} />
@@ -337,12 +339,12 @@ async function HomeSections() {
             percentages pending owner approval (OBD-20) · imagery is
             representative, CC-licensed (see credits)
           </p>
-        </div>
+        </Container>
       </section>
 
       {/* how it works */}
-      <section id="how" className="scroll-mt-32 border-y border-n200 bg-chalk py-11 md:py-16">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+      <section id="how" className="scroll-mt-32 bg-chalk py-9 md:py-12 lg:py-14">
+        <Container>
           <Kick>Process</Kick>
           <SectionHead title="How Smash Pro works" />
           {/* numbered rail — the process genuinely is a sequence, so the
@@ -357,13 +359,13 @@ async function HomeSections() {
               </div>
             ))}
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* supplier band — ink closing panel: the page ends with the same
           gravity it opened with; the 16° accent lives inside the panel */}
-      <section id="supply" className="scroll-mt-32 py-11 md:py-16">
-        <div className="mx-auto max-w-[1280px] px-4 md:px-10">
+      <section id="supply" className="scroll-mt-32 py-7 md:py-10 lg:py-12">
+        <Container>
           <div className="relative overflow-hidden rounded-[2px] bg-ink px-5 py-9 md:px-10 md:py-12">
             <div
               aria-hidden
@@ -392,7 +394,7 @@ async function HomeSections() {
               </div>
             </div>
           </div>
-        </div>
+        </Container>
       </section>
     </>
   );

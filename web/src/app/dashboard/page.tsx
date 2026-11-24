@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PanelSkeleton } from "@/components/skeletons";
+import { Container } from "@/components/container";
 import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, type ChipTone } from "@/components/buyer-ui";
 import { getInstitution, getOrders, getRequests } from "@/lib/buyer-api";
 import { inr } from "@/lib/format";
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: "Dashboard" };
 export default function DashboardPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)
   return (
-    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+    <Suspense fallback={<Container as="main" className="pb-16 pt-7"><PanelSkeleton /></Container>}>
       <DashboardContent />
     </Suspense>
   );
@@ -53,7 +54,7 @@ async function DashboardContent() {
 
   return (
     <RequireBuyer>
-      <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10">
+      <Container as="main" className="pb-16 pt-7">
         <PageHead
           title={<>Good morning, St.&nbsp;Xavier&rsquo;s</>}
           sub={<>Here&rsquo;s where your procurement stands today.
@@ -148,7 +149,7 @@ async function DashboardContent() {
             </Panel>
           </div>
         </div>
-      </main>
+      </Container>
     </RequireBuyer>
   );
 }

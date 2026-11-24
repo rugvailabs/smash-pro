@@ -6,6 +6,7 @@ import { ProductGrid } from "@/components/product";
 import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
 import { EmptyState } from "@/components/empty-state";
+import { Container } from "@/components/container";
 
 /* Search results — server-rendered over the catalog API boundary. */
 
@@ -34,7 +35,7 @@ async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: str
           not a separate tool (no active category) */}
       <CategoryStrip categories={categories} />
       <div className="border-b border-n200 bg-chalk">
-        <div className="mx-auto max-w-[1280px] px-4 py-4.5 md:px-10 md:py-6">
+        <Container className="py-4.5 md:py-6">
           <div className="mb-1 text-[13px] text-n600">
             <Link href="/" className="hover:underline">Home</Link> / <b className="text-ink">Search</b>
           </div>
@@ -51,10 +52,10 @@ async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: str
               search runs over preview sample data only
             </p>
           )}
-        </div>
+        </Container>
       </div>
 
-      <div className="mx-auto max-w-[1280px] px-4 py-6 pb-16 md:px-10">
+      <Container className="py-6 pb-16">
         {results.length ? (
           // Results grid is above the fold here too — eager-load row one only.
           <ProductGrid items={results} priorityCount={4} />
@@ -66,7 +67,7 @@ async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: str
             actionHref="/catalog?cat=cricket"
           />
         )}
-      </div>
+      </Container>
     </main>
   );
 }

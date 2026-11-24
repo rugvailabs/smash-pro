@@ -7,6 +7,7 @@ import {
   SPORT_GROUPS, INSTITUTIONS_GROUPS, HOW_GROUPS, SUPPLIER_GROUPS,
   TextGroupsPanel, TextGroupsMobile,
 } from "@/components/nav-groups";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Public website navigation. Four dense multi-column TEXT mega
@@ -185,11 +186,11 @@ export function PublicNavDesktop() {
 
       {openKey && (
         <div className="pointer-events-none fixed inset-x-0 z-30" style={{ top: panelTop }} aria-label={PANEL_LABEL[openKey]}>
-          <div className="mx-auto max-w-[1360px] px-4 md:px-10">
+          <Container>
             <div className={"pointer-events-auto overflow-hidden rounded-b-[4px] border border-t-0 border-n200 bg-chalk shadow-overlay transition-all duration-150 ease-out " + (shown ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0")}>
               <TextGroupsPanel groups={PANEL_GROUPS[openKey]} go={go} />
             </div>
-          </div>
+          </Container>
         </div>
       )}
     </div>

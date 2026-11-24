@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRole } from "@/components/providers";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Homepage hero carousel (Court Ink). Six supplied banner images
@@ -101,10 +102,11 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
       : s.cta;
 
   return (
+    <Container className="py-3">
     <section
       aria-roledescription="carousel"
       aria-label="Featured"
-      className="relative h-[480px] w-full overflow-hidden bg-ink text-chalk sm:h-[440px] md:h-[500px] lg:h-[560px] xl:h-[600px]"
+      className="relative h-[480px] w-full overflow-hidden rounded-[2px] bg-ink text-chalk sm:h-[440px] md:h-[500px] lg:h-[560px] xl:h-[600px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -147,7 +149,7 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
 
             {/* copy */}
             <div className="absolute inset-0">
-              <div className="mx-auto flex h-full max-w-[1280px] items-end px-4 pb-20 md:items-center md:px-10 md:pb-0">
+              <div className="flex h-full items-end px-6 pb-20 md:items-center md:px-10 md:pb-0 lg:px-14">
                 <div className="max-w-[90%] sm:max-w-[600px]">
                   <span className="font-mono text-[11px] uppercase tracking-[.09em] text-ember">
                     {s.eyebrow}
@@ -183,18 +185,20 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         );
       })}
 
-      {/* prev / next */}
+      {/* prev / next — bottom-left cluster (desktop only) so the controls
+          never sit over the left-aligned copy at mid-height, whatever a
+          given slide's text length happens to be */}
       <button
         onClick={prev}
         aria-label="Previous slide"
-        className="absolute left-2 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-ink/40 text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-ink/70 md:flex"
+        className="absolute bottom-6 left-6 z-20 hidden h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-ink/40 text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-ink/70 md:flex"
       >
         <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5 fill-none stroke-current" strokeWidth="2"><path d="M15 6l-6 6 6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
       <button
         onClick={next}
         aria-label="Next slide"
-        className="absolute right-2 top-1/2 z-20 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-white/25 bg-ink/40 text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-ink/70 md:flex"
+        className="absolute bottom-6 left-20 z-20 hidden h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-ink/40 text-white backdrop-blur-sm transition-colors hover:border-white hover:bg-ink/70 md:flex"
       >
         <svg viewBox="0 0 24 24" aria-hidden className="h-5 w-5 fill-none stroke-current" strokeWidth="2"><path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
       </button>
@@ -215,5 +219,6 @@ export function HeroCarousel({ slides }: { slides: Slide[] }) {
         ))}
       </div>
     </section>
+    </Container>
   );
 }

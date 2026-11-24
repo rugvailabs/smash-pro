@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useCart, useIsClient, useRole } from "@/components/providers";
@@ -13,6 +14,7 @@ import {
   SMASH_PRO_MAPS_LINK, SMASH_PRO_PHONE_DISPLAY, SMASH_PRO_PROFILE, SMASH_PRO_TEL_LINK, SMASH_PRO_WHATSAPP_LINK,
 } from "@/lib/company-profile";
 import type { Role } from "@/lib/types";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Site chrome: preview ribbon · unified header · role tab strip ·
@@ -122,7 +124,7 @@ export function SiteHeader() {
       {/* Light chrome — Smash Pro navy (Ink) wordmark/icons on white, Ember
           reserved for the accent/badges. */}
       <header className="sticky top-0 z-40 border-b border-n200 bg-chalk print:hidden">
-        <div className="mx-auto flex h-20 max-w-[1280px] items-center gap-5 px-4 md:gap-7 md:px-10">
+        <Container className="flex h-20 items-center gap-5 md:gap-7">
           <button
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"
@@ -132,11 +134,15 @@ export function SiteHeader() {
               <path d="M4 7h16M4 12h16M4 17h16" />
             </svg>
           </button>
-          <Link
-            href="/"
-            className="stretch-xp shrink-0 font-display text-[22px] font-extrabold tracking-wide text-ink"
-          >
-            SMASH PRO
+          <Link href="/" className="shrink-0" aria-label="Smash Pro home">
+            <Image
+              src="/img/brand/prosmash-logo-crest-color.png"
+              alt="Smash Pro"
+              width={92}
+              height={102}
+              priority
+              className="h-12 w-auto"
+            />
           </Link>
           {/* Commerce search is buyer-side chrome — suppliers and the admin
               console work their own queues, never the sales catalogue. */}
@@ -219,14 +225,14 @@ export function SiteHeader() {
               </Link>
             )}
           </div>
-        </div>
+        </Container>
       </header>
 
       <NavDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       {/* Tab strip is desktop/tablet navigation; the drawer owns phones. */}
       <nav aria-label="Site sections" className="sticky top-20 z-30 hidden border-b border-n200 bg-chalk md:block">
-        <div className="mx-auto flex max-w-[1280px] gap-1 overflow-x-auto px-4 md:px-10">
+        <Container className="flex gap-1 overflow-x-auto">
           {/* public (visitor / pending) get the redesigned 5-item nav; logged-in
               roles keep their workspace nav below */}
           {role === "visitor" || role === "pending" ? (
@@ -256,7 +262,7 @@ export function SiteHeader() {
             </>
           )}
           {role === "admin" && tab("/admin", "Operations Console", "/admin")}
-        </div>
+        </Container>
       </nav>
 
       {role === "pending" && (
@@ -276,27 +282,19 @@ export function SiteFooter() {
   const item = "text-sm text-white/75 hover:text-white hover:underline hover:underline-offset-[3px]";
   return (
     <footer className="mt-16 bg-ink text-white/70 print:hidden">
-      <div className="mx-auto grid max-w-[1280px] gap-8 px-4 pb-7 pt-11 sm:grid-cols-2 md:px-10 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] lg:gap-9 lg:pb-9 lg:pt-14">
+      <Container className="grid gap-8 pb-7 pt-11 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr_1fr_1fr] lg:gap-9 lg:pb-9 lg:pt-14">
         <div>
-          <span className="stretch-xp font-display text-[22px] font-extrabold tracking-wide text-chalk">
-            SMASH PRO
-          </span>
+          <Image
+            src="/img/brand/prosmash-logo-crest-color.png"
+            alt="Smash Pro"
+            width={92}
+            height={102}
+            className="h-14 w-auto"
+          />
           <p className="mt-3 max-w-[34ch] text-sm text-white/55">
             India&rsquo;s managed B2B platform for sports equipment — built for
             schools, academies, colleges and retailers.
           </p>
-          <div className="mt-4 space-y-1.5 text-sm text-white/65">
-            <a href={SMASH_PRO_TEL_LINK} className="block hover:text-white hover:underline hover:underline-offset-[3px]">
-              {SMASH_PRO_PHONE_DISPLAY}
-            </a>
-            <a
-              href={SMASH_PRO_MAPS_LINK} target="_blank" rel="noopener"
-              className="block max-w-[34ch] hover:text-white hover:underline hover:underline-offset-[3px]"
-            >
-              {SMASH_PRO_PROFILE.address}
-            </a>
-            <p className="text-white/45">{SMASH_PRO_PROFILE.hours}</p>
-          </div>
         </div>
         {role === "supplier" ? (
           /* Suppliers get their workspace sections here — the buyer
@@ -348,28 +346,41 @@ export function SiteFooter() {
           </ul>
         </div>
         <div>
-          <h5 className={col}>Support</h5>
-          <ul className="space-y-2">
-            <li>
-              <a className={item} href={SMASH_PRO_WHATSAPP_LINK} target="_blank" rel="noopener">
-                WhatsApp the team
+          <h5 className={col}>Contact</h5>
+          <ul className="space-y-2.5">
+            <li className="flex items-start gap-2.5">
+              <svg viewBox="0 0 24 24" aria-hidden className="mt-0.5 h-[15px] w-[15px] shrink-0 fill-none stroke-white/45" strokeWidth="2">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92Z" />
+              </svg>
+              <a className={item} href={SMASH_PRO_TEL_LINK}>{SMASH_PRO_PHONE_DISPLAY}</a>
+            </li>
+            <li className="flex items-start gap-2.5">
+              <svg viewBox="0 0 24 24" aria-hidden className="mt-0.5 h-[15px] w-[15px] shrink-0 fill-none stroke-white/45" strokeWidth="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0Z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
+              <a className={`${item} max-w-[24ch]`} href={SMASH_PRO_MAPS_LINK} target="_blank" rel="noopener">
+                {SMASH_PRO_PROFILE.address}
               </a>
             </li>
-            <li><Link className={item} href="/#how">How ordering works</Link></li>
-            {(role === "visitor" || role === "pending") && (
-              <li><Link className={item} href="/signin">Sign in</Link></li>
-            )}
+            <li className="flex items-start gap-2.5">
+              <svg viewBox="0 0 24 24" aria-hidden className="mt-0.5 h-[15px] w-[15px] shrink-0 fill-none stroke-white/45" strokeWidth="2">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 7v5l3 3" />
+              </svg>
+              <span className="text-sm text-white/55">{SMASH_PRO_PROFILE.hours}</span>
+            </li>
           </ul>
         </div>
-      </div>
+      </Container>
       <div className="border-t border-white/10">
-        <div className="mx-auto flex max-w-[1280px] flex-wrap gap-x-6 gap-y-1 px-4 py-4 font-mono text-[11px] text-white/40 md:px-10">
+        <Container className="flex flex-wrap gap-x-6 gap-y-1 py-4 font-mono text-[11px] text-white/40">
           <span>© 2026 SMASH PRO</span>
           <span>B2B SPORTS COMMERCE · INDIA</span>
           <span>TERMS</span>
           <span>PRIVACY</span>
           <span className="md:ml-auto">NEXT.JS PREVIEW · COURT INK v0.2 · ALL DATA ILLUSTRATIVE</span>
-        </div>
+        </Container>
       </div>
     </footer>
   );

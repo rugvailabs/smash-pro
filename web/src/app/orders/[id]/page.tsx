@@ -7,6 +7,7 @@ import { OrderDetail } from "@/components/order-detail";
 import { Chip, PageHead } from "@/components/buyer-ui";
 import { getOrder } from "@/lib/buyer-api";
 import { PanelSkeleton } from "@/components/skeletons";
+import { Container } from "@/components/container";
 
 /* Order detail — progress, lines, delivery, payment, documents. */
 
@@ -21,7 +22,7 @@ export async function generateMetadata({
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {
   return (
-    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+    <Suspense fallback={<Container as="main" className="pb-16 pt-7"><PanelSkeleton /></Container>}>
       <OrderContent params={params} />
     </Suspense>
   );
@@ -35,7 +36,7 @@ async function OrderContent({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <RequireBuyer>
-      <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10">
+      <Container as="main" className="pb-16 pt-7">
         <PageHead
           crumb={<><Link href="/orders" className="hover:underline">Orders</Link> / <b className="text-ink">{order.id}</b></>}
           title={<span className="font-mono text-[22px] tracking-normal">{order.id}</span>}
@@ -50,7 +51,7 @@ async function OrderContent({ params }: { params: Promise<{ id: string }> }) {
           }
         />
         <OrderDetail order={order} />
-      </main>
+      </Container>
     </RequireBuyer>
   );
 }

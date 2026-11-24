@@ -5,6 +5,7 @@ import { Chip, DocRow, KV, NoteFlag, PageHead, Panel, Sect } from "@/components/
 import { BuyerAccountEdit } from "@/components/buyer-account-edit";
 import { BuyerAddressManager } from "@/components/buyer-address-manager";
 import { PanelSkeleton } from "@/components/skeletons";
+import { Container } from "@/components/container";
 import { getAddresses, getBuyerAccount, getInstitution } from "@/lib/buyer-api";
 
 /* Institution profile — BUY-009. Sensitive-field edits route to admin
@@ -18,7 +19,7 @@ export const metadata: Metadata = { title: "Institution profile" };
 export default function AccountPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)
   return (
-    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+    <Suspense fallback={<Container as="main" className="pb-16 pt-7"><PanelSkeleton /></Container>}>
       <AccountContent />
     </Suspense>
   );
@@ -33,7 +34,7 @@ async function AccountContent() {
 
   return (
     <RequireBuyer>
-      <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10">
+      <Container as="main" className="pb-16 pt-7">
         <PageHead
           title="Institution profile"
           sub={<span className="inline-flex items-center gap-2">{inst.name}, {inst.city} <Chip tone="ok">Active</Chip></span>}
@@ -78,7 +79,7 @@ async function AccountContent() {
             </NoteFlag>
           </div>
         </div>
-      </main>
+      </Container>
     </RequireBuyer>
   );
 }

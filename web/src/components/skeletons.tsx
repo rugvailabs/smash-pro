@@ -1,3 +1,5 @@
+import { Container } from "@/components/container";
+
 /* ============================================================
    Loading skeletons (library §14) — layout-true placeholders so
    routes never flash blank. Pure presentation; respects
@@ -11,17 +13,19 @@ export function Bone({ className = "" }: { className?: string }) {
 /** Catalogue / search: toolbar + product-card grid. */
 export function GridSkeleton() {
   return (
-    <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-6 md:px-10" aria-busy="true" aria-label="Loading">
-      <Bone className="mb-5 h-8 w-44" />
-      <div className="mb-5 flex gap-2.5"><Bone className="h-9 w-28" /><Bone className="h-9 w-28" /><Bone className="h-9 w-36" /></div>
-      <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-[2px] border border-n200 bg-chalk">
-            <Bone className="aspect-[4/3] w-full rounded-none" />
-            <div className="space-y-2 p-4"><Bone className="h-3 w-16" /><Bone className="h-4 w-4/5" /><Bone className="h-4 w-2/5" /></div>
-          </div>
-        ))}
-      </div>
+    <main aria-busy="true" aria-label="Loading">
+      <Container className="pb-16 pt-6">
+        <Bone className="mb-5 h-8 w-44" />
+        <div className="mb-5 flex gap-2.5"><Bone className="h-9 w-28" /><Bone className="h-9 w-28" /><Bone className="h-9 w-36" /></div>
+        <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 md:grid-cols-3 md:gap-4 xl:grid-cols-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-[2px] border border-n200 bg-chalk">
+              <Bone className="aspect-[4/3] w-full rounded-none" />
+              <div className="space-y-2 p-4"><Bone className="h-3 w-16" /><Bone className="h-4 w-4/5" /><Bone className="h-4 w-2/5" /></div>
+            </div>
+          ))}
+        </div>
+      </Container>
     </main>
   );
 }
@@ -29,7 +33,7 @@ export function GridSkeleton() {
 /** Product detail: gallery + info columns. */
 export function DetailSkeleton() {
   return (
-    <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-6 md:px-10" aria-busy="true" aria-label="Loading">
+    <Container as="main" className="pb-16 pt-6" aria-busy="true" aria-label="Loading">
       <Bone className="mb-5 h-4 w-64" />
       <div className="grid gap-9 lg:grid-cols-[6fr_5fr]">
         <Bone className="aspect-[4/3] w-full" />
@@ -38,7 +42,7 @@ export function DetailSkeleton() {
           <Bone className="h-24 w-full" /><Bone className="h-11 w-44" />
         </div>
       </div>
-    </main>
+    </Container>
   );
 }
 

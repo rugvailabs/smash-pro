@@ -6,6 +6,7 @@ import { PaymentResult } from "@/components/payment-demo";
 import { EmptyState } from "@/components/empty-state";
 import { FlowRail, PageHead } from "@/components/buyer-ui";
 import { PanelSkeleton } from "@/components/skeletons";
+import { Container } from "@/components/container";
 import { getOrder } from "@/lib/buyer-api";
 
 /* Payment result for a just-placed REAL order (?order=ORD-…) — states per
@@ -20,7 +21,7 @@ export default function PaymentPage({
   searchParams: Promise<{ order?: string }>;
 }) {
   return (
-    <Suspense fallback={<main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10"><PanelSkeleton /></main>}>
+    <Suspense fallback={<Container as="main" className="pb-16 pt-7"><PanelSkeleton /></Container>}>
       <PaymentContent searchParams={searchParams} />
     </Suspense>
   );
@@ -32,7 +33,7 @@ async function PaymentContent({ searchParams }: { searchParams: Promise<{ order?
 
   return (
     <RequireBuyer>
-      <main className="mx-auto max-w-[1280px] px-4 pb-16 pt-7 md:px-10">
+      <Container as="main" className="pb-16 pt-7">
         <PageHead
           title="Payment"
           sub={order ? `Payment status for ${order.id}.` : "Payment status."}
@@ -49,7 +50,7 @@ async function PaymentContent({ searchParams }: { searchParams: Promise<{ order?
             actionHref="/checkout"
           />
         )}
-      </main>
+      </Container>
     </RequireBuyer>
   );
 }

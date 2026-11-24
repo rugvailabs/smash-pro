@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Fragment, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useRole } from "@/components/providers";
@@ -98,7 +99,7 @@ export function NavDrawer({ open, onClose }: { open: boolean; onClose: () => voi
       <div className="absolute inset-0 bg-ink/40" onClick={onClose} aria-hidden />
       <div ref={panelRef} className="absolute inset-y-0 left-0 flex w-[min(360px,88vw)] flex-col bg-ink">
         <div className="flex h-16 items-center justify-between px-5">
-          <span className="stretch-xp font-display text-[19px] font-extrabold tracking-wide text-chalk">SMASH PRO</span>
+          <Image src="/img/brand/prosmash-logo-crest-color.png" alt="Smash Pro" width={92} height={102} className="h-10 w-auto" />
           <button
             data-drawer-close
             onClick={onClose}

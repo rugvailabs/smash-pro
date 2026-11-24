@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { PRODUCTS } from "@/data/products";
 import { useIsClient } from "@/components/providers";
 import { EmptyState } from "@/components/empty-state";
+import { Container } from "@/components/container";
 
 /* Wishlist — reads the same localStorage key the product-card heart
    toggle already writes to ("sp-wishlist", see components/product.tsx).
@@ -33,7 +34,7 @@ export default function WishlistPage() {
   const items = PRODUCTS.filter((p) => skus.includes(p.sku));
 
   return (
-    <main className="mx-auto max-w-[1280px] px-4 py-10 md:px-10">
+    <Container as="main" className="py-10">
       <h1 className="font-display text-2xl font-bold tracking-tight text-ink md:text-[33px]">Your wishlist</h1>
       <p className="mt-2 text-[14px] text-n600">Saved products, kept on this device.</p>
       <div className="mt-7">
@@ -67,6 +68,6 @@ export default function WishlistPage() {
           />
         )}
       </div>
-    </main>
+    </Container>
   );
 }

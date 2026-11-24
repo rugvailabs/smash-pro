@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { buildCatalogueNav, CATALOGUE_POPULAR } from "@/lib/nav-catalogue";
 import { SPORT_GROUPS, TextGroupsPanel } from "@/components/nav-groups";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Catalogue mega menu — buyer-facing navigation only.
@@ -191,7 +192,7 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
           className="pointer-events-none fixed inset-x-0 z-30"
           style={{ top: panelTop }}
         >
-          <div className="mx-auto max-w-[1360px] px-4 md:px-10">
+          <Container>
             <div
               className={
                 "pointer-events-auto overflow-hidden rounded-b-[4px] border border-t-0 border-n200 bg-chalk shadow-overlay transition-all duration-150 ease-out " +
@@ -243,7 +244,7 @@ export function MegaMenuDesktop({ onNavigate }: { onNavigate?: () => void }) {
                 </div>
               </div>
             </div>
-          </div>
+          </Container>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
+import { Container } from "@/components/container";
 
 /* ============================================================
    Super Admin operations shell (B5): left rail navigation in the
@@ -96,13 +97,13 @@ function AdminNav() {
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 pb-16 pt-5 md:px-8 lg:flex-row lg:gap-8">
+    <Container maxW="max-w-[1800px]" className="flex flex-col gap-6 pb-16 pt-5 lg:flex-row lg:gap-8">
       {/* usePathname (active item) needs a Suspense boundary to prerender */}
       <Suspense fallback={<nav className="shrink-0 lg:w-[232px]" />}>
         <AdminNav />
       </Suspense>
       <div className="min-w-0 flex-1">{children}</div>
-    </div>
+    </Container>
   );
 }
 

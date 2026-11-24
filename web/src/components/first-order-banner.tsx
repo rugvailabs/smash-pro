@@ -1,3 +1,5 @@
+import { Container } from "@/components/container";
+
 /* ============================================================
    First-order benefits banner — full-width promo band below the
    nav, Court Ink colours (Ink/Ember replacing any competitor's
@@ -59,8 +61,8 @@ const SAMPLE_CODES = [
 
 export function FirstOrderBanner() {
   return (
-    <section className="border-b border-n200 bg-paper">
-      <div className="mx-auto max-w-[1280px] px-4 py-5 md:px-10">
+    <section className="bg-paper">
+      <Container className="py-5">
         <div className="flex flex-col items-center gap-6 rounded-[2px] border border-n200 bg-chalk px-5 py-6 text-center md:flex-row md:items-center md:gap-8 md:px-7 md:py-5 md:text-left">
           <QrPlaceholder />
           <div className="md:min-w-[180px]">
@@ -85,7 +87,7 @@ export function FirstOrderBanner() {
         <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
           preview only · qr graphic and codes are placeholders, not a functioning promotion
         </p>
-      </div>
+      </Container>
     </section>
   );
 }
