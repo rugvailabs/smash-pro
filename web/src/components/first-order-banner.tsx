@@ -61,17 +61,17 @@ export function FirstOrderBanner() {
   return (
     <section className="border-b border-n200 bg-paper">
       <div className="mx-auto max-w-[1280px] px-4 py-5 md:px-10">
-        <div className="flex flex-wrap items-center gap-6 rounded-[2px] border border-n200 bg-chalk px-5 py-5 md:gap-8 md:px-7">
+        <div className="flex flex-col items-center gap-6 rounded-[2px] border border-n200 bg-chalk px-5 py-6 text-center md:flex-row md:items-center md:gap-8 md:px-7 md:py-5 md:text-left">
           <QrPlaceholder />
-          <div className="min-w-[180px]">
+          <div className="md:min-w-[180px]">
             <div className="font-display text-[19px] font-bold leading-tight text-ink md:text-[22px]">
               Get your first-order benefits.
             </div>
             <p className="mt-1 text-[13px] text-n600">Sample codes shown — not a live offer.</p>
           </div>
-          <div className="ml-auto flex flex-1 flex-wrap justify-end gap-3">
+          <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 md:ml-auto md:flex md:w-auto md:flex-1 md:flex-wrap md:justify-end">
             {SAMPLE_CODES.map((c) => (
-              <div key={c.code} className="flex min-w-[150px] flex-col items-center gap-1 rounded-[2px] bg-ink px-4 py-3 text-center">
+              <div key={c.code} className="flex flex-col items-center gap-1 rounded-[2px] bg-ink px-4 py-3 text-center md:min-w-[150px]">
                 <span className="font-mono text-[10px] uppercase tracking-[.08em] text-white/60">Up to</span>
                 <span className="stretch-xp font-display text-[22px] font-bold leading-none text-chalk">{c.off} OFF</span>
                 <span className="text-[11px] text-white/70">On purchase above {c.min}</span>

@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ActionError } from "@/components/admin-actions";
 import {
-  ADMIN_CATEGORIES, btnEmber, btnEmberSm, btnGhostSm, inputCls, labelCls, tdCls, thCls, trCls,
+  ADMIN_CATEGORIES, btnEmber, btnEmberSm, btnGhost, btnGhostSm, inputCls, labelCls, tdCls, thCls, trCls,
 } from "@/components/admin-ui";
 import { Modal } from "@/components/modal";
 import { inr } from "@/lib/format";
@@ -180,7 +180,7 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className={btnGhostSm}>
+      <button onClick={() => setOpen(true)} className={btnGhost}>
         Import from Excel
       </button>
       <Modal open={open} onClose={close} label="Import products from Excel" maxWidth="1100px">
@@ -191,7 +191,7 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
           </p>
 
           {!result && (
-            <div className="grid gap-3.5 sm:grid-cols-[1fr_140px_auto] sm:items-end">
+            <div className="grid gap-3.5 sm:grid-cols-[1fr_140px_140px] sm:items-end">
               <div>
                 <label className={labelCls} htmlFor="imp-file">Stock sheet (.xlsx)</label>
                 <input
@@ -209,7 +209,7 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                   className={`${inputCls} font-mono uppercase`}
                 />
               </div>
-              <button onClick={() => void analyze()} disabled={!file || analyzing} className={btnEmberSm}>
+              <button onClick={() => void analyze()} disabled={!file || analyzing} className={`${btnEmber} w-full`}>
                 {analyzing ? "Analysing…" : "Analyse file"}
               </button>
             </div>
