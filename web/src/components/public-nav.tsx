@@ -38,6 +38,39 @@ const PANEL_LABEL: Record<Key, string> = {
   suppliers: "For Suppliers",
 };
 
+/* Small line icons beside each top-nav tab — same stroke-based style as
+   the header's own icon set (viewBox 24, ~1.7 stroke). Purely decorative
+   (aria-hidden); the label text already names each tab. */
+const ICON_CLS = "h-4 w-4 shrink-0 fill-none stroke-current";
+const SHOP_ALL_ICON = (
+  <svg viewBox="0 0 24 24" aria-hidden className={ICON_CLS} strokeWidth="1.7">
+    <path d="M4 5h2l1.5 10.5A2 2 0 0 0 9.5 17h7a2 2 0 0 0 2-1.6L20 8H6.5" />
+    <circle cx="9" cy="21" r="1" /><circle cx="17" cy="21" r="1" />
+  </svg>
+);
+const PANEL_ICON: Record<Key, React.ReactNode> = {
+  sports: (
+    <svg viewBox="0 0 24 24" aria-hidden className={ICON_CLS} strokeWidth="1.7">
+      <circle cx="12" cy="12" r="8.5" /><path d="M12 3.5v17M3.5 12h17M6 6l12 12M18 6L6 18" />
+    </svg>
+  ),
+  institutions: (
+    <svg viewBox="0 0 24 24" aria-hidden className={ICON_CLS} strokeWidth="1.7">
+      <path d="M4 10l8-5.5L20 10v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9z" /><path d="M9.5 20v-6h5v6" />
+    </svg>
+  ),
+  how: (
+    <svg viewBox="0 0 24 24" aria-hidden className={ICON_CLS} strokeWidth="1.7">
+      <circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.8 1.8-2.3 3M12 16.5h.01" strokeLinecap="round" />
+    </svg>
+  ),
+  suppliers: (
+    <svg viewBox="0 0 24 24" aria-hidden className={ICON_CLS} strokeWidth="1.7">
+      <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" /><circle cx="7.5" cy="17.5" r="1.6" /><circle cx="17.5" cy="17.5" r="1.6" />
+    </svg>
+  ),
+};
+
 /* ============================================================
    DESKTOP — the five-item bar + one shared panel
    ============================================================ */
@@ -121,6 +154,7 @@ export function PublicNavDesktop() {
       onKeyDown={(e) => triggerKey(e, key)}
       className={baseItem + " " + (openKey === key ? activeCls : idle)}
     >
+      {PANEL_ICON[key]}
       {PANEL_LABEL[key]}
       <svg viewBox="0 0 24 24" aria-hidden className={"h-3.5 w-3.5 fill-none stroke-current transition-transform duration-150 " + (openKey === key ? "rotate-180" : "")} strokeWidth="2.2"><path d="M6 9l6 6 6-6" /></svg>
     </button>
@@ -136,6 +170,7 @@ export function PublicNavDesktop() {
             onPointerEnter={hoverShopAll}
             className={baseItem + " " + (pathname.startsWith("/catalog") ? activeCls : idle)}
           >
+            {SHOP_ALL_ICON}
             Shop All
           </Link>
           {trigger("sports")}

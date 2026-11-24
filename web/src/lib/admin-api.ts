@@ -3,7 +3,7 @@ import type {
   AdminInvoiceRow, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminReport, AdminRequirementDetail,
-  AdminRequirementRow, AdminServiceRequestRow, AuditLogPage, BuyerTypeDiscountRow, Reconciliation,
+  AdminRequirementRow, AdminServiceRequestRow, AdminSiteContent, AuditLogPage, BuyerTypeDiscountRow, Reconciliation,
   SupplierPerformanceRow,
 } from "@/lib/admin-types";
 import {
@@ -13,7 +13,7 @@ import {
   orderForAdmin, ordersForAdmin, organizationForAdmin, organizationsForAdmin,
   paymentsForAdmin, posForAdmin, priceRulesForAdmin, productRequestsForAdmin,
   productsForAdmin, reportForAdmin, requirementForAdmin, requirementsForAdmin,
-  serviceRequestsForAdmin,
+  serviceRequestsForAdmin, siteContentForAdmin,
 } from "@/server/admin";
 
 /** API BOUNDARY — Super Admin reads (B5), backed by server/admin.ts.
@@ -81,6 +81,10 @@ export async function getComplaintsAdmin(): Promise<AdminComplaintRow[]> {
 
 export async function getServiceRequestsAdmin(): Promise<AdminServiceRequestRow[]> {
   return serviceRequestsForAdmin();
+}
+
+export async function getSiteContentAdmin(): Promise<AdminSiteContent | null> {
+  return siteContentForAdmin();
 }
 
 export async function getProductRequestsAdmin(): Promise<AdminProductRequestRow[]> {

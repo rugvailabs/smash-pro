@@ -151,11 +151,6 @@ export function SiteHeader() {
                 }
               />
             )}
-            {role === "visitor" && (
-              <Link className="hidden h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press md:inline-flex" href="/register">
-                Register
-              </Link>
-            )}
             {role === "buyer" && (
               <IconAction href="/orders" label="Orders" hiddenBelow="lg" icon={ordersIcon} />
             )}

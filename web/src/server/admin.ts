@@ -16,7 +16,7 @@ import type {
   AdminInvoiceDetail, AdminInvoiceRow, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminQuoteView, AdminReport,
-  AdminRequirementDetail, AdminRequirementRow, AdminServiceRequestRow, AuditLogPage, AuditLogRow,
+  AdminRequirementDetail, AdminRequirementRow, AdminServiceRequestRow, AdminSiteContent, AuditLogPage, AuditLogRow,
   BuyerTypeDiscountRow, Reconciliation, ReconciliationRow, SupplierPerformanceRow,
 } from "@/lib/admin-types";
 
@@ -1797,6 +1797,106 @@ export async function resolveComplaint(id: number) {
   if (c.status !== "open") throw new Error("409");
   await db.update(schema.complaints).set({ status: "resolved" }).where(eq(schema.complaints.id, id));
   await audit(s.userId, "complaint.resolve", "complaint", String(id), { orderId: c.orderId });
+}
+
+/* ---------- site content (ADR-0021 — website images/content) ---------- */
+
+export async function siteContentForAdmin(): Promise<AdminSiteContent | null> {
+  if (!(await adminSession())) return null;
+  const rows = await db.select().from(schema.siteContent).orderBy(asc(schema.siteContent.sortOrder));
+  const cats = await db
+    .select({ slug: schema.categories.slug, name: schema.categories.name })
+    .from(schema.categories)
+    .orderBy(asc(schema.categories.sortOrder));
+
+  const heroSlides = rows
+    .filter((r) => r.section === "hero-slide")
+    .map((r) => ({
+      id: r.id, sortOrder: r.sortOrder, active: r.active,
+      img: r.img ?? "", imgPosition: r.imgPosition ?? "center",
+      eyebrow: r.eyebrow ?? "", titleA: r.titleA ?? "", accent: r.accent ?? "", titleB: r.titleB ?? "",
+      body: r.body ?? "", ctaLabel: r.ctaLabel ?? "", ctaHref: r.ctaHref ?? "",
+      institutional: r.institutional,
+    }));
+
+  const heroBySlug = new Map(rows.filter((r) => r.section === "category-hero" && r.catSlug).map((r) => [r.catSlug!, r]));
+  const introBySlug = new Map(rows.filter((r) => r.section === "category-intro" && r.catSlug).map((r) => [r.catSlug!, r]));
+  const categoryHero = cats.map((c) => ({ slug: c.slug, label: c.name, img: heroBySlug.get(c.slug)?.img ?? "" }));
+  const categoryIntro = cats.map((c) => ({ slug: c.slug, label: c.name, body: introBySlug.get(c.slug)?.body ?? "" }));
+
+  return { heroSlides, categoryHero, categoryIntro };
+}
+
+function assertSiteContentFields(input: {
+  eyebrow?: string; titleA?: string; accent?: string; titleB?: string; body?: string;
+  ctaLabel?: string; ctaHref?: string;
+}) {
+  for (const [k, v] of Object.entries(input)) {
+    if (v !== undefined && v.length > 300) throw new Error(`400:${k} is too long`);
+  }
+}
+
+export async function upsertHeroSlide(input: {
+  id?: string;
+  img: string; imgPosition?: string; eyebrow: string; titleA: string; accent: string; titleB: string;
+  body: string; ctaLabel: string; ctaHref: string; institutional?: boolean; active?: boolean; sortOrder?: number;
+}) {
+  const s = await requireAdmin();
+  const img = assertImgPath(input.img);
+  assertSiteContentFields(input);
+  if (!input.ctaHref.startsWith("/")) throw new Error("400:CTA link must be an internal path starting with /");
+
+  const id = input.id ?? `hero-${Date.now()}`;
+  const values = {
+    id, section: "hero-slide" as const, sortOrder: input.sortOrder ?? 0, active: input.active ?? true,
+    img, imgPosition: input.imgPosition || "center",
+    eyebrow: input.eyebrow.trim(), titleA: input.titleA.trim(), accent: input.accent.trim(), titleB: input.titleB.trim(),
+    body: input.body.trim(), ctaLabel: input.ctaLabel.trim(), ctaHref: input.ctaHref.trim(),
+    institutional: input.institutional ?? false, updatedAt: new Date(),
+  };
+  if (input.id) {
+    const [existing] = await db.select({ id: schema.siteContent.id }).from(schema.siteContent).where(eq(schema.siteContent.id, input.id));
+    if (!existing) throw new Error("404");
+    await db.update(schema.siteContent).set(values).where(eq(schema.siteContent.id, input.id));
+  } else {
+    await db.insert(schema.siteContent).values(values);
+  }
+  await audit(s.userId, "site-content.hero-slide.upsert", "site_content", id, { new: !input.id });
+  return { id };
+}
+
+export async function deleteHeroSlide(id: string) {
+  const s = await requireAdmin();
+  const [row] = await db.select({ id: schema.siteContent.id }).from(schema.siteContent)
+    .where(and(eq(schema.siteContent.id, id), eq(schema.siteContent.section, "hero-slide")));
+  if (!row) throw new Error("404");
+  await db.delete(schema.siteContent).where(eq(schema.siteContent.id, id));
+  await audit(s.userId, "site-content.hero-slide.delete", "site_content", id);
+}
+
+async function upsertCategoryContent(section: "category-hero" | "category-intro", slug: string, patch: { img?: string; body?: string }) {
+  const s = await requireAdmin();
+  const [cat] = await db.select({ slug: schema.categories.slug }).from(schema.categories).where(eq(schema.categories.slug, slug));
+  if (!cat) throw new Error("400:Unknown category");
+  const id = `${section}-${slug}`;
+  const [existing] = await db.select({ id: schema.siteContent.id }).from(schema.siteContent).where(eq(schema.siteContent.id, id));
+  const img = patch.img !== undefined ? (patch.img.trim() ? assertImgPath(patch.img) : "") : undefined;
+  const body = patch.body !== undefined ? patch.body.trim().slice(0, 500) : undefined;
+  if (existing) {
+    await db.update(schema.siteContent).set({ img, body, updatedAt: new Date() }).where(eq(schema.siteContent.id, id));
+  } else {
+    await db.insert(schema.siteContent).values({ id, section, catSlug: slug, img: img ?? null, body: body ?? null });
+  }
+  await audit(s.userId, `site-content.${section}.set`, "site_content", id, patch);
+}
+
+export async function setCategoryHero(slug: string, img: string) {
+  return upsertCategoryContent("category-hero", slug, { img });
+}
+
+export async function setCategoryIntro(slug: string, body: string) {
+  if (!body.trim()) throw new Error("400:Description can't be empty");
+  return upsertCategoryContent("category-intro", slug, { body });
 }
 
 /* ---------- service requests (ADR-0020 — equipment Care/Repair) ---------- */

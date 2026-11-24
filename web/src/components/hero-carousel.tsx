@@ -29,7 +29,8 @@ interface Slide {
   institutional?: boolean;
 }
 
-const SLIDES: Slide[] = [
+/** Fallback used only if the DB has no active hero slides yet (e.g. before seeding). */
+const FALLBACK_SLIDES: Slide[] = [
   {
     img: "/img/hero/slide-all-sports.png",
     pos: "78% center",
@@ -40,63 +41,13 @@ const SLIDES: Slide[] = [
     text: "From cricket to conditioning — kit every sport from a single wholesale catalogue built for institutions.",
     cta: { label: "Shop the catalogue", href: "/catalog?cat=cricket" },
   },
-  {
-    img: "/img/hero/slide-athletics.png",
-    pos: "70% center",
-    eyebrow: "Performance · athletics",
-    titleA: "Bring Your ",
-    accent: "Vision",
-    titleB: " to Life.",
-    text: "Track, field and training equipment built to perform when it matters most.",
-    cta: { label: "Explore athletics", href: "/catalog?cat=athletics" },
-  },
-  {
-    img: "/img/hero/slide-badminton-action.png",
-    pos: "76% center",
-    eyebrow: "Badminton",
-    titleA: "Own Every ",
-    accent: "Rally",
-    titleB: ".",
-    text: "Tournament racquets, shuttles and court kit for clubs and academies.",
-    cta: { label: "Shop badminton", href: "/catalog?cat=badminton" },
-  },
-  {
-    img: "/img/hero/slide-footwear.png",
-    pos: "72% center",
-    eyebrow: "Sports footwear",
-    titleA: "Built for Every ",
-    accent: "Move",
-    titleB: ".",
-    text: "Performance footwear engineered for grip, speed and control.",
-    cta: { label: "Browse the range", href: "/catalog?cat=sportswear" },
-  },
-  {
-    img: "/img/hero/slide-badminton-gear.png",
-    pos: "68% center",
-    eyebrow: "Racquets & gear",
-    titleA: "Precision Kit for Every ",
-    accent: "Point",
-    titleB: ".",
-    text: "Match-ready racquets, grips and carry kit for every player on your roster.",
-    cta: { label: "Racquets & gear", href: "/catalog?cat=badminton" },
-  },
-  {
-    img: "/img/hero/slide-institutional.png",
-    pos: "72% center",
-    eyebrow: "For institutions",
-    titleA: "Equip Teams. Empower ",
-    accent: "Performance",
-    titleB: ".",
-    text: "Outfit schools, academies and clubs with managed, end-to-end sports supply.",
-    cta: { label: "Register your institution", href: "/register" },
-    institutional: true,
-  },
 ];
 
 const INTERVAL = 5000;
 
-export function HeroCarousel() {
+export function HeroCarousel({ slides }: { slides: Slide[] }) {
   const { role } = useRole();
+  const SLIDES = slides.length > 0 ? slides : FALLBACK_SLIDES;
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [reduced, setReduced] = useState(false);
@@ -120,7 +71,7 @@ export function HeroCarousel() {
     return () => cancelAnimationFrame(r);
   }, []);
 
-  const go = useCallback((n: number) => setIndex(() => (n + SLIDES.length) % SLIDES.length), []);
+  const go = useCallback((n: number) => setIndex(() => (n + SLIDES.length) % SLIDES.length), [SLIDES.length]);
   const next = useCallback(() => go(index + 1), [go, index]);
   const prev = useCallback(() => go(index - 1), [go, index]);
 
@@ -129,7 +80,7 @@ export function HeroCarousel() {
     if (paused || reduced) return;
     const t = setInterval(() => setIndex((i) => (i + 1) % SLIDES.length), INTERVAL);
     return () => clearInterval(t);
-  }, [paused, reduced]);
+  }, [paused, reduced, SLIDES.length]);
 
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowRight") { e.preventDefault(); next(); }

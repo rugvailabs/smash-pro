@@ -333,6 +333,40 @@ export interface AdminComplaintRow {
   created: string;
 }
 
+export interface AdminHeroSlideRow {
+  id: string;
+  sortOrder: number;
+  active: boolean;
+  img: string;
+  imgPosition: string;
+  eyebrow: string;
+  titleA: string;
+  accent: string;
+  titleB: string;
+  body: string;
+  ctaLabel: string;
+  ctaHref: string;
+  institutional: boolean;
+}
+
+export interface AdminCategoryHeroRow {
+  slug: string;
+  label: string;
+  img: string;
+}
+
+export interface AdminCategoryIntroRow {
+  slug: string;
+  label: string;
+  body: string;
+}
+
+export interface AdminSiteContent {
+  heroSlides: AdminHeroSlideRow[];
+  categoryHero: AdminCategoryHeroRow[];
+  categoryIntro: AdminCategoryIntroRow[];
+}
+
 export interface AdminServiceRequestRow {
   id: string;
   orgName: string | null;

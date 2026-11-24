@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getFeatured, getRecommended } from "@/lib/catalog";
 import { CATEGORIES } from "@/data/products";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
+import { getCategoryHeroMap, getHeroSlides } from "@/server/content";
 import { HeroCarousel } from "@/components/hero-carousel";
 import { FirstOrderBanner } from "@/components/first-order-banner";
 import { ProductGrid } from "@/components/product";
@@ -117,7 +118,7 @@ function ProofStrip() {
    the full 12-category directory grid below: this is curated highlight,
    that is complete browse. Imagery is the existing category hero set —
    nothing new is introduced. */
-function FeatureDuo() {
+function FeatureDuo({ heroMap }: { heroMap: Record<string, string | null> }) {
   const FEATURES: { slug: string; label: string; note: string }[] = [
     { slug: "cricket", label: "Cricket", note: "Bats, protection, kit bags & ground equipment" },
     { slug: "football", label: "Football", note: "Match & training balls for every squad size" },
@@ -129,7 +130,7 @@ function FeatureDuo() {
         <SectionHead title="Shop the essentials." />
         <div className="grid gap-4 sm:grid-cols-2">
           {FEATURES.map((f) => {
-            const hero = CATEGORY_HERO[f.slug] ?? null;
+            const hero = heroMap[f.slug] ?? CATEGORY_HERO[f.slug] ?? null;
             return (
               <Link key={f.slug} href={`/catalog?cat=${f.slug}`} className="group relative block overflow-hidden rounded-[2px]">
                 <div className="relative aspect-[16/9] w-full overflow-hidden bg-n100 sm:aspect-[4/3]">
@@ -165,8 +166,8 @@ function FeatureDuo() {
    line of support copy, one CTA. Companion to FeatureDuo's pair; together
    they cover the "collection banners" merchandising slot. Real category
    imagery only (Gym & Fitness), no invented campaign name. */
-function SingleCollectionBanner() {
-  const hero = CATEGORY_HERO["gym-fitness"] ?? null;
+function SingleCollectionBanner({ heroMap }: { heroMap: Record<string, string | null> }) {
+  const hero = heroMap["gym-fitness"] ?? CATEGORY_HERO["gym-fitness"] ?? null;
   return (
     <section className="border-b border-n200">
       <Link href="/catalog?cat=gym-fitness" className="group relative block h-[280px] w-full overflow-hidden bg-ink md:h-[360px]">
@@ -209,13 +210,13 @@ function SectionCut() {
 /* Fixed-row category cards (not scrollable — a set 6, matching the
    reference's tile-row placement around the hero). Real categories/
    imagery only, split into two halves by CATEGORIES' own order. */
-function CategoryCardsRow({ items }: { items: typeof CATEGORIES }) {
+function CategoryCardsRow({ items, heroMap }: { items: typeof CATEGORIES; heroMap: Record<string, string | null> }) {
   return (
     <section className="border-b border-n200 bg-chalk py-7 md:py-9">
       <div className="mx-auto max-w-[1280px] px-4 md:px-10">
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:gap-4 lg:grid-cols-6">
           {items.map((c) => {
-            const hero = CATEGORY_HERO[c.slug] ?? null;
+            const hero = heroMap[c.slug] ?? CATEGORY_HERO[c.slug] ?? null;
             return (
               <Link key={c.slug} href={`/catalog?cat=${c.slug}`} className="group block">
                 <div className="relative aspect-square overflow-hidden rounded-[2px] border border-n200 bg-n100 transition-colors group-hover:border-ember-deep/40">
@@ -244,26 +245,26 @@ const STEPS: [string, string][] = [
   ["One counterparty", "Smash Pro manages fulfilment and stays your single point of contact for delivery."],
 ];
 
-export default function HomePage() {
-  // The hero carousel is static (no server data) — render it immediately,
-  // outside the data Suspense, so it never waits on the catalogue query and
-  // its fixed height causes no layout shift. The data-driven sections below
-  // stream behind a layout-true skeleton (Cache Components, library §14).
-  // CategoryCardsRow is likewise static (CATEGORIES is the real seed data,
-  // the same source server/seed.ts uses) — safe to render synchronously
-  // either side of the hero, same rationale as the hero itself.
+export default async function HomePage() {
+  // Hero slides and category hero images are admin-editable (ADR-0021,
+  // site_content table) but both queries are cheap single-table reads, so
+  // they're awaited directly rather than behind the catalogue Suspense below
+  // — the hero's fixed height still causes no layout shift either way.
+  // CategoryCardsRow is likewise safe to render synchronously either side of
+  // the hero (CATEGORIES is the real seed data, same source server/seed.ts uses).
+  const [slides, heroMap] = await Promise.all([getHeroSlides(), getCategoryHeroMap()]);
   const firstHalf = CATEGORIES.slice(0, 6);
   const secondHalf = CATEGORIES.slice(6, 12);
   return (
     <main>
       <FirstOrderBanner />
-      <CategoryCardsRow items={firstHalf} />
-      <HeroCarousel />
-      <CategoryCardsRow items={secondHalf} />
+      <CategoryCardsRow items={firstHalf} heroMap={heroMap} />
+      <HeroCarousel slides={slides} />
+      <CategoryCardsRow items={secondHalf} heroMap={heroMap} />
       <ProofStrip />
       <SectionCut />
       <Suspense fallback={<HomeSectionsSkeleton />}>
-        <HomeSections />
+        <HomeSections heroMap={heroMap} />
       </Suspense>
     </main>
   );
@@ -280,16 +281,16 @@ function HomeSectionsSkeleton() {
   );
 }
 
-async function HomeSections() {
+async function HomeSections({ heroMap }: { heroMap: Record<string, string | null> }) {
   const [featured, recommended] = await Promise.all([getFeatured(), getRecommended()]);
 
   return (
     <>
       <InstitutionPromoBand />
 
-      <FeatureDuo />
+      <FeatureDuo heroMap={heroMap} />
 
-      <SingleCollectionBanner />
+      <SingleCollectionBanner heroMap={heroMap} />
 
       {/* featured + recommended — homepage merchandising */}
       <section className="py-11 md:py-16">

@@ -519,6 +519,37 @@ export const serviceRequests = pgTable("service_requests", {
   submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** ADR-0021: admin-editable public-site content — homepage hero carousel
+ *  slides, and each catalogue category's banner image + intro paragraph.
+ *  One flexible table (discriminated by `section`) rather than three,
+ *  since all three are "a small ordered list of mostly-text rows an
+ *  admin edits occasionally" — not worth three separate schemas/admin
+ *  screens. Seeded from the previously-hardcoded content so nothing
+ *  changes visually until an admin edits something. */
+export const siteContent = pgTable("site_content", {
+  id: text("id").primaryKey(),
+  section: text("section").notNull(), // 'hero-slide' | 'category-hero' | 'category-intro'
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+  /** category-hero / category-intro only */
+  catSlug: text("cat_slug").references(() => categories.slug),
+  /** hero-slide / category-hero: an approved /img/... path or upload URL */
+  img: text("img"),
+  imgPosition: text("img_position"), // hero-slide only — CSS object-position
+  eyebrow: text("eyebrow"), // hero-slide only
+  titleA: text("title_a"), // hero-slide only
+  accent: text("accent"), // hero-slide only
+  titleB: text("title_b"), // hero-slide only
+  /** hero-slide: the paragraph under the title. category-intro: the
+   *  category's one-line description. */
+  body: text("body"),
+  ctaLabel: text("cta_label"), // hero-slide only
+  ctaHref: text("cta_href"), // hero-slide only
+  /** hero-slide only — CTA swaps to "browse" copy for already-approved roles */
+  institutional: boolean("institutional").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* ---------- platform (PLT-002 / PLT-003) ---------- */
 
 export const notifications = pgTable("notifications", {

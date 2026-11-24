@@ -91,6 +91,33 @@ export async function uploadProductImage(input: {
   return { url: `${publicBase()}/${key}` };
 }
 
+/** Uploads one site-content image (hero slide / category banner — ADR-0021)
+ *  — same bucket/limits as product photos, different key prefix. `folder`
+ *  is admin-supplied free text (e.g. "hero", a category slug), sanitised,
+ *  NOT validated against the categories table (unlike uploadProductImage)
+ *  since hero images aren't scoped to one category. */
+export async function uploadSiteImage(input: {
+  folder: string; filename: string; contentType: string; bytes: Buffer;
+}): Promise<{ url: string }> {
+  const ext = ALLOWED_TYPES[input.contentType];
+  if (!ext) throw new Error("400:Only JPEG, PNG or WebP images are accepted");
+  if (input.bytes.length === 0) throw new Error("400:The file is empty");
+  if (input.bytes.length > MAX_BYTES) throw new Error("400:Image must be 5 MB or smaller");
+
+  const safeFolder = (input.folder || "general").replace(/[^a-z0-9-]/gi, "-").toLowerCase();
+  const key = `site/${safeFolder}/${Date.now()}-${sanitiseName(input.filename)}`;
+  await client().send(
+    new PutObjectCommand({
+      Bucket: env("DO_SPACES_BUCKET"),
+      Key: key,
+      Body: input.bytes,
+      ContentType: input.contentType,
+      ACL: "public-read",
+    })
+  );
+  return { url: `${publicBase()}/${key}` };
+}
+
 /* ============================================================
    Service request media (ADR-0020) — equipment Care/Repair bookings.
    Public upload (no admin gate): a visitor submitting a repair request

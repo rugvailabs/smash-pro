@@ -14,6 +14,7 @@ import { GridSkeleton } from "@/components/skeletons";
 import { Pagination } from "@/components/pagination";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
 import { CATEGORY_INTRO, defaultIntro, TYPE_FILTER_LABEL } from "@/lib/catalog-copy";
+import { getCategoryHeroMap, getCategoryIntroMap } from "@/server/content";
 
 /* Single-category listing — ONE shared component for all 12 categories:
    premium category hero (category imagery + description), the image-card
@@ -44,13 +45,16 @@ async function CatalogContent({
   searchParams: Promise<{ cat?: string; type?: string; price?: string; sort?: string; view?: string; page?: string }>;
 }) {
   const { cat = "cricket", type, price, sort, view, page: pageParam } = await searchParams;
-  const [categories, category, all] = await Promise.all([
+  const [categories, category, all, heroMap, introMap] = await Promise.all([
     getCategories(),
     getCategory(cat),
     getProducts(cat),
+    getCategoryHeroMap(),
+    getCategoryIntroMap(),
   ]);
   const title = category?.name ?? "Catalogue";
-  const intro = category ? (CATEGORY_INTRO[cat] ?? defaultIntro) : defaultIntro;
+  const intro = category ? (introMap[cat] || CATEGORY_INTRO[cat] || defaultIntro) : defaultIntro;
+  const hero = heroMap[cat] ?? CATEGORY_HERO[cat] ?? null;
 
   // Presentation filtering/sorting over the API-boundary result. Price bands
   // filter the public standard listed price; applicable (buyer) prices are
@@ -72,7 +76,7 @@ async function CatalogContent({
 
   return (
     <main>
-      <CategoryHero title={title} description={intro} hero={CATEGORY_HERO[cat] ?? null} count={total} />
+      <CategoryHero title={title} description={intro} hero={hero} count={total} />
 
       {/* image-led category rail (shared with search) */}
       <CategoryStrip categories={categories} active={cat} />
