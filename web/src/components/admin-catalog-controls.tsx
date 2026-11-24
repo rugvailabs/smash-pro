@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useAdminCall } from "@/components/admin-actions";
 import { ActionError } from "@/components/admin-actions";
 
@@ -96,6 +97,47 @@ export function ProductThumbnail({ img, galleryCount = 0 }: { img: string | null
           +{galleryCount}
         </span>
       )}
+    </span>
+  );
+}
+
+/** Permanent row delete — two-step inline confirm (same pattern as price
+ *  rule removal), since this is a real DELETE, not the Active toggle's
+ *  hide-without-removing. The server itself refuses to delete a product
+ *  with real order/purchase-order history (surfaced here as the error
+ *  message) rather than silently corrupting that record. */
+export function ProductDeleteButton({ sku }: { sku: string }) {
+  const { busy, error, call } = useAdminCall();
+  const [confirm, setConfirm] = useState(false);
+
+  if (!confirm) {
+    return (
+      <button
+        onClick={() => setConfirm(true)}
+        className="font-mono text-[10px] uppercase tracking-wide text-n600 underline-offset-2 hover:text-bad hover:underline"
+      >
+        delete
+      </button>
+    );
+  }
+  return (
+    <span className="inline-flex flex-col items-end gap-1">
+      <span className="inline-flex items-center gap-2 whitespace-nowrap">
+        <button
+          onClick={() =>
+            void call(`/api/admin/products/${encodeURIComponent(sku)}`, { method: "DELETE", done: `${sku} deleted.` })
+          }
+          disabled={busy}
+          className="inline-flex h-7 items-center rounded-[2px] border border-bad bg-chalk px-2 text-[12px] font-semibold text-bad hover:bg-bad-t disabled:text-n400"
+        >
+          {busy ? "…" : "Confirm"}
+        </button>
+        <button onClick={() => setConfirm(false)} disabled={busy}
+          className="font-mono text-[10px] uppercase text-n600 hover:text-ink">
+          keep
+        </button>
+      </span>
+      <ActionError error={error} className="mt-0 max-w-[220px] text-left" />
     </span>
   );
 }

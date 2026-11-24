@@ -1,4 +1,4 @@
-import { updateProduct } from "@/server/admin";
+import { deleteProducts, updateProduct } from "@/server/admin";
 import { handle, json } from "@/server/http";
 import type { PriceMode } from "@/lib/pricing-calc";
 
@@ -23,6 +23,17 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ sku: string }
       brandId: body.brandId, groupKey: body.groupKey,
       marginMode: body.marginMode, marginValue: body.marginValue,
     });
+    return json({ ok: true });
+  });
+}
+
+export async function DELETE(req: Request, ctx: { params: Promise<{ sku: string }> }) {
+  return handle(async () => {
+    const { sku } = await ctx.params;
+    const out = await deleteProducts([decodeURIComponent(sku)]);
+    if (out.blocked.length > 0) {
+      return json({ error: `Can't delete ${out.blocked[0].sku} — it ${out.blocked[0].reason}.` }, 409);
+    }
     return json({ ok: true });
   });
 }

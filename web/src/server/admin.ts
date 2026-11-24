@@ -2334,6 +2334,59 @@ export async function bulkUpdateProductFields(
   return { count: valid.length };
 }
 
+/** Permanently deletes products — unlike active/inactive (which only hides
+ *  a product from the catalogue), this removes the row. Handles 1..500 SKUs
+ *  so the same path backs both the per-row "Delete" action and the bulk
+ *  "Delete selected" control (same 500-row cap as every other bulk product
+ *  mutation). A SKU is silently skipped, not failed, when it has real order
+ *  or purchase-order history on record — those are the actual historical
+ *  transaction — rather than erroring out the whole batch; the caller
+ *  reports back exactly which SKUs were skipped and why, so an admin
+ *  bulk-deleting a bad import still gets everything deletable deleted in
+ *  one pass. Cart lines and a SKU-specific price rule are NOT historical
+ *  records, so they're cleaned up alongside the product rather than
+ *  blocking the delete on them. */
+export async function deleteProducts(
+  skus: string[]
+): Promise<{ deleted: string[]; blocked: { sku: string; reason: string }[] }> {
+  const s = await requireAdmin();
+  if (!Array.isArray(skus) || skus.length === 0) throw new Error("400:Select at least one product");
+  if (skus.length > 500) throw new Error("400:Too many products in one operation (max 500)");
+  const norm = [...new Set(skus.map((x) => String(x).trim().toUpperCase()).filter(Boolean))];
+  if (!norm.length) throw new Error("400:Select at least one product");
+
+  const known = new Set(
+    (await db.select({ sku: schema.products.sku }).from(schema.products).where(inArray(schema.products.sku, norm))).map((x) => x.sku)
+  );
+  const withOrders = new Set(
+    (await db.select({ sku: schema.orderLines.sku }).from(schema.orderLines).where(inArray(schema.orderLines.sku, norm))).map((x) => x.sku)
+  );
+  const withPos = new Set(
+    (await db.select({ sku: schema.purchaseOrders.sku }).from(schema.purchaseOrders).where(inArray(schema.purchaseOrders.sku, norm)))
+      .map((x) => x.sku)
+      .filter((x): x is string => x !== null)
+  );
+
+  const deleted: string[] = [];
+  const blocked: { sku: string; reason: string }[] = [];
+  for (const sku of norm) {
+    if (!known.has(sku)) { blocked.push({ sku, reason: "not found" }); continue; }
+    if (withOrders.has(sku)) { blocked.push({ sku, reason: "has order history — deactivate it instead" }); continue; }
+    if (withPos.has(sku)) { blocked.push({ sku, reason: "has purchase-order history — deactivate it instead" }); continue; }
+    await db.delete(schema.cartLines).where(eq(schema.cartLines.sku, sku));
+    await db.delete(schema.priceRules).where(eq(schema.priceRules.sku, sku));
+    await db.delete(schema.products).where(eq(schema.products.sku, sku));
+    deleted.push(sku);
+  }
+
+  if (deleted.length) {
+    await audit(s.userId, "product.delete", "product", "bulk", {
+      count: deleted.length, skus: deleted, blockedCount: blocked.length,
+    });
+  }
+  return { deleted, blocked };
+}
+
 /** Upsert the category-default price rule (OBD-20 decided structure) for a
  *  category — the approved-buyer base discount tier. Reuses the same bp bounds
  *  as createPriceRule (0..9000). */

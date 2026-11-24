@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Chip } from "@/components/buyer-ui";
+import { useRouter } from "next/navigation";
+import { Chip, NoteFlag } from "@/components/buyer-ui";
 import { ActionError, useAdminCall } from "@/components/admin-actions";
+import { useToast } from "@/components/toast";
 import {
   ADMIN_CATEGORIES, btnEmberSm, btnGhostSm, catLabel, inputCls, labelCls, tdCls, thCls, trCls,
 } from "@/components/admin-ui";
-import { ActiveToggle, InStockToggle, ProductThumbnail } from "@/components/admin-catalog-controls";
+import { ActiveToggle, InStockToggle, ProductDeleteButton, ProductThumbnail } from "@/components/admin-catalog-controls";
 import { EditProductButton } from "@/components/admin-product-edit";
 import { inr } from "@/lib/format";
 import type { AdminProductRow } from "@/lib/admin-types";
@@ -31,10 +33,15 @@ export function BulkCatalog({
   products, brands,
 }: { products: AdminProductRow[]; brands: { id: number; name: string }[] }) {
   const { busy, error, call } = useAdminCall();
+  const router = useRouter();
+  const { toast } = useToast();
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [q, setQ] = useState("");
   const [catFilter, setCatFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [delBusy, setDelBusy] = useState(false);
+  const [delError, setDelError] = useState<string | null>(null);
 
   // bulk-apply toolbar (category/sub/brand) — "" means "leave unchanged"
   // for that field; only non-empty fields are sent, so partial updates
@@ -59,16 +66,23 @@ export function BulkCatalog({
   const allSkus = useMemo(() => filtered.map((p) => p.sku), [filtered]);
   const allSelected = sel.size > 0 && allSkus.every((sku) => sel.has(sku)) && sel.size === allSkus.length;
 
-  const toggle = (sku: string) =>
+  // De-arming on any selection change (not just after a completed/failed
+  // delete) prevents a stale "Confirm delete" click from acting on a
+  // selection that grew or changed after it was armed.
+  const toggle = (sku: string) => {
+    setConfirmDelete(false);
     setSel((prev) => {
       const next = new Set(prev);
       if (next.has(sku)) next.delete(sku);
       else next.add(sku);
       return next;
     });
+  };
 
-  const toggleAll = () =>
+  const toggleAll = () => {
+    setConfirmDelete(false);
     setSel((prev) => (allSelected ? new Set() : new Set(allSkus)));
+  };
 
   // the server caps any single bulk mutation at 500 SKUs (a deliberate
   // safety limit on query size) — a large Excel import easily selects
@@ -118,6 +132,49 @@ export function BulkCatalog({
     setBulkCat("");
     setBulkSub("");
     setBulkBrand("");
+  };
+
+  // Bespoke (not the shared useAdminCall hook) because the result needs a
+  // dynamic summary — how many were actually deleted vs skipped for having
+  // real order/purchase-order history — not a single static "done" string.
+  const bulkDelete = async () => {
+    if (sel.size === 0 || delBusy) return;
+    setDelBusy(true);
+    setDelError(null);
+    try {
+      const skus = [...sel];
+      const batches = chunk(skus, BATCH_SIZE);
+      let deletedTotal = 0;
+      let blockedTotal = 0;
+      for (const batch of batches) {
+        const res = await fetch("/api/admin/products/bulk-delete", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ skus: batch }),
+        });
+        const data = (await res.json().catch(() => null)) as
+          | { deleted?: string[]; blocked?: { sku: string; reason: string }[]; error?: string }
+          | null;
+        if (!res.ok) {
+          setDelError(data?.error ?? "The delete could not be completed — please try again.");
+          return;
+        }
+        deletedTotal += data?.deleted?.length ?? 0;
+        blockedTotal += data?.blocked?.length ?? 0;
+      }
+      toast(
+        blockedTotal > 0
+          ? `${deletedTotal} product${deletedTotal === 1 ? "" : "s"} deleted · ${blockedTotal} skipped (order/purchase-order history on record)`
+          : `${deletedTotal} product${deletedTotal === 1 ? "" : "s"} deleted.`
+      );
+      setSel(new Set());
+      setConfirmDelete(false);
+      router.refresh();
+    } catch {
+      setDelError("The delete could not be completed — check your connection and try again.");
+    } finally {
+      setDelBusy(false);
+    }
   };
 
   return (
@@ -183,9 +240,38 @@ export function BulkCatalog({
             <button onClick={() => void bulkActive(false)} disabled={busy} className={btnGhostSm}>
               Deactivate selected
             </button>
+            {!confirmDelete ? (
+              <button
+                onClick={() => setConfirmDelete(true)}
+                disabled={busy || delBusy}
+                className="font-mono text-[11px] font-semibold uppercase tracking-wide text-bad underline-offset-2 hover:underline"
+              >
+                Delete selected
+              </button>
+            ) : (
+              <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                <span className="text-[13px] font-medium text-bad">
+                  Permanently delete {sel.size} product{sel.size === 1 ? "" : "s"}?
+                </span>
+                <button
+                  onClick={() => void bulkDelete()}
+                  disabled={delBusy}
+                  className="inline-flex h-8 items-center rounded-[2px] border border-bad bg-chalk px-2.5 text-[12px] font-semibold text-bad hover:bg-bad-t disabled:text-n400"
+                >
+                  {delBusy ? "Deleting…" : "Confirm delete"}
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={delBusy}
+                  className="font-mono text-[10px] uppercase text-n600 hover:text-ink"
+                >
+                  cancel
+                </button>
+              </span>
+            )}
             <button
-              onClick={() => setSel(new Set())}
-              disabled={busy}
+              onClick={() => { setSel(new Set()); setConfirmDelete(false); }}
+              disabled={busy || delBusy}
               className="font-mono text-[10px] uppercase tracking-wide text-n600 hover:text-ink"
             >
               clear
@@ -193,6 +279,7 @@ export function BulkCatalog({
           </>
         )}
       </div>
+      <ActionError error={delError} className="mb-2.5 mt-0" />
 
       {sel.size > 0 && (
         <div className="mb-3.5 flex flex-wrap items-end gap-3 rounded-[2px] border border-n200 bg-n100 p-3">
@@ -238,6 +325,11 @@ export function BulkCatalog({
         </div>
       )}
       <ActionError error={error} className="mb-2.5 mt-0" />
+      <NoteFlag className="mb-2.5">
+        delete is permanent — filter by category/brand/search, then select all filtered to
+        delete by category, a batch, or everything shown · products with real order or
+        purchase-order history are skipped automatically (deactivate those instead)
+      </NoteFlag>
 
       {filtered.length === 0 ? (
         <div className="rounded-[2px] border border-n200 bg-chalk p-6 text-center text-sm text-n600">
@@ -267,7 +359,7 @@ export function BulkCatalog({
                 ))}
                 <th className={`${thCls} text-right`}>Std price</th>
                 <th className={`${thCls} text-right`}>Qty</th>
-                {["Color", "Size", "Stock", "Active", "Edit"].map((h) => (
+                {["Color", "Size", "Stock", "Active", "Edit", "Delete"].map((h) => (
                   <th key={h} className={thCls}>{h}</th>
                 ))}
               </tr>
@@ -326,6 +418,7 @@ export function BulkCatalog({
                     <td className={tdCls}><InStockToggle sku={p.sku} inStock={p.inStock} /></td>
                     <td className={tdCls}><ActiveToggle sku={p.sku} active={p.active} /></td>
                     <td className={tdCls}><EditProductButton product={p} brands={brands} /></td>
+                    <td className={tdCls}><ProductDeleteButton sku={p.sku} /></td>
                   </tr>
                 );
               })}
