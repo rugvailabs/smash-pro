@@ -1,6 +1,16 @@
 import "server-only";
+import { connection } from "next/server";
 import { and, asc, eq } from "drizzle-orm";
 import { db, schema } from "@/server/db";
+
+/* Every reader below calls connection() first: these back a mostly-static
+   route ("/" has no dynamic API of its own), but the content is live,
+   admin-editable data (ADR-0021) that must never be baked into the static
+   build — connection() is Next's documented way to opt a read out of
+   prerendering so it always runs at request time instead. Without it, Cache
+   Components tries to prerender the DB call anyway and fails the build: the
+   underlying driver's use of crypto.randomBytes reads as a disallowed
+   non-deterministic value inside a static prerender. */
 
 /* ============================================================
    Public reads for admin-editable site content (ADR-0021) — homepage
@@ -23,6 +33,7 @@ export interface HeroSlideDto {
 }
 
 export async function getHeroSlides(): Promise<HeroSlideDto[]> {
+  await connection();
   const rows = await db
     .select()
     .from(schema.siteContent)
@@ -43,6 +54,7 @@ export async function getHeroSlides(): Promise<HeroSlideDto[]> {
 }
 
 export async function getCategoryHeroMap(): Promise<Record<string, string | null>> {
+  await connection();
   const rows = await db
     .select({ catSlug: schema.siteContent.catSlug, img: schema.siteContent.img })
     .from(schema.siteContent)
@@ -53,6 +65,7 @@ export async function getCategoryHeroMap(): Promise<Record<string, string | null
 }
 
 export async function getCategoryIntroMap(): Promise<Record<string, string>> {
+  await connection();
   const rows = await db
     .select({ catSlug: schema.siteContent.catSlug, body: schema.siteContent.body })
     .from(schema.siteContent)

@@ -245,28 +245,49 @@ const STEPS: [string, string][] = [
   ["One counterparty", "Smash Pro manages fulfilment and stays your single point of contact for delivery."],
 ];
 
-export default async function HomePage() {
-  // Hero slides and category hero images are admin-editable (ADR-0021,
-  // site_content table) but both queries are cheap single-table reads, so
-  // they're awaited directly rather than behind the catalogue Suspense below
-  // — the hero's fixed height still causes no layout shift either way.
-  // CategoryCardsRow is likewise safe to render synchronously either side of
-  // the hero (CATEGORIES is the real seed data, same source server/seed.ts uses).
-  const [slides, heroMap] = await Promise.all([getHeroSlides(), getCategoryHeroMap()]);
+export default function HomePage() {
   const firstHalf = CATEGORIES.slice(0, 6);
   const secondHalf = CATEGORIES.slice(6, 12);
   return (
     <main>
       <FirstOrderBanner />
-      <CategoryCardsRow items={firstHalf} heroMap={heroMap} />
-      <HeroCarousel slides={slides} />
-      <CategoryCardsRow items={secondHalf} heroMap={heroMap} />
+      {/* Hero slides and category hero images are admin-editable (ADR-0021,
+          site_content table) reads — kept behind their own Suspense boundary,
+          same as HomeSections below, so the DB round trip never blocks static
+          prerendering of the page shell (Cache Components bails a whole route
+          out of static generation if an un-cached dynamic read happens outside
+          Suspense). The fallback matches the real layout's height so there's
+          no visible shift. */}
+      <Suspense fallback={<HeroSectionSkeleton firstHalf={firstHalf} secondHalf={secondHalf} />}>
+        <HeroSection firstHalf={firstHalf} secondHalf={secondHalf} />
+      </Suspense>
       <ProofStrip />
       <SectionCut />
       <Suspense fallback={<HomeSectionsSkeleton />}>
-        <HomeSections heroMap={heroMap} />
+        <HomeSections />
       </Suspense>
     </main>
+  );
+}
+
+function HeroSectionSkeleton({ firstHalf, secondHalf }: { firstHalf: typeof CATEGORIES; secondHalf: typeof CATEGORIES }) {
+  return (
+    <>
+      <CategoryCardsRow items={firstHalf} heroMap={{}} />
+      <Bone className="h-[480px] w-full rounded-none sm:h-[440px] md:h-[500px] lg:h-[560px] xl:h-[600px]" />
+      <CategoryCardsRow items={secondHalf} heroMap={{}} />
+    </>
+  );
+}
+
+async function HeroSection({ firstHalf, secondHalf }: { firstHalf: typeof CATEGORIES; secondHalf: typeof CATEGORIES }) {
+  const [slides, heroMap] = await Promise.all([getHeroSlides(), getCategoryHeroMap()]);
+  return (
+    <>
+      <CategoryCardsRow items={firstHalf} heroMap={heroMap} />
+      <HeroCarousel slides={slides} />
+      <CategoryCardsRow items={secondHalf} heroMap={heroMap} />
+    </>
   );
 }
 
@@ -281,8 +302,8 @@ function HomeSectionsSkeleton() {
   );
 }
 
-async function HomeSections({ heroMap }: { heroMap: Record<string, string | null> }) {
-  const [featured, recommended] = await Promise.all([getFeatured(), getRecommended()]);
+async function HomeSections() {
+  const [featured, recommended, heroMap] = await Promise.all([getFeatured(), getRecommended(), getCategoryHeroMap()]);
 
   return (
     <>
