@@ -23,7 +23,7 @@ function pageWindow(page: number, totalPages: number): (number | "…")[] {
 }
 
 const btn =
-  "inline-flex h-9 min-w-9 items-center justify-center rounded-[2px] border border-n400 px-2.5 text-[13px] font-medium text-ink transition-colors hover:border-ink/40 disabled:cursor-not-allowed disabled:opacity-40";
+  "inline-flex h-9 min-w-9 items-center justify-center rounded-[2px] border border-n400 px-2.5 text-[13px] font-medium transition-colors hover:border-ink/40 disabled:cursor-not-allowed disabled:opacity-40";
 
 export function Pagination({ page, totalPages }: { page: number; totalPages: number }) {
   const router = useRouter();
@@ -43,7 +43,7 @@ export function Pagination({ page, totalPages }: { page: number; totalPages: num
 
   return (
     <nav aria-label="Pagination" className="mt-8 flex flex-wrap items-center justify-center gap-1.5">
-      <button type="button" className={btn} disabled={page <= 1} onClick={() => goTo(page - 1)}>
+      <button type="button" className={`${btn} text-ink`} disabled={page <= 1} onClick={() => goTo(page - 1)}>
         Prev
       </button>
       {pageWindow(page, totalPages).map((p, i) =>
@@ -55,13 +55,13 @@ export function Pagination({ page, totalPages }: { page: number; totalPages: num
             type="button"
             aria-current={p === page ? "page" : undefined}
             onClick={() => goTo(p)}
-            className={`${btn} ${p === page ? "bg-ink text-chalk border-ink" : ""}`}
+            className={`${btn} ${p === page ? "border-ink bg-ink text-chalk" : "text-ink"}`}
           >
             {p}
           </button>
         )
       )}
-      <button type="button" className={btn} disabled={page >= totalPages} onClick={() => goTo(page + 1)}>
+      <button type="button" className={`${btn} text-ink`} disabled={page >= totalPages} onClick={() => goTo(page + 1)}>
         Next
       </button>
     </nav>
