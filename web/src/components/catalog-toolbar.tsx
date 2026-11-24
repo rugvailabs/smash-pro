@@ -25,13 +25,16 @@ export function CatalogToolbar({ shown, total }: { shown: number; total: number 
     (key: string, value: string) => {
       const next = new URLSearchParams(params.toString());
       if (value) next.set(key, value); else next.delete(key);
+      // view is presentation-only (same items, same order) — everything
+      // else (sort, filters) can reorder/shrink the result set
+      if (key !== "view") next.delete("page");
       router.replace(`${pathname}?${next.toString()}`, { scroll: false });
     },
     [params, pathname, router]
   );
   const clearAll = useCallback(() => {
     const next = new URLSearchParams(params.toString());
-    next.delete("type"); next.delete("price");
+    next.delete("type"); next.delete("price"); next.delete("page");
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }, [params, pathname, router]);
 

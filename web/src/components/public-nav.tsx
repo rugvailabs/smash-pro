@@ -127,19 +127,25 @@ export function PublicNavDesktop() {
   );
 
   return (
-    <div ref={wrapRef} className="flex" onPointerEnter={enterNav} onPointerLeave={leaveNav}>
-      <div ref={stripRef} className="flex">
-        <Link
-          href="/catalog?cat=cricket"
-          onPointerEnter={hoverShopAll}
-          className={baseItem + " " + (pathname.startsWith("/catalog") ? activeCls : idle)}
-        >
-          Shop All
-        </Link>
-        {trigger("sports")}
-        {trigger("institutions")}
-        {trigger("how")}
-        {trigger("suppliers")}
+    <div ref={wrapRef} className="flex w-full" onPointerEnter={enterNav} onPointerLeave={leaveNav}>
+      <div ref={stripRef} className="flex w-full">
+        {/* shopping tabs — left, with breathing room between them */}
+        <div className="flex gap-4">
+          <Link
+            href="/catalog?cat=cricket"
+            onPointerEnter={hoverShopAll}
+            className={baseItem + " " + (pathname.startsWith("/catalog") ? activeCls : idle)}
+          >
+            Shop All
+          </Link>
+          {trigger("sports")}
+        </div>
+        {/* informational tabs — pushed to the right, toward Support/Wishlist/Cart */}
+        <div className="ml-auto flex">
+          {trigger("institutions")}
+          {trigger("how")}
+          {trigger("suppliers")}
+        </div>
       </div>
 
       {openKey && (

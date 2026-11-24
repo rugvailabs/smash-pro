@@ -92,6 +92,9 @@ export function SiteHeader() {
   const supportIcon = (
     <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 0 1 5 0c0 1.5-1.8 1.8-2.3 3M12 16.5h.01" strokeLinecap="round" /></svg>
   );
+  const serviceIcon = (
+    <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6"><path d="M14.7 6.3a4 4 0 0 1-5.4 5.1L4 16.7V20h3.3l5.3-5.3a4 4 0 0 1 5.1-5.4l-2.6 2.6-2-2z" strokeLinejoin="round" /></svg>
+  );
   const ordersIcon = (
     <svg viewBox="0 0 24 24" aria-hidden className="h-[22px] w-[22px] fill-none stroke-current" strokeWidth="1.6"><rect x="4" y="7" width="16" height="13" rx="1.5" /><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg>
   );
@@ -156,7 +159,10 @@ export function SiteHeader() {
             {role === "buyer" && (
               <IconAction href="/orders" label="Orders" hiddenBelow="lg" icon={ordersIcon} />
             )}
-            {/* Support and Wishlist are buyer-commerce chrome — never supplier/admin. */}
+            {/* Service, Support and Wishlist are buyer-commerce chrome — never supplier/admin. */}
+            {role !== "supplier" && role !== "admin" && (
+              <IconAction href="/service" label="Service" hiddenBelow="lg" icon={serviceIcon} />
+            )}
             {role !== "supplier" && role !== "admin" && (
               <IconAction href="/support" label="Support" hiddenBelow="lg" icon={supportIcon} />
             )}

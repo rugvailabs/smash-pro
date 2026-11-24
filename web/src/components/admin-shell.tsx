@@ -32,6 +32,7 @@ const NAV: { group: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/payments", label: "Payments" },
       { href: "/admin/reconciliation", label: "Reconciliation" },
       { href: "/admin/complaints", label: "Complaints" },
+      { href: "/admin/service-requests", label: "Service Requests" },
     ],
   },
   {

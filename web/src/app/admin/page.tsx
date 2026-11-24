@@ -6,7 +6,7 @@ import { PanelSkeleton } from "@/components/skeletons";
 import { AdminGate } from "@/components/admin-shell";
 import { AdminHead } from "@/components/admin-ui";
 import {
-  getAdminCounts, getComplaintsAdmin, getOrganizationsAdmin, getPaymentsAdmin,
+  getAdminCounts, getComplaintsAdmin, getOrganizationsAdmin, getPaymentsAdmin, getServiceRequestsAdmin,
 } from "@/lib/admin-api";
 import { inr } from "@/lib/format";
 
@@ -28,13 +28,15 @@ async function AdminDashboardContent() {
   const counts = await getAdminCounts();
   if (!counts) return <AdminGate />;
 
-  const [pendingOrgs, payments, complaints] = await Promise.all([
+  const [pendingOrgs, payments, complaints, serviceRequests] = await Promise.all([
     getOrganizationsAdmin("pending"),
     getPaymentsAdmin(),
     getComplaintsAdmin(),
+    getServiceRequestsAdmin(),
   ]);
   const toVerify = payments.filter((p) => p.status === "awaiting-verification");
   const openComplaints = complaints.filter((c) => c.status === "open");
+  const newServiceRequests = serviceRequests.filter((s) => s.status === "new");
 
   const stats: { label: string; value: number; href: string }[] = [
     { label: "Pending approvals", value: counts.pendingOrgs, href: "/admin/approvals" },
@@ -44,6 +46,7 @@ async function AdminDashboardContent() {
     { label: "Quotes awaiting action", value: counts.quotesAwaitingAction, href: "/admin/sourcing" },
     { label: "POs in flight", value: counts.posInFlight, href: "/admin/pos" },
     { label: "Product requests", value: counts.productRequestsInReview, href: "/admin/requests" },
+    { label: "New service requests", value: counts.serviceRequestsNew, href: "/admin/service-requests" },
   ];
 
   type QueueItem = { tag: string; text: React.ReactNode; meta: string; href: string; key: string };
@@ -80,6 +83,18 @@ async function AdminDashboardContent() {
       ),
       meta: `raised ${c.created}`,
       href: "/admin/complaints",
+    })),
+    ...newServiceRequests.slice(0, 3).map((sr) => ({
+      key: `svc-${sr.id}`,
+      tag: "service",
+      text: (
+        <>
+          <b className="font-medium text-ink">{sr.contactName}</b> — {sr.kind === "care" ? "Care" : "Repair"} ·{" "}
+          {sr.sport} · {sr.services.length} service{sr.services.length === 1 ? "" : "s"}
+        </>
+      ),
+      meta: `submitted ${sr.submitted} · ${sr.photos.length} photo${sr.photos.length === 1 ? "" : "s"}${sr.voiceNoteUrl ? " · voice note" : ""}`,
+      href: "/admin/service-requests",
     })),
   ];
 

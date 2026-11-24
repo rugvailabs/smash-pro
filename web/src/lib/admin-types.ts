@@ -24,6 +24,7 @@ export interface AdminCounts {
   quotesAwaitingAction: number;
   posInFlight: number;
   productRequestsInReview: number;
+  serviceRequestsNew: number;
 }
 
 export interface AdminOrgRow {
@@ -330,6 +331,28 @@ export interface AdminComplaintRow {
   body: string;
   status: "open" | "resolved";
   created: string;
+}
+
+export interface AdminServiceRequestRow {
+  id: string;
+  orgName: string | null;
+  contactName: string;
+  contactPhone: string;
+  contactEmail: string | null;
+  kind: "care" | "repair";
+  sport: "cricket" | "badminton";
+  services: string[];
+  equipmentSource: "new" | "own";
+  brand: string | null;
+  model: string | null;
+  description: string | null;
+  photos: string[];
+  voiceNoteUrl: string | null;
+  status: "new" | "quoted" | "approved" | "in-progress" | "completed" | "declined" | "cancelled";
+  statusLabel: string;
+  quoted: number | null; // rupees
+  adminNote: string | null;
+  submitted: string;
 }
 
 export interface AdminProductRequestRow {

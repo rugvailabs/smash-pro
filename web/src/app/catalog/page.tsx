@@ -11,6 +11,7 @@ import { CatalogToolbar } from "@/components/catalog-toolbar";
 import { PRICE_BANDS } from "@/lib/filter-defs";
 import { CategoryStrip } from "@/components/category-strip";
 import { GridSkeleton } from "@/components/skeletons";
+import { Pagination } from "@/components/pagination";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
 import { CATEGORY_INTRO, defaultIntro, TYPE_FILTER_LABEL } from "@/lib/catalog-copy";
 
@@ -35,12 +36,14 @@ export default function CatalogPage({
   );
 }
 
+const PAGE_SIZE = 12;
+
 async function CatalogContent({
   searchParams,
 }: {
-  searchParams: Promise<{ cat?: string; type?: string; price?: string; sort?: string; view?: string }>;
+  searchParams: Promise<{ cat?: string; type?: string; price?: string; sort?: string; view?: string; page?: string }>;
 }) {
-  const { cat = "cricket", type, price, sort, view } = await searchParams;
+  const { cat = "cricket", type, price, sort, view, page: pageParam } = await searchParams;
   const [categories, category, all] = await Promise.all([
     getCategories(),
     getCategory(cat),
@@ -62,6 +65,10 @@ async function CatalogContent({
   else if (sort === "name") products = [...products].sort((a, b) => a.name.localeCompare(b.name));
 
   const total = category?.count ?? all.length;
+
+  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, parseInt(pageParam ?? "1", 10) || 1), totalPages);
+  const pageProducts = products.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   return (
     <main>
@@ -90,6 +97,12 @@ async function CatalogContent({
               <CatalogToolbar shown={products.length} total={total} />
             </Suspense>
 
+            {products.length > PAGE_SIZE && (
+              <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
+                showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, products.length)} of {products.length}
+              </p>
+            )}
+
             <RoleGate show={["visitor"]}>
               <div className="mt-4 flex flex-wrap items-center gap-3 border-l-[3px] border-ember-deep bg-chalk px-4 py-3 text-sm">
                 <span>
@@ -104,7 +117,10 @@ async function CatalogContent({
 
             <div className="mt-5">
               {products.length ? (
-                <ProductGrid items={products} priorityCount={4} view={view === "list" ? "list" : "grid"} />
+                <>
+                  <ProductGrid items={pageProducts} priorityCount={4} view={view === "list" ? "list" : "grid"} />
+                  <Pagination page={page} totalPages={totalPages} />
+                </>
               ) : all.length ? (
                 <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
                   No <b className="text-ink">{title}</b> items match these filters.{" "}

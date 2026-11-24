@@ -486,6 +486,39 @@ export const complaints = pgTable("complaints", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/** ADR-0020: equipment Care/Repair service booking — public, no account
+ *  required (contact details captured directly on the form, same as a
+ *  support/contact enquiry). orgId/userId are filled in opportunistically
+ *  when the submitter happens to be signed in, but are never required.
+ *  Pricing is explicitly NOT decided here: `quotedPaise` stays null until
+ *  an admin inspects the photos/description and enters one manually —
+ *  no payment flow is wired to it (PENDING CONFIRMATION, same as the
+ *  rest of this feature's business rules beyond what's built). */
+export const serviceRequests = pgTable("service_requests", {
+  id: text("id").primaryKey(), // SR-YYYY-NNNNN
+  orgId: integer("org_id").references(() => organizations.id),
+  userId: integer("user_id").references(() => users.id),
+  contactName: text("contact_name").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactEmail: text("contact_email"),
+  kind: text("kind").notNull(), // 'care' | 'repair'
+  sport: text("sport").notNull(), // 'cricket' | 'badminton'
+  services: jsonb("services").$type<string[]>().notNull(),
+  equipmentSource: text("equipment_source").notNull(), // 'new' | 'own'
+  brand: text("brand"),
+  model: text("model"),
+  description: text("description"),
+  /** at least one required — enforced at submission, not here */
+  photos: jsonb("photos").$type<string[]>().notNull().default([]),
+  voiceNoteUrl: text("voice_note_url"),
+  /** new | quoted | approved | in-progress | completed | declined | cancelled */
+  status: text("status").notNull().default("new"),
+  statusLabel: text("status_label").notNull().default("New"),
+  quotedPaise: integer("quoted_paise"),
+  adminNote: text("admin_note"),
+  submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* ---------- platform (PLT-002 / PLT-003) ---------- */
 
 export const notifications = pgTable("notifications", {

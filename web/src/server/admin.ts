@@ -16,7 +16,7 @@ import type {
   AdminInvoiceDetail, AdminInvoiceRow, AdminOrderDetail, AdminOrderRow,
   AdminOrgFullRow, AdminOrgRow, AdminPaymentRow, AdminPoRow, AdminPriceRule,
   AdminProductRequestRow, AdminProductRow, AdminQuoteView, AdminReport,
-  AdminRequirementDetail, AdminRequirementRow, AuditLogPage, AuditLogRow,
+  AdminRequirementDetail, AdminRequirementRow, AdminServiceRequestRow, AuditLogPage, AuditLogRow,
   BuyerTypeDiscountRow, Reconciliation, ReconciliationRow, SupplierPerformanceRow,
 } from "@/lib/admin-types";
 
@@ -107,6 +107,7 @@ export async function adminCountsForSession(): Promise<AdminCounts | null> {
   const quotes = await db.select({ status: schema.quotations.status }).from(schema.quotations);
   const pos = await db.select({ f: schema.purchaseOrders.fulfilment }).from(schema.purchaseOrders);
   const preqs = await db.select({ status: schema.productRequests.status }).from(schema.productRequests);
+  const svcs = await db.select({ status: schema.serviceRequests.status }).from(schema.serviceRequests);
   return {
     pendingOrgs: orgs.filter((x) => x.status === "pending").length,
     paymentsToVerify: pays.filter((x) => x.status === "awaiting-verification").length,
@@ -115,6 +116,7 @@ export async function adminCountsForSession(): Promise<AdminCounts | null> {
     quotesAwaitingAction: quotes.filter((x) => x.status === "submitted").length,
     posInFlight: pos.filter((x) => x.f !== "closed").length,
     productRequestsInReview: preqs.filter((x) => x.status === "in-review").length,
+    serviceRequestsNew: svcs.filter((x) => x.status === "new").length,
   };
 }
 
@@ -1795,6 +1797,68 @@ export async function resolveComplaint(id: number) {
   if (c.status !== "open") throw new Error("409");
   await db.update(schema.complaints).set({ status: "resolved" }).where(eq(schema.complaints.id, id));
   await audit(s.userId, "complaint.resolve", "complaint", String(id), { orderId: c.orderId });
+}
+
+/* ---------- service requests (ADR-0020 — equipment Care/Repair) ---------- */
+
+export async function serviceRequestsForAdmin(): Promise<AdminServiceRequestRow[]> {
+  if (!(await adminSession())) return [];
+  const rows = await db.select().from(schema.serviceRequests).orderBy(desc(schema.serviceRequests.id));
+  const orgs = await db
+    .select({ id: schema.organizations.id, name: schema.organizations.name })
+    .from(schema.organizations);
+  const orgName = new Map(orgs.map((o) => [o.id, o.name]));
+  return rows.map((x) => ({
+    id: x.id,
+    orgName: x.orgId !== null ? orgName.get(x.orgId) ?? null : null,
+    contactName: x.contactName, contactPhone: x.contactPhone, contactEmail: x.contactEmail,
+    kind: x.kind as "care" | "repair", sport: x.sport as "cricket" | "badminton",
+    services: x.services, equipmentSource: x.equipmentSource as "new" | "own",
+    brand: x.brand, model: x.model, description: x.description,
+    photos: x.photos, voiceNoteUrl: x.voiceNoteUrl,
+    status: x.status as AdminServiceRequestRow["status"], statusLabel: x.statusLabel,
+    quoted: x.quotedPaise !== null ? r(x.quotedPaise) : null,
+    adminNote: x.adminNote,
+    submitted: fullDate(x.submittedAt),
+  }));
+}
+
+const SERVICE_STATUS_LABEL: Record<string, string> = {
+  new: "New", quoted: "Quoted", approved: "Approved", "in-progress": "In progress",
+  completed: "Completed", declined: "Declined", cancelled: "Cancelled",
+};
+
+/** Admin sets a quotation and/or moves status forward. Status transitions
+ *  are deliberately loose (no state machine) — this is a manually-run
+ *  service queue, not a priced checkout flow (pricing stays admin-entered,
+ *  PENDING CONFIRMATION on anything beyond that). */
+export async function updateServiceRequest(
+  id: string,
+  patch: { status?: string; quoted?: number; adminNote?: string }
+) {
+  const s = await requireAdmin();
+  const [row] = await db.select().from(schema.serviceRequests).where(eq(schema.serviceRequests.id, id));
+  if (!row) throw new Error("404");
+  const set: { status?: string; statusLabel?: string; quotedPaise?: number | null; adminNote?: string | null } = {};
+  if (patch.status !== undefined) {
+    if (!SERVICE_STATUS_LABEL[patch.status]) throw new Error("400:Unknown status");
+    set.status = patch.status;
+    set.statusLabel = SERVICE_STATUS_LABEL[patch.status];
+  }
+  if (patch.quoted !== undefined) {
+    if (typeof patch.quoted !== "number" || !Number.isFinite(patch.quoted) || patch.quoted < 0) {
+      throw new Error("400:Quote must be a non-negative amount");
+    }
+    set.quotedPaise = Math.round(patch.quoted * 100);
+  }
+  if (patch.adminNote !== undefined) {
+    const note = patch.adminNote.trim();
+    if (note.length > 1000) throw new Error("400:Note is too long");
+    set.adminNote = note || null;
+  }
+  if (Object.keys(set).length === 0) throw new Error("400:Nothing to update");
+  await db.update(schema.serviceRequests).set(set).where(eq(schema.serviceRequests.id, id));
+  await audit(s.userId, "service-request.update", "service_request", id, patch);
 }
 
 /* ---------- product requests (BUY-007 admin side) ---------- */

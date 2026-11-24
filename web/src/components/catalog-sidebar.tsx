@@ -65,13 +65,14 @@ export function CatalogSidebar({ types, typeLabel = "Equipment" }: { types: stri
     (key: string, value: string) => {
       const next = new URLSearchParams(params.toString());
       if (value) next.set(key, value); else next.delete(key);
+      next.delete("page"); // a filter change can shrink the result set — start from page 1
       router.replace(`${pathname}?${next.toString()}`, { scroll: false });
     },
     [params, pathname, router]
   );
   const clearAll = useCallback(() => {
     const next = new URLSearchParams(params.toString());
-    next.delete("type"); next.delete("price");
+    next.delete("type"); next.delete("price"); next.delete("page");
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }, [params, pathname, router]);
 
