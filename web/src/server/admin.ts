@@ -243,7 +243,7 @@ export async function productsForAdmin(): Promise<AdminProductRow[]> {
     brandId: p.brandId,
     hsn: p.hsn, gstPercent: p.gstPercent,
     supplierCode: p.supplierCode, msp: p.mspPaise !== null ? r(p.mspPaise) : null,
-    color: p.color, size: p.size, inStock: p.inStock,
+    color: p.color, size: p.size, inStock: p.inStock, qty: p.qty,
     groupKey: p.groupKey,
     mrp: p.mrpPaise !== null ? r(p.mrpPaise) : null,
     purchase: p.purchasePaise !== null ? r(p.purchasePaise) : null,
@@ -332,6 +332,13 @@ function assertEntryValue(value: unknown, mode: PriceMode, label: string): numbe
   return value;
 }
 
+function assertQty(qty: unknown): number {
+  if (typeof qty !== "number" || !Number.isInteger(qty) || qty < 0 || qty > 1_000_000) {
+    throw new Error("400:Quantity must be a whole number between 0 and 1,000,000");
+  }
+  return qty;
+}
+
 function assertSpecs(specs: [string, string][]) {
   const ok =
     Array.isArray(specs) && specs.length <= 40 &&
@@ -366,6 +373,7 @@ export async function createProduct(input: {
   color?: string | null;
   size?: string | null;
   inStock?: boolean;
+  qty?: number;
   groupKey?: string | null;
 }): Promise<{ sku: string }> {
   const s = await requireAdmin();
@@ -391,6 +399,7 @@ export async function createProduct(input: {
   const color = normalizeColor(input.color);
   const size = normalizeSize(input.size);
   const inStock = input.inStock ?? true;
+  const qty = assertQty(input.qty ?? 1);
   const groupKey = normalizeGroupKey(input.groupKey);
   const specs = input.specs ?? [];
   assertSpecs(specs);
@@ -428,7 +437,7 @@ export async function createProduct(input: {
     purchaseMode, purchaseValue, purchasePaise,
     marginMode, marginValue, marginPaise,
     img, gallery: null, hsn, gstPercent,
-    supplierCode, mspPaise, color, size, inStock, groupKey,
+    supplierCode, mspPaise, color, size, inStock, qty, groupKey,
     configurable: false, directShip: false, specs, active: true,
   });
   await audit(s.userId, "product.create", "product", sku, {
@@ -436,7 +445,7 @@ export async function createProduct(input: {
     purchaseMode, purchaseValue, purchasePaise,
     marginMode, marginValue, marginPaise,
     brandId, img, hsn, gstPercent,
-    supplierCode, msp: mspPaise !== null ? r(mspPaise) : null, color, size, inStock, groupKey,
+    supplierCode, msp: mspPaise !== null ? r(mspPaise) : null, color, size, inStock, qty, groupKey,
     std: r(stdPaise),
   });
   return { sku };
@@ -463,7 +472,7 @@ export async function updateProduct(
     active?: boolean; std?: number; img?: string | null;
     hsn?: string | null; gstPercent?: number | null;
     supplierCode?: string | null; msp?: number | null;
-    color?: string | null; size?: string | null; inStock?: boolean;
+    color?: string | null; size?: string | null; inStock?: boolean; qty?: number;
     name?: string; catSlug?: string; sub?: string; meta?: string;
     brandId?: number | null; groupKey?: string | null;
     marginMode?: PriceMode; marginValue?: number;
@@ -475,6 +484,7 @@ export async function updateProduct(
     patch.hsn === undefined && patch.gstPercent === undefined &&
     patch.supplierCode === undefined && patch.msp === undefined &&
     patch.color === undefined && patch.size === undefined && patch.inStock === undefined &&
+    patch.qty === undefined &&
     patch.name === undefined && patch.catSlug === undefined && patch.sub === undefined &&
     patch.meta === undefined && patch.brandId === undefined && patch.groupKey === undefined &&
     patch.marginMode === undefined && patch.marginValue === undefined;
@@ -485,7 +495,7 @@ export async function updateProduct(
     active?: boolean; stdPaise?: number; img?: string | null;
     hsn?: string | null; gstPercent?: number | null;
     supplierCode?: string | null; mspPaise?: number | null;
-    color?: string | null; size?: string | null; inStock?: boolean;
+    color?: string | null; size?: string | null; inStock?: boolean; qty?: number;
     name?: string; catSlug?: string; sub?: string; meta?: string;
     brandId?: number | null; groupKey?: string | null;
     marginMode?: PriceMode; marginValue?: number; marginPaise?: number;
@@ -536,6 +546,9 @@ export async function updateProduct(
   if (patch.inStock !== undefined) {
     if (typeof patch.inStock !== "boolean") throw new Error("400:inStock must be true or false");
     set.inStock = patch.inStock;
+  }
+  if (patch.qty !== undefined) {
+    set.qty = assertQty(patch.qty);
   }
   if (patch.groupKey !== undefined) {
     set.groupKey = normalizeGroupKey(patch.groupKey);
@@ -628,7 +641,13 @@ export interface ImportCommitRow {
  *  purchasePaise + marginPaise` chain as createProduct (OBD-23). Rows
  *  that fail validation are skipped and reported, not allowed to abort
  *  the whole batch. Imports as `active: false` unless `activate` is set
- *  — nothing goes live in the catalogue until admin confirms pricing. */
+ *  — nothing goes live in the catalogue until admin confirms pricing.
+ *  ADR-0019: a stock sheet often lists the same product as several
+ *  identical repeated rows (one per physical unit) rather than one row
+ *  with a count — rows whose name/sub/colour/size/prices/GST/group all
+ *  match exactly are collapsed into ONE product with `qty` = how many
+ *  repeats were found; anything differing (crucially size or colour)
+ *  stays a separate product, same as before. */
 export async function bulkImportProducts(input: {
   rows: ImportCommitRow[];
   catSlug: string;
@@ -637,7 +656,7 @@ export async function bulkImportProducts(input: {
   marginMode?: PriceMode;
   marginValue?: number;
   activate: boolean;
-}): Promise<{ created: number; failed: { sku: string; error: string }[] }> {
+}): Promise<{ created: number; mergedDuplicates: number; failed: { sku: string; error: string }[] }> {
   const s = await requireAdmin();
   const [cat] = await db
     .select({ slug: schema.categories.slug })
@@ -655,8 +674,14 @@ export async function bulkImportProducts(input: {
   const marginValue = assertEntryValue(input.marginValue ?? 0, marginMode, "Margin");
 
   const failed: { sku: string; error: string }[] = [];
-  const toInsert: (typeof schema.products.$inferInsert)[] = [];
   const seenSku = new Set<string>();
+  // Exact duplicates (same name/sub/colour/size/prices/GST/group — i.e. the
+  // SAME product repeated as separate rows, as supplier stock sheets often
+  // do, one row per physical unit) collapse into ONE product row with `qty`
+  // = how many repeats were found, instead of creating N identical-looking
+  // catalogue entries. Rows that differ in size (or anything else in the
+  // key) are genuinely different products/variants and stay separate.
+  const merged = new Map<string, { row: typeof schema.products.$inferInsert; qty: number }>();
 
   for (const r of input.rows) {
     try {
@@ -683,19 +708,37 @@ export async function bulkImportProducts(input: {
       const sub = rowSubTrimmed || defaultSub;
 
       seenSku.add(r.sku);
-      toInsert.push({
-        sku: r.sku, name, catSlug: cat.slug, sub, meta: "", brandId: input.brandId,
-        stdPaise, mrpPaise,
-        purchaseMode: "fixed", purchaseValue: r.dealerExGst, purchasePaise,
-        marginMode, marginValue, marginPaise,
-        img: null, gallery: null, hsn: null, gstPercent,
-        supplierCode, mspPaise, color, size, inStock: r.inStock, groupKey,
-        configurable: false, directShip: false, specs: [], active: input.activate,
-      });
+      // groupKey is deliberately NOT part of this key — real supplier sheets
+      // have been seen assigning two different group codes to what is
+      // otherwise an identical row (same name/colour/size/prices), so
+      // trusting it here under-merges true duplicates.
+      const dedupeKey = [name, sub, color ?? "", size ?? "", gstPercent ?? "", mrpPaise, purchasePaise].join("|");
+      const existingGroup = merged.get(dedupeKey);
+      if (existingGroup) {
+        existingGroup.qty += 1;
+        if (r.inStock) existingGroup.row.inStock = true;
+      } else {
+        merged.set(dedupeKey, {
+          qty: 1,
+          row: {
+            sku: r.sku, name, catSlug: cat.slug, sub, meta: "", brandId: input.brandId,
+            stdPaise, mrpPaise,
+            purchaseMode: "fixed", purchaseValue: r.dealerExGst, purchasePaise,
+            marginMode, marginValue, marginPaise,
+            img: null, gallery: null, hsn: null, gstPercent,
+            supplierCode, mspPaise, color, size, inStock: r.inStock, groupKey,
+            configurable: false, directShip: false, specs: [], active: input.activate,
+          },
+        });
+      }
     } catch (e) {
       failed.push({ sku: r.sku, error: e instanceof Error ? e.message.replace(/^\d+:/, "") : "invalid row" });
     }
   }
+
+  const toInsert = [...merged.values()].map(({ row, qty }) => ({ ...row, qty }));
+  const validRows = toInsert.reduce((sum, p) => sum + p.qty, 0);
+  const mergedDuplicates = validRows - toInsert.length;
 
   if (toInsert.length > 0) {
     const [existing] = await db
@@ -707,9 +750,9 @@ export async function bulkImportProducts(input: {
   }
   await audit(s.userId, "product.bulk-import", "product", `${toInsert.length} rows`, {
     catSlug: cat.slug, defaultSub, brandId: input.brandId, marginMode, marginValue,
-    created: toInsert.length, failedCount: failed.length,
+    created: toInsert.length, mergedDuplicates, failedCount: failed.length,
   });
-  return { created: toInsert.length, failed };
+  return { created: toInsert.length, mergedDuplicates, failed };
 }
 
 /* ---------- price rules (OBD-20 decided structure) ---------- */

@@ -56,6 +56,7 @@ export function EditProductButton({
   const [groupKey, setGroupKey] = useState(product.groupKey ?? "");
   const [inStock, setInStock] = useState(product.inStock);
   const [active, setActive] = useState(product.active);
+  const [qty, setQty] = useState(String(product.qty));
   const hasDealerPrice = product.purchase !== null;
   const [marginMode, setMarginMode] = useState<PriceMode>(product.marginMode ?? "percent");
   const [marginValue, setMarginValue] = useState(product.marginValue !== null ? String(product.marginValue) : "");
@@ -79,6 +80,7 @@ export function EditProductButton({
     setMarginValue(product.marginValue !== null ? String(product.marginValue) : "");
     setInStock(product.inStock);
     setActive(product.active);
+    setQty(String(product.qty));
     setError(null);
     setOpen(true);
   };
@@ -106,6 +108,9 @@ export function EditProductButton({
   const marginTrimmed = marginValue.trim();
   const marginNum = parseFloat(marginTrimmed);
   const marginValid = !hasDealerPrice || (marginTrimmed !== "" && Number.isFinite(marginNum) && marginNum >= 0);
+  const qtyTrimmed = qty.trim();
+  const qtyNum = parseInt(qtyTrimmed, 10);
+  const qtyValid = qtyTrimmed !== "" && Number.isInteger(qtyNum) && qtyNum >= 0 && qtyNum <= 1_000_000;
 
   const previewStd = useMemo(() => {
     if (!hasDealerPrice || product.purchase === null || !Number.isFinite(marginNum) || marginNum < 0) return null;
@@ -116,7 +121,7 @@ export function EditProductButton({
 
   const canSave =
     nameTrimmed.length > 0 && subTrimmed.length > 0 && imgValid && stdValid &&
-    hsnValid && gstValid && mspValid && marginValid && !busy;
+    hsnValid && gstValid && mspValid && marginValid && qtyValid && !busy;
 
   const save = async () => {
     if (!canSave) return;
@@ -135,7 +140,7 @@ export function EditProductButton({
           color: colorTrimmed || null,
           size: sizeTrimmed || null,
           groupKey: groupKeyTrimmed || null,
-          inStock, active,
+          inStock, active, qty: qtyNum,
           ...(hasDealerPrice ? { marginMode, marginValue: marginNum } : {}),
         },
         done: `${product.sku} updated.`,
@@ -246,6 +251,14 @@ export function EditProductButton({
                 id="ep-size" type="text" value={size}
                 onChange={(e) => setSize(e.target.value)} placeholder="e.g. UK 9, L, 4U" className={inputCls}
               />
+            </div>
+            <div>
+              <label className={labelCls} htmlFor="ep-qty">Quantity</label>
+              <input
+                id="ep-qty" type="number" min={0} step="1" value={qty}
+                onChange={(e) => setQty(e.target.value)} className={`${inputCls} num`}
+              />
+              {!qtyValid && <p className="mt-1 text-xs font-medium text-warn">A whole number, 0 or more.</p>}
             </div>
             <div className="sm:col-span-2">
               <label className={labelCls} htmlFor="ep-group-key">Group key</label>

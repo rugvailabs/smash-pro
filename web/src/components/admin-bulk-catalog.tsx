@@ -70,17 +70,30 @@ export function BulkCatalog({
   const toggleAll = () =>
     setSel((prev) => (allSelected ? new Set() : new Set(allSkus)));
 
+  // the server caps any single bulk mutation at 500 SKUs (a deliberate
+  // safety limit on query size) — a large Excel import easily selects
+  // more than that, so the UI splits into sequential batches here rather
+  // than raising the server-side cap.
+  const BATCH_SIZE = 500;
+  const chunk = <T,>(arr: T[], size: number): T[][] => {
+    const out: T[][] = [];
+    for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+    return out;
+  };
+
   const bulkActive = async (active: boolean) => {
     if (sel.size === 0) return;
     const skus = [...sel];
-    if (
-      await call("/api/admin/products/bulk-active", {
-        body: { skus, active },
-        done: `${skus.length} product${skus.length === 1 ? "" : "s"} ${active ? "activated" : "deactivated"}.`,
-      })
-    ) {
-      setSel(new Set());
+    const batches = chunk(skus, BATCH_SIZE);
+    for (let i = 0; i < batches.length; i++) {
+      const isLast = i === batches.length - 1;
+      const ok = await call("/api/admin/products/bulk-active", {
+        body: { skus: batches[i], active },
+        done: isLast ? `${skus.length} product${skus.length === 1 ? "" : "s"} ${active ? "activated" : "deactivated"}.` : undefined,
+      });
+      if (!ok) return;
     }
+    setSel(new Set());
   };
 
   const bulkFieldsValid = bulkCat !== "" || bulkSub.trim() !== "" || bulkBrand !== "";
@@ -88,21 +101,23 @@ export function BulkCatalog({
   const applyBulkFields = async () => {
     if (sel.size === 0 || !bulkFieldsValid) return;
     const skus = [...sel];
-    const body: { skus: string[]; catSlug?: string; sub?: string; brandId?: number | null } = { skus };
-    if (bulkCat !== "") body.catSlug = bulkCat;
-    if (bulkSub.trim() !== "") body.sub = bulkSub.trim();
-    if (bulkBrand !== "") body.brandId = bulkBrand === "none" ? null : Number(bulkBrand);
-    if (
-      await call("/api/admin/products/bulk-update-fields", {
+    const batches = chunk(skus, BATCH_SIZE);
+    for (let i = 0; i < batches.length; i++) {
+      const isLast = i === batches.length - 1;
+      const body: { skus: string[]; catSlug?: string; sub?: string; brandId?: number | null } = { skus: batches[i] };
+      if (bulkCat !== "") body.catSlug = bulkCat;
+      if (bulkSub.trim() !== "") body.sub = bulkSub.trim();
+      if (bulkBrand !== "") body.brandId = bulkBrand === "none" ? null : Number(bulkBrand);
+      const ok = await call("/api/admin/products/bulk-update-fields", {
         body,
-        done: `${skus.length} product${skus.length === 1 ? "" : "s"} updated.`,
-      })
-    ) {
-      setSel(new Set());
-      setBulkCat("");
-      setBulkSub("");
-      setBulkBrand("");
+        done: isLast ? `${skus.length} product${skus.length === 1 ? "" : "s"} updated.` : undefined,
+      });
+      if (!ok) return;
     }
+    setSel(new Set());
+    setBulkCat("");
+    setBulkSub("");
+    setBulkBrand("");
   };
 
   return (
@@ -230,7 +245,7 @@ export function BulkCatalog({
         </div>
       ) : (
         <div className="overflow-x-auto overflow-y-auto rounded-[2px] border border-n200 bg-chalk" style={{ maxHeight: 620 }}>
-          <table className="w-full border-collapse text-sm" style={{ minWidth: 2260 }}>
+          <table className="w-full border-collapse text-sm" style={{ minWidth: 2340 }}>
             <thead>
               <tr>
                 <th className={`${thCls} w-10`}>
@@ -250,6 +265,7 @@ export function BulkCatalog({
                   <th key={h} className={thCls}>{h}</th>
                 ))}
                 <th className={`${thCls} text-right`}>Std price</th>
+                <th className={`${thCls} text-right`}>Qty</th>
                 {["Color", "Size", "Stock", "Photography", "Active", "Edit"].map((h) => (
                   <th key={h} className={thCls}>{h}</th>
                 ))}
@@ -296,6 +312,9 @@ export function BulkCatalog({
                       {p.msp !== null ? inr(p.msp) : <span className="text-n400">—</span>}
                     </td>
                     <td className={`${tdCls} whitespace-nowrap num text-right`}>{inr(p.std)}</td>
+                    <td className={`${tdCls} whitespace-nowrap num text-right ${p.qty === 0 ? "font-semibold text-warn" : "text-ink"}`}>
+                      {p.qty}
+                    </td>
                     <td className={`${tdCls} whitespace-nowrap text-[12px] text-ink`}>
                       {p.color ?? <span className="text-n400">—</span>}
                     </td>

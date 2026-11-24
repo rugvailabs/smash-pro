@@ -152,6 +152,13 @@ export const products = pgTable("products", {
    *  controls catalogue visibility, `inStock` flags temporary unavailability
    *  of a still-listed product. Defaults true (unknown = assumed available). */
   inStock: boolean("in_stock").notNull().default(true),
+  /** ADR-0019: unit count on hand. A supplier stock sheet often lists the
+   *  same product as several identical repeated rows (one per physical
+   *  unit) rather than one row with a count — bulkImportProducts collapses
+   *  exact duplicates (same name/sub/colour/size/prices/GST/group) into a
+   *  single product row with `qty` set to how many repeats it found.
+   *  Defaults 1 for a normal single-unit row / anything predating this field. */
+  qty: integer("qty").notNull().default(1),
   active: boolean("active").notNull().default(true),
 });
 

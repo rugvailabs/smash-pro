@@ -19,6 +19,7 @@ export async function POST(req: Request) {
       color?: string | null;
       size?: string | null;
       inStock?: boolean;
+      qty?: number;
       groupKey?: string | null;
     };
     for (const k of ["sku", "name", "catSlug", "sub"] as const) {
@@ -45,6 +46,7 @@ export async function POST(req: Request) {
       color: body.color ?? null,
       size: body.size ?? null,
       inStock: body.inStock,
+      qty: body.qty,
       groupKey: body.groupKey ?? null,
     });
     return json(out);

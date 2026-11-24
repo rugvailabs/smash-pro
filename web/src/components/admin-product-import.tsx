@@ -81,7 +81,7 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
 
   const [committing, setCommitting] = useState(false);
   const [commitError, setCommitError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ created: number; failed: { sku: string; error: string }[] } | null>(null);
+  const [result, setResult] = useState<{ created: number; mergedDuplicates: number; failed: { sku: string; error: string }[] } | null>(null);
 
   const reset = () => {
     setFile(null);
@@ -164,12 +164,12 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
         }),
       });
       const data = (await res.json().catch(() => null)) as
-        { created?: number; failed?: { sku: string; error: string }[]; error?: string } | null;
+        { created?: number; mergedDuplicates?: number; failed?: { sku: string; error: string }[]; error?: string } | null;
       if (!res.ok || !data) {
         setCommitError(data?.error ?? "The import could not be completed — please try again.");
         return;
       }
-      setResult({ created: data.created ?? 0, failed: data.failed ?? [] });
+      setResult({ created: data.created ?? 0, mergedDuplicates: data.mergedDuplicates ?? 0, failed: data.failed ?? [] });
       router.refresh();
     } catch {
       setCommitError("The import could not be completed — check your connection and try again.");
@@ -372,6 +372,9 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
             <div className="mt-2">
               <p className="text-sm text-ink">
                 <b className="num text-ok">{result.created}</b> products created
+                {result.mergedDuplicates > 0 && (
+                  <> (<b className="num">{result.mergedDuplicates}</b> repeated row{result.mergedDuplicates === 1 ? "" : "s"} merged into quantity)</>
+                )}
                 {result.failed.length > 0 && <> · <b className="num text-warn">{result.failed.length}</b> failed</>}.
               </p>
               {result.failed.length > 0 && (

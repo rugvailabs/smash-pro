@@ -75,6 +75,9 @@ export interface AdminProductRow {
   size: string | null;
   /** ADR-0015 — current sellability, separate from `active`; defaults true */
   inStock: boolean;
+  /** ADR-0019 — unit count on hand; collapsed from repeated identical import
+   *  rows. Defaults 1. */
+  qty: number;
   /** ADR-0016 — buyer-facing variant grouping key; rows sharing one are
    *  ONE catalogue card/product page with a Size/Colour picker; null until
    *  set (standalone, ungrouped product — the default). */
