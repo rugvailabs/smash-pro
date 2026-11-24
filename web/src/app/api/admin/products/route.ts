@@ -12,6 +12,7 @@ export async function POST(req: Request) {
       marginMode?: PriceMode; marginValue?: number;
       brandId?: number | null;
       img?: string | null;
+      gallery?: string[] | null;
       hsn?: string | null;
       gstPercent?: number | null;
       supplierCode?: string | null;
@@ -39,6 +40,7 @@ export async function POST(req: Request) {
       marginMode: body.marginMode!, marginValue: body.marginValue!,
       brandId: body.brandId ?? null,
       img: body.img ?? null,
+      gallery: body.gallery ?? null,
       hsn: body.hsn ?? null,
       gstPercent: body.gstPercent ?? null,
       supplierCode: body.supplierCode ?? null,

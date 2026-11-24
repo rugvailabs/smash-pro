@@ -59,6 +59,8 @@ export interface AdminProductRow {
   /** the actual path/URL, or null — lets the row's "Edit image" control
    *  show the current image as its starting value */
   img: string | null;
+  /** up to 3 additional images (4 total with `img`); empty when none set */
+  gallery: string[];
   brand: string | null;
   /** the brand's id, for pre-selecting it in an edit form; null when unbranded */
   brandId: number | null;

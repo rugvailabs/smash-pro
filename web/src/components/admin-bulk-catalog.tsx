@@ -260,13 +260,14 @@ export function BulkCatalog({
                     className="h-3.5 w-3.5 accent-ember-deep align-middle"
                   />
                 </th>
-                <th className={`${thCls} text-right`}>Sr. No.</th>
+                <th className={`${thCls} text-right`}>SR.NO</th>
+                <th className={thCls}>Images</th>
                 {["SKU", "Product", "Group", "HSN", "GST %", "Category", "Sub", "Brand", "Supplier code", "MSP"].map((h) => (
                   <th key={h} className={thCls}>{h}</th>
                 ))}
                 <th className={`${thCls} text-right`}>Std price</th>
                 <th className={`${thCls} text-right`}>Qty</th>
-                {["Color", "Size", "Stock", "Photography", "Active", "Edit"].map((h) => (
+                {["Color", "Size", "Stock", "Active", "Edit"].map((h) => (
                   <th key={h} className={thCls}>{h}</th>
                 ))}
               </tr>
@@ -286,6 +287,7 @@ export function BulkCatalog({
                       />
                     </td>
                     <td className={`${tdCls} num text-right text-n600`}>{i + 1}</td>
+                    <td className={tdCls}><ProductThumbnail img={p.img} galleryCount={p.gallery.length} /></td>
                     <td className={`${tdCls} font-mono text-[12.5px] text-ink`}>{p.sku}</td>
                     <td className={tdCls}>
                       {p.name}
@@ -322,7 +324,6 @@ export function BulkCatalog({
                       {p.size ?? <span className="text-n400">—</span>}
                     </td>
                     <td className={tdCls}><InStockToggle sku={p.sku} inStock={p.inStock} /></td>
-                    <td className={tdCls}><ProductThumbnail img={p.img} /></td>
                     <td className={tdCls}><ActiveToggle sku={p.sku} active={p.active} /></td>
                     <td className={tdCls}><EditProductButton product={p} brands={brands} /></td>
                   </tr>

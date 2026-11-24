@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { ActionError, useAdminCall } from "@/components/admin-actions";
 import { ADMIN_CATEGORIES, AuditNote, btnEmberSm, btnGhostSm, inputCls, labelCls } from "@/components/admin-ui";
-import { ImagePathField, isImgPathPlausible } from "@/components/admin-image-field";
+import { isImgPathPlausible } from "@/components/admin-image-field";
+import { ProductImagesField } from "@/components/admin-product-images-field";
 import { Modal } from "@/components/modal";
 import { resolveToPaise, type PriceMode } from "@/lib/pricing-calc";
 import { inr } from "@/lib/format";
@@ -46,6 +47,7 @@ export function EditProductButton({
   const [meta, setMeta] = useState(product.meta);
   const [brandId, setBrandId] = useState(product.brandId !== null ? String(product.brandId) : "");
   const [img, setImg] = useState(product.img ?? "");
+  const [gallery, setGallery] = useState<string[]>(product.gallery);
   const [std, setStd] = useState(String(product.std));
   const [hsn, setHsn] = useState(product.hsn ?? "");
   const [gstPercent, setGstPercent] = useState(product.gstPercent !== null ? String(product.gstPercent) : "");
@@ -68,6 +70,7 @@ export function EditProductButton({
     setMeta(product.meta);
     setBrandId(product.brandId !== null ? String(product.brandId) : "");
     setImg(product.img ?? "");
+    setGallery(product.gallery);
     setStd(String(product.std));
     setHsn(product.hsn ?? "");
     setGstPercent(product.gstPercent !== null ? String(product.gstPercent) : "");
@@ -132,6 +135,7 @@ export function EditProductButton({
           name: nameTrimmed, catSlug, sub: subTrimmed, meta: metaTrimmed,
           brandId: brandId ? Number(brandId) : null,
           img: imgTrimmed || null,
+          gallery: gallery.map((g) => g.trim()).filter(Boolean),
           std: stdNum,
           hsn: hsnTrimmed || null,
           gstPercent: gstTrimmed === "" ? null : gstNum,
@@ -195,7 +199,11 @@ export function EditProductButton({
               <input id="ep-meta" type="text" value={meta} onChange={(e) => setMeta(e.target.value)} className={inputCls} />
             </div>
             <div className="sm:col-span-2">
-              <ImagePathField value={img} onChange={setImg} catSlug={catSlug} idPrefix="ep-img" />
+              <ProductImagesField
+                img={img} onImgChange={setImg}
+                gallery={gallery} onGalleryChange={setGallery}
+                catSlug={catSlug} idPrefix="ep"
+              />
             </div>
             {!hasDealerPrice && (
               <div>

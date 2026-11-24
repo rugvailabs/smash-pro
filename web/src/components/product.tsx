@@ -209,19 +209,34 @@ export function ProductCard({ p, priority = false }: { p: Product; priority?: bo
   const { role } = useRole();
   const off = cardOff(p, role);
   const href = `/product/${p.sku}`;
+  const hoverImg = p.gallery?.[0];
   return (
     <div className="group flex flex-col overflow-hidden rounded-[3px] border border-n200 bg-chalk transition-colors duration-200 hover:border-n400">
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-n100">
         <Link href={href} aria-label={p.name} className="absolute inset-0 block">
           {p.img ? (
-            <Image
-              src={p.img}
-              alt={`${p.name} — representative image`}
-              fill
-              priority={priority}
-              sizes="(max-width: 479px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 300px"
-              className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
-            />
+            <>
+              <Image
+                src={p.img}
+                alt={`${p.name} — representative image`}
+                fill
+                priority={priority}
+                sizes="(max-width: 479px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 300px"
+                className={
+                  "object-cover transition-all duration-300 ease-out group-hover:scale-[1.05] " +
+                  (hoverImg ? "group-hover:opacity-0" : "")
+                }
+              />
+              {hoverImg && (
+                <Image
+                  src={hoverImg}
+                  alt={`${p.name} — alternate image`}
+                  fill
+                  sizes="(max-width: 479px) 50vw, (max-width: 768px) 33vw, (max-width: 1280px) 25vw, 300px"
+                  className="absolute inset-0 object-cover opacity-0 transition-all duration-300 ease-out group-hover:scale-[1.05] group-hover:opacity-100"
+                />
+              )}
+            </>
           ) : (
             /* Library §4: labelled placeholder frame — no substitute imagery. */
             <div

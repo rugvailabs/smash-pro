@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import { NoteFlag, Panel, PanelHead } from "@/components/buyer-ui";
 import { ActionError, useAdminCall } from "@/components/admin-actions";
 import { ADMIN_CATEGORIES, AuditNote, btnEmber, inputCls, labelCls } from "@/components/admin-ui";
-import { ImagePathField, isImgPathPlausible } from "@/components/admin-image-field";
+import { isImgPathPlausible } from "@/components/admin-image-field";
+import { ProductImagesField } from "@/components/admin-product-images-field";
 import { resolveToPaise, visitorDiscountPct, type PriceMode } from "@/lib/pricing-calc";
 import { inr } from "@/lib/format";
 
@@ -94,6 +95,7 @@ export function ProductForm({
   });
   const [brandId, setBrandId] = useState("");
   const [img, setImg] = useState("");
+  const [gallery, setGallery] = useState<string[]>([]);
   const [purchaseMode, setPurchaseMode] = useState<PriceMode>("percent");
   const [purchaseValue, setPurchaseValue] = useState("");
   const [marginMode, setMarginMode] = useState<PriceMode>("percent");
@@ -167,6 +169,7 @@ export function ProductForm({
           marginMode, marginValue: marginNum,
           brandId: brandId ? Number(brandId) : null,
           img: imgTrimmed || null,
+          gallery: gallery.map((g) => g.trim()).filter(Boolean),
           hsn: hsnTrimmed || null,
           gstPercent: gstTrimmed === "" ? null : gstNum,
           supplierCode: supplierCodeTrimmed || null,
@@ -183,6 +186,7 @@ export function ProductForm({
       setPurchaseValue("");
       setMarginValue("");
       setImg("");
+      setGallery([]);
       setHsn("");
       setGstPercent("");
       setSupplierCode("");
@@ -244,7 +248,11 @@ export function ProductForm({
               placeholder="e.g. Alum-tanned leather · BCCI match grade" className={inputCls} />
           </div>
           <div className="sm:col-span-2">
-            <ImagePathField value={img} onChange={setImg} catSlug={form.catSlug} idPrefix="pf-img" />
+            <ProductImagesField
+              img={img} onImgChange={setImg}
+              gallery={gallery} onGalleryChange={setGallery}
+              catSlug={form.catSlug} idPrefix="pf"
+            />
           </div>
         </div>
 

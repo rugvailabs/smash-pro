@@ -70,8 +70,9 @@ export function ActiveToggle({ sku, active }: { sku: string; active: boolean }) 
 
 /** Read-only row thumbnail (or placeholder swatch) — no inline edit
  *  affordance; the full Edit action (admin-product-edit.tsx) carries the
- *  same ImagePathField for changing it. */
-export function ProductThumbnail({ img }: { img: string | null }) {
+ *  same images field for changing it. `galleryCount` shows a small "+N"
+ *  badge when the product has additional images beyond the main one. */
+export function ProductThumbnail({ img, galleryCount = 0 }: { img: string | null; galleryCount?: number }) {
   return (
     <span className="relative inline-block h-8 w-8 shrink-0 overflow-hidden rounded-[2px] border border-n200 bg-n100 align-middle">
       {img ? (
@@ -86,6 +87,14 @@ export function ProductThumbnail({ img }: { img: string | null }) {
               "repeating-linear-gradient(74deg, transparent, transparent 4px, var(--color-n200) 4px, var(--color-n200) 5px)",
           }}
         />
+      )}
+      {galleryCount > 0 && (
+        <span
+          aria-hidden
+          className="absolute bottom-0 right-0 inline-flex h-3.5 min-w-[14px] items-center justify-center rounded-tl-[2px] bg-ink px-0.5 font-mono text-[8px] font-bold leading-none text-chalk"
+        >
+          +{galleryCount}
+        </span>
       )}
     </span>
   );

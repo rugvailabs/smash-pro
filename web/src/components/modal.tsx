@@ -20,6 +20,17 @@ export function Modal({
   children: React.ReactNode;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  // Callers almost always pass an inline `onClose={() => setOpen(false)}` (a
+  // fresh function identity every render of the caller) — if that identity
+  // were in this effect's deps, ANY state change in the caller while the
+  // modal is open (e.g. typing in a field, which re-renders the caller and
+  // its onClose closure) would re-run this effect and re-steal focus onto
+  // the × button via the line below, eating every keystroke after the
+  // first. A ref sidesteps that: the effect only re-runs on open/close.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
@@ -29,7 +40,7 @@ export function Modal({
     panelRef.current?.querySelector<HTMLElement>("[data-modal-close]")?.focus();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { onClose(); return; }
+      if (e.key === "Escape") { onCloseRef.current(); return; }
       if (e.key !== "Tab" || !panelRef.current) return;
       const focusables = panelRef.current.querySelectorAll<HTMLElement>(
         'a[href], button:not([disabled]), input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -46,7 +57,7 @@ export function Modal({
       document.body.style.overflow = prevOverflow;
       prevFocus?.focus();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
 

@@ -240,7 +240,7 @@ export async function productsForAdmin(): Promise<AdminProductRow[]> {
   return rows.map((p) => ({
     sku: p.sku, name: p.name, catSlug: p.catSlug, sub: p.sub, meta: p.meta,
     std: r(p.stdPaise), active: p.active, configurable: p.configurable,
-    hasImg: p.img !== null, img: p.img,
+    hasImg: p.img !== null, img: p.img, gallery: p.gallery ?? [],
     brand: p.brandId !== null ? brandName.get(p.brandId) ?? null : null,
     brandId: p.brandId,
     hsn: p.hsn, gstPercent: p.gstPercent,
@@ -314,6 +314,16 @@ function assertImgPath(img: string): string {
   );
 }
 
+/** Up to 3 additional images (4 total with the main `img`) — same path
+ *  authority as `img` (assertImgPath), just applied to each entry. */
+function assertGallery(gallery: unknown): string[] | null {
+  if (gallery === undefined || gallery === null) return null;
+  if (!Array.isArray(gallery)) throw new Error("400:Gallery must be a list of image paths");
+  const cleaned = gallery.map((g) => String(g).trim()).filter((g) => g.length > 0);
+  if (cleaned.length > 3) throw new Error("400:Up to 3 additional images are allowed (4 total with the main image)");
+  return cleaned.length > 0 ? cleaned.map(assertImgPath) : null;
+}
+
 function assertMode(mode: unknown, label: string): PriceMode {
   if (mode !== "percent" && mode !== "fixed") {
     throw new Error(`400:${label} mode must be "percent" or "fixed"`);
@@ -368,6 +378,8 @@ export async function createProduct(input: {
   marginMode: PriceMode; marginValue: number; // ProSmash margin entry
   brandId?: number | null;
   img?: string | null;
+  /** up to 3 additional images (4 total with `img`) */
+  gallery?: string[] | null;
   hsn?: string | null;
   gstPercent?: number | null;
   supplierCode?: string | null;
@@ -413,6 +425,7 @@ export async function createProduct(input: {
     brandId = b.id;
   }
   const img = input.img ? assertImgPath(input.img) : null;
+  const gallery = assertGallery(input.gallery);
 
   // resolved server-side from the raw entries — never trust a client-submitted total.
   // Purchase price % is of MRP; margin % is of the resolved Purchase price,
@@ -438,7 +451,7 @@ export async function createProduct(input: {
     stdPaise, mrpPaise,
     purchaseMode, purchaseValue, purchasePaise,
     marginMode, marginValue, marginPaise,
-    img, gallery: null, hsn, gstPercent,
+    img, gallery, hsn, gstPercent,
     supplierCode, mspPaise, color, size, inStock, qty, groupKey,
     configurable: false, directShip: false, specs, active: true,
   });
@@ -471,7 +484,7 @@ export async function createProduct(input: {
 export async function updateProduct(
   sku: string,
   patch: {
-    active?: boolean; std?: number; img?: string | null;
+    active?: boolean; std?: number; img?: string | null; gallery?: string[] | null;
     hsn?: string | null; gstPercent?: number | null;
     supplierCode?: string | null; msp?: number | null;
     color?: string | null; size?: string | null; inStock?: boolean; qty?: number;
@@ -483,6 +496,7 @@ export async function updateProduct(
   const s = await requireAdmin();
   const nothing =
     patch.active === undefined && patch.std === undefined && patch.img === undefined &&
+    patch.gallery === undefined &&
     patch.hsn === undefined && patch.gstPercent === undefined &&
     patch.supplierCode === undefined && patch.msp === undefined &&
     patch.color === undefined && patch.size === undefined && patch.inStock === undefined &&
@@ -494,7 +508,7 @@ export async function updateProduct(
   const [p] = await db.select().from(schema.products).where(eq(schema.products.sku, sku));
   if (!p) throw new Error("404");
   const set: {
-    active?: boolean; stdPaise?: number; img?: string | null;
+    active?: boolean; stdPaise?: number; img?: string | null; gallery?: string[] | null;
     hsn?: string | null; gstPercent?: number | null;
     supplierCode?: string | null; mspPaise?: number | null;
     color?: string | null; size?: string | null; inStock?: boolean; qty?: number;
@@ -526,6 +540,9 @@ export async function updateProduct(
   }
   if (patch.img !== undefined) {
     set.img = patch.img ? assertImgPath(patch.img) : null;
+  }
+  if (patch.gallery !== undefined) {
+    set.gallery = assertGallery(patch.gallery);
   }
   if (patch.hsn !== undefined) {
     set.hsn = normalizeHsn(patch.hsn);

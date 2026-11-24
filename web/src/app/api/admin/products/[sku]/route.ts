@@ -6,7 +6,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ sku: string }
   return handle(async () => {
     const { sku } = await ctx.params;
     const body = (await req.json()) as {
-      active?: boolean; std?: number; img?: string | null;
+      active?: boolean; std?: number; img?: string | null; gallery?: string[] | null;
       hsn?: string | null; gstPercent?: number | null;
       supplierCode?: string | null; msp?: number | null;
       color?: string | null; size?: string | null; inStock?: boolean; qty?: number;
@@ -15,7 +15,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ sku: string }
       marginMode?: PriceMode; marginValue?: number;
     };
     await updateProduct(decodeURIComponent(sku).toUpperCase(), {
-      active: body.active, std: body.std, img: body.img,
+      active: body.active, std: body.std, img: body.img, gallery: body.gallery,
       hsn: body.hsn, gstPercent: body.gstPercent,
       supplierCode: body.supplierCode, msp: body.msp,
       color: body.color, size: body.size, inStock: body.inStock, qty: body.qty,
