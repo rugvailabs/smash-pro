@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import {
+  SMASH_PRO_MAPS_LINK, SMASH_PRO_PHONE_DISPLAY, SMASH_PRO_PROFILE, SMASH_PRO_TEL_LINK, SMASH_PRO_WHATSAPP_LINK,
+} from "@/lib/company-profile";
 
 export const metadata: Metadata = { title: "Support" };
 
@@ -31,10 +34,21 @@ export default function SupportPage() {
         <div className="font-display text-[15px] font-bold text-ink">Still need help?</div>
         <p className="mt-1 text-[13.5px] text-n600">Reach the sourcing team directly.</p>
         <div className="mt-3 flex flex-wrap gap-3">
-          <a href="https://wa.me/910000000000" target="_blank" rel="noopener" className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink">WhatsApp the team</a>
+          <a href={SMASH_PRO_WHATSAPP_LINK} target="_blank" rel="noopener" className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink">WhatsApp the team</a>
+          <a href={SMASH_PRO_TEL_LINK} className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink">Call {SMASH_PRO_PHONE_DISPLAY}</a>
           <a href="/#how" className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink">How ordering works</a>
         </div>
-        <p className="mt-3 font-mono text-[10px] uppercase tracking-wide text-n400">whatsapp number placeholder — pending official contact</p>
+      </div>
+
+      <div className="mt-6 rounded-[2px] border border-n200 bg-chalk p-5">
+        <div className="font-display text-[15px] font-bold text-ink">Visit the store</div>
+        <a
+          href={SMASH_PRO_MAPS_LINK} target="_blank" rel="noopener"
+          className="mt-1 block max-w-[52ch] text-[13.5px] text-n600 hover:text-ink hover:underline"
+        >
+          {SMASH_PRO_PROFILE.address}
+        </a>
+        <p className="mt-1 text-[13.5px] text-n600">{SMASH_PRO_PROFILE.hours}</p>
       </div>
     </main>
   );

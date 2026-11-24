@@ -10,6 +10,7 @@ import { VariantPicker } from "@/components/variant-picker";
 import { DetailConvertNote } from "@/components/page-bits";
 import { DetailSkeleton } from "@/components/skeletons";
 import { NoteFlag } from "@/components/buyer-ui";
+import { SMASH_PRO_WHATSAPP_LINK } from "@/lib/company-profile";
 
 /* Product detail — gallery, role-aware pricing, specs; racquets route
    through the mandatory stringing/tension/grip configurator. */
@@ -127,7 +128,7 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
               requirements — talk to the team that sources this catalogue.
             </p>
             <a
-              href="https://wa.me/910000000000"
+              href={SMASH_PRO_WHATSAPP_LINK}
               target="_blank"
               rel="noopener"
               className="mt-3 inline-flex h-10 items-center rounded-[2px] border border-n400 bg-chalk px-4 text-sm font-semibold text-ink hover:border-ink"
@@ -136,7 +137,7 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
             </a>
             <NoteFlag className="mt-2">
               assistance presentation only — enquiry intake pending business
-              approval (d12) · whatsapp number placeholder
+              approval (d12)
             </NoteFlag>
           </div>
         </div>

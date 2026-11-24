@@ -12,7 +12,7 @@ const plex = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variabl
 export const metadata: Metadata = {
   // Routes set their own title; the template brands every tab consistently.
   title: {
-    default: "SMASH PRO — Sports Equipment for Institutions",
+    default: "Smash Pro — Your Complete Sports Destination – Every Game. Every Level.",
     template: "%s · SMASH PRO",
   },
   description:

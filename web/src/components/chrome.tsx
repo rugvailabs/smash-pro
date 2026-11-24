@@ -9,6 +9,9 @@ import { MegaMenuDesktop } from "@/components/mega-menu";
 import { NavDrawer } from "@/components/nav-drawer";
 import { NotificationBell } from "@/components/notification-bell";
 import { PublicNavDesktop } from "@/components/public-nav";
+import {
+  SMASH_PRO_MAPS_LINK, SMASH_PRO_PHONE_DISPLAY, SMASH_PRO_PROFILE, SMASH_PRO_TEL_LINK, SMASH_PRO_WHATSAPP_LINK,
+} from "@/lib/company-profile";
 import type { Role } from "@/lib/types";
 
 /* ============================================================
@@ -282,6 +285,18 @@ export function SiteFooter() {
             India&rsquo;s managed B2B platform for sports equipment — built for
             schools, academies, colleges and retailers.
           </p>
+          <div className="mt-4 space-y-1.5 text-sm text-white/65">
+            <a href={SMASH_PRO_TEL_LINK} className="block hover:text-white hover:underline hover:underline-offset-[3px]">
+              {SMASH_PRO_PHONE_DISPLAY}
+            </a>
+            <a
+              href={SMASH_PRO_MAPS_LINK} target="_blank" rel="noopener"
+              className="block max-w-[34ch] hover:text-white hover:underline hover:underline-offset-[3px]"
+            >
+              {SMASH_PRO_PROFILE.address}
+            </a>
+            <p className="text-white/45">{SMASH_PRO_PROFILE.hours}</p>
+          </div>
         </div>
         {role === "supplier" ? (
           /* Suppliers get their workspace sections here — the buyer
@@ -336,7 +351,7 @@ export function SiteFooter() {
           <h5 className={col}>Support</h5>
           <ul className="space-y-2">
             <li>
-              <a className={item} href="https://wa.me/910000000000" target="_blank" rel="noopener">
+              <a className={item} href={SMASH_PRO_WHATSAPP_LINK} target="_blank" rel="noopener">
                 WhatsApp the team
               </a>
             </li>
@@ -363,11 +378,11 @@ export function SiteFooter() {
 export function WhatsAppFloat() {
   return (
     <a
-      href="https://wa.me/910000000000"
+      href={SMASH_PRO_WHATSAPP_LINK}
       target="_blank"
       rel="noopener"
-      aria-label="Chat with Smash Pro on WhatsApp (placeholder link — official number pending)"
-      title="WhatsApp contact — placeholder link, official number pending"
+      aria-label="Chat with Smash Pro on WhatsApp"
+      title="WhatsApp Smash Pro"
       className="fixed bottom-5 right-5 z-50 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-ink shadow-overlay transition-colors hover:bg-ink2 print:hidden"
     >
       <svg viewBox="0 0 24 24" aria-hidden="true" className="h-6 w-6 fill-none stroke-white" strokeWidth="1.8">
