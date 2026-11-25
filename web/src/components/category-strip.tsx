@@ -41,9 +41,13 @@ export function CategoryStrip({ categories, active }: { categories: Category[]; 
 
   return (
     <nav aria-label="Sport categories" className="border-b border-n200 bg-paper">
+      {/* outer margin matches Container exactly — the scrollable element's
+          own box (and so its native scrollbar) sits inset the same as every
+          other section, not just its card content */}
+      <div className="mx-auto w-full max-w-[1600px] px-5 min-[600px]:px-10 min-[1200px]:px-16">
       <div
         ref={railRef}
-        className="edge-fade-x mx-auto flex w-full max-w-[1600px] snap-x gap-3 overflow-x-auto scroll-pl-5 scroll-pr-5 px-5 py-3.5 min-[600px]:scroll-pl-10 min-[600px]:scroll-pr-10 min-[600px]:px-10 min-[1200px]:scroll-pl-16 min-[1200px]:scroll-pr-16 min-[1200px]:px-16"
+        className="edge-fade-x flex snap-x gap-3 overflow-x-auto scroll-pl-5 scroll-pr-5 px-5 py-3.5 min-[600px]:scroll-pl-10 min-[600px]:scroll-pr-10 min-[600px]:px-10 min-[1200px]:scroll-pl-16 min-[1200px]:scroll-pr-16 min-[1200px]:px-16"
       >
       {categories.map((c) => {
         const hero = CATEGORY_HERO[c.slug] ?? null;
@@ -97,6 +101,7 @@ export function CategoryStrip({ categories, active }: { categories: Category[]; 
           </Link>
         );
       })}
+      </div>
       </div>
     </nav>
   );

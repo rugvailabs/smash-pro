@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getFeatured, getRecommended } from "@/lib/catalog";
+import { getEquipmentPicks, getFeatured, getRecommended } from "@/lib/catalog";
+import { PRICE_BANDS } from "@/lib/filter-defs";
+import { inr } from "@/lib/format";
+import type { Product } from "@/lib/types";
 import { CATEGORIES } from "@/data/products";
 import { CATEGORY_HERO } from "@/lib/nav-catalogue";
 import { getCategoryHeroMap, getHeroSlides } from "@/server/content";
@@ -197,6 +200,78 @@ function SingleCollectionBanner({ heroMap }: { heroMap: Record<string, string | 
   );
 }
 
+/* Budget-tier browse shortcuts — real, functional links into the
+   catalogue's own price-band filter (lib/filter-defs.ts, OBD-03 standard
+   listed price), not a decorative/placeholder band. Labels and bands are
+   the single source of truth already used by the catalogue sidebar, so
+   there's no second set of thresholds to drift out of sync. */
+function PriceBandsBand() {
+  return (
+    <section className="bg-chalk py-9 md:py-12 lg:py-14">
+      <Container>
+        <Kick>Shop by budget</Kick>
+        <SectionHead title="Find the right price point." />
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+          {Object.entries(PRICE_BANDS).map(([key, b]) => (
+            <Link
+              key={key}
+              href={`/catalog?price=${key}`}
+              className="group relative flex aspect-square flex-col items-center justify-center gap-2 overflow-hidden rounded-[2px] bg-ink px-4 text-center transition-colors hover:bg-ink2 sm:aspect-[4/3]"
+            >
+              <span className="stretch-xp font-display text-[22px] font-bold leading-tight text-chalk md:text-[26px]">
+                {b.label}
+              </span>
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-ember underline-offset-4 group-hover:underline">
+                Shop now
+                <svg viewBox="0 0 24 24" aria-hidden className="h-4 w-4 fill-none stroke-current" strokeWidth="2"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </Container>
+    </section>
+  );
+}
+
+/* Cross-category equipment picks — real SKUs (lib/catalog.ts
+   getEquipmentPicks), each card showing that product's own real standard
+   price. "Onwards" only where the product carries variants, so the claim
+   matches what the PDP actually offers. */
+function EquipmentPicksBand({ items }: { items: Product[] }) {
+  if (items.length === 0) return null;
+  return (
+    <section className="bg-chalk py-9 md:py-12 lg:py-14">
+      <Container>
+        <Kick>Popular picks</Kick>
+        <SectionHead title="Gear up for the season." />
+        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+          {items.map((p) => (
+            <Link key={p.sku} href={`/product/${p.sku}`} className="group relative block aspect-[4/5] overflow-hidden rounded-[2px] bg-n100">
+              {p.img && (
+                <Image
+                  src={p.img}
+                  alt=""
+                  fill
+                  sizes="(min-width:1024px) 25vw, 50vw"
+                  className="object-cover transition-transform duration-300 ease-out group-hover:scale-[1.05]"
+                />
+              )}
+              <span aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/15 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-4 md:p-5">
+                <span className="stretch-xp block font-display text-[15px] font-bold leading-snug text-chalk md:text-[17px]">
+                  {p.name.split("—")[0].trim()}
+                </span>
+                <span className="num mt-1 block text-[13px] font-semibold text-ember md:text-[14px]">
+                  {inr(p.std)}{p.variantCount && p.variantCount > 1 ? " onwards" : ""}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </Container>
+    </section>
+  );
+}
 
 /* Fixed-row category cards (not scrollable — a set 6, matching the
    reference's tile-row placement around the hero). Real categories/
@@ -306,6 +381,7 @@ function HomeSectionsSkeleton() {
 async function HomeSections() {
   const [featured, heroMap] = await Promise.all([getFeatured(), getCategoryHeroMap()]);
   const recommended = await getRecommended(featured.map((p) => p.sku));
+  const equipmentPicks = await getEquipmentPicks([...featured, ...recommended].map((p) => p.sku));
 
   return (
     <>
@@ -341,6 +417,10 @@ async function HomeSections() {
           </p>
         </Container>
       </section>
+
+      <EquipmentPicksBand items={equipmentPicks} />
+
+      <PriceBandsBand />
 
       {/* how it works */}
       <section id="how" className="scroll-mt-32 bg-chalk py-9 md:py-12 lg:py-14">

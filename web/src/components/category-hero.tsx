@@ -29,7 +29,7 @@ export function CategoryHero({
           <span aria-hidden className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/30" />
           <span aria-hidden className="absolute inset-x-0 bottom-0 h-[3px] bg-ember" />
 
-          <div className="relative px-6 py-9 md:px-10 md:py-12 lg:px-14">
+          <div className="relative px-5 py-9 min-[600px]:px-10 md:py-12 min-[1200px]:px-16">
             <nav aria-label="Breadcrumb" className="mb-3 font-mono text-[11px] uppercase tracking-[.08em] text-white/55">
               <Link href="/" className="hover:text-white">Home</Link>
               <span className="px-1.5">/</span>

@@ -78,6 +78,15 @@ export async function getRecommended(excludeSkus: string[] = []): Promise<Produc
   return curatedRow(picks, MERCHANDISE_ROW_SIZE, excludeSkus);
 }
 
+/** Cross-category "popular picks" row for the homepage equipment band —
+ *  real, currently-active SKUs spanning different sports, each shown with
+ *  its own real standard price. `excludeSkus` keeps it from repeating
+ *  whatever Featured/Recommended already surfaced. */
+export async function getEquipmentPicks(excludeSkus: string[] = []): Promise<Product[]> {
+  const picks = ["AC-4103", "AC-4008", "BD-2104", "AT-0108"];
+  return curatedRow(picks, 4, excludeSkus);
+}
+
 /** Procurement-relevant cross-sell: same-category items only. Returns an
  *  empty list when the category has no other items — the caller hides the
  *  section rather than padding it with unrelated products. */
