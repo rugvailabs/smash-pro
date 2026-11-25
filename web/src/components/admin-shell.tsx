@@ -55,6 +55,12 @@ const NAV: { group: string; items: { href: string; label: string }[] }[] = [
       { href: "/admin/audit", label: "Audit log" },
     ],
   },
+  {
+    group: "Account",
+    items: [
+      { href: "/admin/account", label: "Login & password" },
+    ],
+  },
 ];
 
 function AdminNav() {

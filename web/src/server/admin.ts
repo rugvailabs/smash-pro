@@ -1,7 +1,8 @@
 import "server-only";
+import bcrypt from "bcryptjs";
 import { and, asc, desc, eq, inArray, isNull, like, ne } from "drizzle-orm";
 import { db, schema } from "@/server/db";
-import { audit, getSession, requireAdmin, type SessionUser } from "@/server/auth";
+import { audit, getSession, hashPassword, requireAdmin, type SessionUser } from "@/server/auth";
 import { notifyOrg } from "@/server/notifications";
 import { BUYER_TYPES, isBuyerTypeKey, type BuyerTypeKey } from "@/lib/buyer-types";
 import { resolveToPaise, visitorDiscountPct, type PriceMode } from "@/lib/pricing-calc";
@@ -2800,4 +2801,49 @@ export async function exportCsv(kind: string): Promise<{ filename: string; csv: 
     default:
       throw new Error("404");
   }
+}
+
+/* ---------- self-service account (own login email/password) ---------- */
+
+/** Fetches the row for the current session's own password hash — never
+ *  another user's, and never exposed past this module (the hash itself
+ *  is only ever compared, never returned to a caller). */
+async function currentPasswordOk(userId: number, currentPassword: string): Promise<boolean> {
+  const [row] = await db.select({ passwordHash: schema.users.passwordHash }).from(schema.users).where(eq(schema.users.id, userId));
+  if (!row) return false;
+  return bcrypt.compare(currentPassword, row.passwordHash);
+}
+
+export async function updateOwnAdminEmail(input: { currentPassword: string; newEmail: string }): Promise<void> {
+  const s = await requireAdmin();
+  const email = input.newEmail.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error("400:Enter a valid email address");
+  }
+  if (!(await currentPasswordOk(s.userId, input.currentPassword))) {
+    throw new Error("400:Current password is incorrect");
+  }
+  if (email === s.email.toLowerCase()) {
+    throw new Error("400:That's already your current email");
+  }
+  const [existing] = await db.select({ id: schema.users.id }).from(schema.users).where(eq(schema.users.email, email));
+  if (existing) throw new Error("email-taken");
+  await db.update(schema.users).set({ email }).where(eq(schema.users.id, s.userId));
+  await audit(s.userId, "account.email_change", "user", String(s.userId), { from: s.email, to: email });
+}
+
+export async function updateOwnAdminPassword(input: { currentPassword: string; newPassword: string }): Promise<void> {
+  const s = await requireAdmin();
+  if (!input.newPassword || input.newPassword.length < 8) {
+    throw new Error("400:New password must be at least 8 characters");
+  }
+  if (!(await currentPasswordOk(s.userId, input.currentPassword))) {
+    throw new Error("400:Current password is incorrect");
+  }
+  if (await currentPasswordOk(s.userId, input.newPassword)) {
+    throw new Error("400:New password must be different from your current password");
+  }
+  const newHash = await hashPassword(input.newPassword);
+  await db.update(schema.users).set({ passwordHash: newHash }).where(eq(schema.users.id, s.userId));
+  await audit(s.userId, "account.password_change", "user", String(s.userId), {});
 }

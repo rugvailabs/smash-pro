@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useRole } from "@/components/providers";
 import { Banner, NoteFlag, Panel } from "@/components/buyer-ui";
+import { PasswordInput } from "@/components/password-input";
 
 /* ============================================================
    Sign-in + registration forms (integration point I1, ADR-0004).
@@ -63,7 +64,7 @@ export function SignInForm() {
         </div>
         <div className="mb-4">
           <label className={label} htmlFor="si-pw">Password</label>
-          <input id="si-pw" type="password" autoComplete="current-password" required className={input}
+          <PasswordInput id="si-pw" autoComplete="current-password" required className={input}
             value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         {error && <Banner tone="bad" className="mb-3.5">{error}</Banner>}
@@ -221,7 +222,7 @@ export function RegisterForm({ kind }: { kind: "buyer" | "supplier" }) {
           </div>
           <div>
             <label className={label} htmlFor="rg-pw">Password (required, 8+ characters)</label>
-            <input id="rg-pw" type="password" autoComplete="new-password" required minLength={8} className={input} value={form.password} onChange={set("password")} />
+            <PasswordInput id="rg-pw" autoComplete="new-password" required minLength={8} className={input} value={form.password} onChange={set("password")} />
           </div>
         </div>
 
@@ -322,7 +323,7 @@ export function VisitorRegisterForm() {
           </div>
           <div className="sm:col-span-2">
             <label className={label} htmlFor="vr-pw">Password (required, 8+ characters)</label>
-            <input id="vr-pw" type="password" autoComplete="new-password" required minLength={8} className={input} value={form.password} onChange={set("password")} />
+            <PasswordInput id="vr-pw" autoComplete="new-password" required minLength={8} className={input} value={form.password} onChange={set("password")} />
           </div>
         </div>
         {error && <Banner tone="bad" className="mt-4">{error}</Banner>}
