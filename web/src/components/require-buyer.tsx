@@ -6,14 +6,14 @@ import { Container } from "@/components/container";
 
 /* ============================================================
    Role gate for the buyer workspace (PLT-001 role-scoped access).
-   Client-side gating is PRESENTATION ONLY in this preview — with
-   real authentication the same boundary is enforced server-side
-   via middleware/route guards, and buyer data is never served to
-   other roles at all.
+   Client-side gating is a UX convenience only — every buyer data
+   fetch is independently role-checked server-side (requireApproved),
+   so buyer data is never served to other roles regardless of what
+   this gate renders.
    ============================================================ */
 
 export function RequireBuyer({ children }: { children: React.ReactNode }) {
-  const { role, setRole, ready } = useRole();
+  const { role, ready } = useRole();
 
   if (!ready) return <main className="min-h-[50vh]" />;
 
@@ -36,7 +36,7 @@ export function RequireBuyer({ children }: { children: React.ReactNode }) {
           </p>
         ) : role === "supplier" ? (
           <p className="mb-5 text-sm text-n600">
-            You&rsquo;re previewing as a supplier. Buyer orders, payments and
+            You&rsquo;re signed in as a supplier. Buyer orders, payments and
             institutional data are never visible to supplier accounts — this
             boundary is enforced for every role.
           </p>
@@ -47,12 +47,12 @@ export function RequireBuyer({ children }: { children: React.ReactNode }) {
           </p>
         )}
         <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setRole("buyer")}
+          <Link
+            href="/signin"
             className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
           >
-            Preview as approved buyer
-          </button>
+            Sign in
+          </Link>
           <Link
             href="/catalog?cat=cricket"
             className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-5 text-sm font-semibold text-ink hover:border-ink"
@@ -60,9 +60,6 @@ export function RequireBuyer({ children }: { children: React.ReactNode }) {
             Browse the catalogue
           </Link>
         </div>
-        <p className="mt-4 font-mono text-[10px] uppercase tracking-wide text-n400">
-          preview gate — production enforces this server-side (plt-001)
-        </p>
       </div>
     </Container>
   );

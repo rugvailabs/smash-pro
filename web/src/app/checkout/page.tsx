@@ -10,7 +10,7 @@ import { getInstitution } from "@/lib/buyer-api";
 
 /* Checkout — review delivery, taxes and payment, then pay 100% in advance. */
 
-export const metadata: Metadata = { title: "Checkout" };
+export const metadata: Metadata = { title: "Checkout", robots: { index: false, follow: false } };
 
 export default function CheckoutPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)

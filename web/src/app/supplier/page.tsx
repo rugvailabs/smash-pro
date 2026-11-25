@@ -30,8 +30,7 @@ async function SupplierDashboardContent() {
     <main>
       <PageHead
         title="What needs you now"
-        sub={<>{profile.name} · 14 Nov 2026
-          <NoteFlag className="mt-1">illustrative preview data — figures &amp; amounts are sample values</NoteFlag></>}
+        sub={`${profile.name} · ${new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`}
       />
 
       <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">

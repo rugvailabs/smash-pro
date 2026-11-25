@@ -9,7 +9,7 @@ import { getOrders } from "@/lib/buyer-api";
 
 /* Orders — every order, payment and delivery, on record. */
 
-export const metadata: Metadata = { title: "Orders" };
+export const metadata: Metadata = { title: "Orders", robots: { index: false, follow: false } };
 
 export default function OrdersPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)

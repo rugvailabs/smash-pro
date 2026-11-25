@@ -17,7 +17,7 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }): Promise<Metadata> {
   const { id } = await params;
-  return { title: `Order ${decodeURIComponent(id).toUpperCase()}` };
+  return { title: `Order ${decodeURIComponent(id).toUpperCase()}`, robots: { index: false, follow: false } };
 }
 
 export default function OrderPage({ params }: { params: Promise<{ id: string }> }) {

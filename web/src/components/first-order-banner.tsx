@@ -69,7 +69,6 @@ export function FirstOrderBanner() {
             <div className="font-display text-[19px] font-bold leading-tight text-ink md:text-[22px]">
               Get your first-order benefits.
             </div>
-            <p className="mt-1 text-[13px] text-n600">Sample codes shown — not a live offer.</p>
           </div>
           <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3 md:ml-auto md:flex md:w-auto md:flex-1 md:flex-wrap md:justify-end">
             {SAMPLE_CODES.map((c) => (
@@ -84,9 +83,6 @@ export function FirstOrderBanner() {
             ))}
           </div>
         </div>
-        <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
-          preview only · qr graphic and codes are placeholders, not a functioning promotion
-        </p>
       </Container>
     </section>
   );

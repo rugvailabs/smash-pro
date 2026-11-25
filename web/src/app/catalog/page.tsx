@@ -24,7 +24,17 @@ import { getCategoryHeroMap, getCategoryIntroMap } from "@/server/content";
    approved buyers see their own applicable price/discount, visitors see the
    standard listed price. No pricing rules or records are changed here. */
 
-export const metadata: Metadata = { title: "Catalogue" };
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ cat?: string }>;
+}): Promise<Metadata> {
+  const { cat = "cricket" } = await searchParams;
+  const [category, introMap] = await Promise.all([getCategory(cat), getCategoryIntroMap()]);
+  const title = category?.name ?? "Catalogue";
+  const description = category ? (introMap[cat] || CATEGORY_INTRO[cat] || defaultIntro) : defaultIntro;
+  return { title, description, alternates: { canonical: `/catalog?cat=${cat}` } };
+}
 
 export default function CatalogPage({
   searchParams,
@@ -93,9 +103,6 @@ async function CatalogContent({
           <div className="min-w-0">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
               <CatalogSubtitle />
-              <p className="font-mono text-[10px] uppercase tracking-wide text-n400">
-                prices &amp; counts illustrative · imagery representative
-              </p>
             </div>
 
             <Suspense fallback={<div className="h-9" />}>
@@ -135,9 +142,9 @@ async function CatalogContent({
                 </div>
               ) : (
                 <div className="border border-n200 bg-chalk p-12 text-center text-[15px] text-n600">
-                  Sample data for <b className="text-ink">{title}</b> hasn&rsquo;t been
-                  added to this preview yet — browse Cricket or Badminton for the
-                  populated examples.
+                  No <b className="text-ink">{title}</b> products are listed yet —
+                  check back soon, or{" "}
+                  <Link href="/catalog" className="font-semibold text-ember-deep hover:underline">browse the full catalogue</Link>.
                 </div>
               )}
             </div>

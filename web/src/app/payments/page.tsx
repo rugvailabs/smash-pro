@@ -4,14 +4,14 @@ import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PanelSkeleton } from "@/components/skeletons";
 import { Container } from "@/components/container";
-import { Banner, Chip, NoteFlag, PageHead, type ChipTone } from "@/components/buyer-ui";
+import { Banner, Chip, PageHead, type ChipTone } from "@/components/buyer-ui";
 import { getOrders } from "@/lib/buyer-api";
 import { inr } from "@/lib/format";
 
 /* Payments & invoices — one record per order payment (OBD-21), with
    invoice/receipt references (design reference only — OBD-11 pending). */
 
-export const metadata: Metadata = { title: "Payments & invoices" };
+export const metadata: Metadata = { title: "Payments & invoices", robots: { index: false, follow: false } };
 
 const PAY_TONE: Record<string, ChipTone> = {
   confirmed: "ok", "awaiting-verification": "warn", failed: "bad", "cancelled-unpaid": "bad",
@@ -96,11 +96,6 @@ async function PaymentsContent() {
           uploaded proof. Refunds, where approved, default to the original
           payment method (OBD-21).
         </Banner>
-        <NoteFlag className="mt-3">
-          amounts illustrative · invoice &amp; receipt downloads are design
-          references only — timing &amp; format pending obd-11 · refund rules
-          admin-configurable (obd-21)
-        </NoteFlag>
       </Container>
     </RequireBuyer>
   );

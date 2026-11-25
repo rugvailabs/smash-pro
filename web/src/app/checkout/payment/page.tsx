@@ -13,7 +13,7 @@ import { getOrder } from "@/lib/buyer-api";
    OBD-21 (demo auto-confirm for online methods; proof + admin verification
    for offline). */
 
-export const metadata: Metadata = { title: "Payment" };
+export const metadata: Metadata = { title: "Payment", robots: { index: false, follow: false } };
 
 export default function PaymentPage({
   searchParams,

@@ -14,7 +14,7 @@ import { getAddresses, getBuyerAccount, getInstitution } from "@/lib/buyer-api";
    neutral illustrative prototype data — OBD-02 verification workflow is
    ◇ proposed, not established. */
 
-export const metadata: Metadata = { title: "Institution profile" };
+export const metadata: Metadata = { title: "Institution profile", robots: { index: false, follow: false } };
 
 export default function AccountPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)
@@ -55,11 +55,6 @@ async function AccountContent() {
                 <DocRow key={d.file} file={d.file} action={<Chip tone="neu">{d.state}</Chip>} />
               ))}
             </Panel>
-            <NoteFlag className="mt-2">
-              prototype data — document states are illustrative; the
-              verification workflow is ◇ proposed (obd-02) and not yet an
-              established platform capability
-            </NoteFlag>
           </div>
 
           <div>

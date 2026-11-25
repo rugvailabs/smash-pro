@@ -8,13 +8,14 @@ import { Container } from "@/components/container";
 
 /* ============================================================
    Supplier workspace shell: role gate + side navigation.
-   PLT-001 role-scoped access — client gating is presentation
-   only; production enforces this server-side. The workspace is
-   operational (work-focused), per the approved supplier previews.
+   PLT-001 role-scoped access — client gating is a UX convenience
+   only; every supplier data fetch is independently role-checked
+   server-side (requireApproved). The workspace is operational
+   (work-focused).
    ============================================================ */
 
 function SupplierGate() {
-  const { role, setRole } = useRole();
+  const { role } = useRole();
 
   return (
     <Container as="main" className="pb-16 pt-10">
@@ -27,7 +28,7 @@ function SupplierGate() {
         </h1>
         {role === "buyer" ? (
           <p className="mb-5 text-sm text-n600">
-            You&rsquo;re previewing as a buyer. Supplier requirements,
+            You&rsquo;re signed in as a buyer. Supplier requirements,
             quotations, purchase orders and payment records are never visible
             to buyer accounts — this boundary is enforced for every role.
           </p>
@@ -43,12 +44,12 @@ function SupplierGate() {
           </p>
         )}
         <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => setRole("supplier")}
+          <Link
+            href="/signin"
             className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white transition-colors hover:bg-ember-press"
           >
-            Preview as supplier
-          </button>
+            Sign in
+          </Link>
           <Link
             href="/"
             className="inline-flex h-11 items-center rounded-[2px] border border-n400 bg-chalk px-5 text-sm font-semibold text-ink hover:border-ink"
@@ -56,9 +57,6 @@ function SupplierGate() {
             Back to the site
           </Link>
         </div>
-        <p className="mt-4 font-mono text-[10px] uppercase tracking-wide text-n400">
-          preview gate — production enforces this server-side (plt-001)
-        </p>
       </div>
     </Container>
   );

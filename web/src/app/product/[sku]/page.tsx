@@ -23,8 +23,13 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { sku } = await params;
   const p = await getProduct(decodeURIComponent(sku).toUpperCase());
-  if (!p) return { title: "Product not found" };
-  return { title: p.name, description: `${p.sub} · ${p.meta} · SKU ${p.sku}` };
+  if (!p) return { title: "Product not found", robots: { index: false } };
+  return {
+    title: p.name,
+    description: `${p.name} — ${p.sub}, ${p.meta}. Wholesale pricing for institutions, schools and academies from Smash Pro.`,
+    alternates: { canonical: `/product/${p.sku}` },
+    openGraph: p.img ? { images: [{ url: p.img }] } : undefined,
+  };
 }
 
 export default function ProductPage({
@@ -48,8 +53,27 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
   // the section is omitted entirely when the category has no other items.
   const [category, related] = await Promise.all([getCategory(p.cat), getRelatedProducts(p.sku)]);
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: p.name,
+    ...(p.img ? { image: [p.img] } : {}),
+    description: `${p.sub}, ${p.meta}`,
+    sku: p.sku,
+    category: category?.name ?? p.cat,
+    brand: { "@type": "Brand", name: "Smash Pro" },
+    offers: {
+      "@type": "Offer",
+      url: `https://smashpro.in/product/${p.sku}`,
+      priceCurrency: "INR",
+      price: p.std,
+      availability: "https://schema.org/InStock",
+    },
+  };
+
   return (
     <Container as="main" className="pb-16 pt-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <div className="mb-4.5 text-[13px] text-n600">
         <Link href="/" className="hover:underline">Home</Link> /{" "}
         <Link href={`/catalog?cat=${p.cat}`} className="hover:underline">{category?.name ?? p.cat}</Link> /{" "}
@@ -80,9 +104,6 @@ async function ProductDetail({ params }: { params: Promise<{ sku: string }> }) {
                 PriceBlock instead, so it isn't shown twice. */}
             {!(p.variants && p.variants.length > 1) && <PriceBlock p={p} size="detail" />}
             <DetailConvertNote />
-            <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
-              illustrative sample pricing — configured discounts pending (OBD-20)
-            </p>
           </div>
 
           <BuyerAvailability />

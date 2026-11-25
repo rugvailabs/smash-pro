@@ -102,8 +102,7 @@ async function AdminDashboardContent() {
     <main>
       <AdminHead
         title="Operations"
-        sub={<>Approvals, sourcing, orders and money — everything that needs the team, in one pass
-          <NoteFlag className="mt-1">illustrative preview data — figures &amp; amounts are sample values</NoteFlag></>}
+        sub="Approvals, sourcing, orders and money — everything that needs the team, in one pass"
       />
 
       {/* count strip — hairline-divided cells, each a jump into its queue */}

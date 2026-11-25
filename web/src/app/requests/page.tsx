@@ -9,7 +9,7 @@ import { getRequests } from "@/lib/buyer-api";
 
 /* Product requests — BUY-007, live submission to sourcing review. */
 
-export const metadata: Metadata = { title: "Product requests" };
+export const metadata: Metadata = { title: "Product requests", robots: { index: false, follow: false } };
 
 export default function RequestsPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)

@@ -5,7 +5,7 @@ import { Container } from "@/components/container";
 
 /* Sign-in — first-party credential sessions (ADR-0004). */
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = { title: "Sign in", robots: { index: false, follow: false } };
 
 export default function SignInPage() {
   return (

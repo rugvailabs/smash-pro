@@ -13,8 +13,6 @@ import type { CartDto } from "@/server/buyer";
    - role comes from /api/auth/me (HTTP-only session cookie) —
      the server decides; this context only mirrors it for chrome
    - the cart is server-side per approved buyer (/api/cart)
-   The preview localStorage switcher is gone; the demo ribbon
-   performs real sign-ins against seeded accounts (DEMO_MODE).
    ============================================================ */
 
 /** True only after client hydration — the server snapshot is false, so the
@@ -29,14 +27,12 @@ interface RoleCtx {
   role: Role;
   email?: string;
   orgName?: string;
-  /** performs a real demo sign-in (seeded accounts) then refreshes */
-  setRole: (r: Role) => void;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
   ready: boolean;
 }
 const RoleContext = createContext<RoleCtx>({
-  role: "visitor", setRole: () => {}, signOut: async () => {}, refresh: async () => {}, ready: false,
+  role: "visitor", signOut: async () => {}, refresh: async () => {}, ready: false,
 });
 export function useRole() { return useContext(RoleContext); }
 
@@ -104,22 +100,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return () => clearTimeout(t);
   }, [refresh]);
 
-  /** Demo-account switch: a REAL sign-in/out against seeded accounts. */
-  const setRole = useCallback(
-    (r: Role) => {
-      void (async () => {
-        try {
-          await fetchJson("/api/auth/demo", { method: "POST", body: JSON.stringify({ as: r }) });
-        } catch {
-          /* demo mode off or unseeded — role stays as the server says */
-        }
-        await refresh();
-        router.refresh(); // server components re-render with the new session
-      })();
-    },
-    [refresh, router]
-  );
-
   const signOut = useCallback(async () => {
     await fetchJson("/api/auth/logout", { method: "POST" });
     await refresh();
@@ -146,8 +126,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, []);
 
   const roleValue = useMemo(
-    () => ({ role, email, orgName, setRole, signOut, refresh, ready }),
-    [role, email, orgName, setRole, signOut, refresh, ready]
+    () => ({ role, email, orgName, signOut, refresh, ready }),
+    [role, email, orgName, signOut, refresh, ready]
   );
   const cartValue = useMemo<CartCtx>(
     () => ({

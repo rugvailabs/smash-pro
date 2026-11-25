@@ -14,6 +14,29 @@ import { ProductGrid } from "@/components/product";
 import { RoleGate } from "@/components/role-gate";
 import { Bone } from "@/components/skeletons";
 import { Container } from "@/components/container";
+import { SMASH_PRO_PHONE_DISPLAY, SMASH_PRO_PROFILE } from "@/lib/company-profile";
+
+const ORG_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Smash Pro",
+  url: "https://smashpro.in",
+  logo: "https://smashpro.in/img/brand/prosmash-logo-crest-color.png",
+  description:
+    "Smash Pro is India's managed B2B platform for sports equipment — wholesale pricing and ordering for schools, academies, colleges and retailers.",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: SMASH_PRO_PROFILE.address,
+    addressRegion: SMASH_PRO_PROFILE.stateName,
+    addressCountry: "IN",
+  },
+  contactPoint: {
+    "@type": "ContactPoint",
+    telephone: SMASH_PRO_PHONE_DISPLAY,
+    contactType: "sales",
+    areaServed: "IN",
+  },
+};
 
 /* Two-journey promo band (PORTAL-PRINCIPLES §2: "Buy for your institution" /
    "Supply to Smash Pro" are the site's only conversions). The supplier half
@@ -327,6 +350,7 @@ export default function HomePage() {
   const secondHalf = CATEGORIES.slice(6, 12);
   return (
     <main>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }} />
       <FirstOrderBanner />
       {/* Hero slides and category hero images are admin-editable (ADR-0021,
           site_content table) reads — kept behind their own Suspense boundary,
@@ -397,11 +421,6 @@ async function HomeSections() {
           <Kick>Public pricing</Kick>
           <SectionHead title="Wholesale standards, in the open." more="All products →" moreHref="/catalog?cat=cricket" />
           <ProductGrid items={featured} />
-          <p className="mt-3 font-mono text-[10px] uppercase tracking-wide text-n400">
-            prices &amp; discounts are illustrative sample data — configured
-            percentages pending owner approval (OBD-20) · imagery is
-            representative, CC-licensed (see credits)
-          </p>
         </Container>
       </section>
 
@@ -410,11 +429,6 @@ async function HomeSections() {
           <Kick>Recommended</Kick>
           <SectionHead title="Recommended for institutions." more="All products →" moreHref="/catalog?cat=badminton" />
           <ProductGrid items={recommended} />
-          <p className="mt-3 font-mono text-[10px] uppercase tracking-wide text-n400">
-            prices &amp; discounts are illustrative sample data — configured
-            percentages pending owner approval (OBD-20) · imagery is
-            representative, CC-licensed (see credits)
-          </p>
         </Container>
       </section>
 

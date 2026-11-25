@@ -60,7 +60,7 @@ export function OrdersTable({ orders }: { orders: Order[] }) {
           className="h-9 w-[160px] rounded-[2px] border border-n400 bg-chalk px-2.5 font-mono text-xs text-ink placeholder:text-n400"
         />
         <span className="num ml-auto font-mono text-xs text-n600">
-          {shown.length} {shown.length === 1 ? "order" : "orders"} · preview data
+          {shown.length} {shown.length === 1 ? "order" : "orders"}
         </span>
       </div>
 

@@ -69,9 +69,6 @@ export function ProductGallery({ name, images }: { name: string; images: (string
           ))}
         </div>
       )}
-      <p className="mt-2 font-mono text-[10px] uppercase tracking-wide text-n400">
-        representative image · cc-licensed · replaced by approved product photography
-      </p>
     </div>
   );
 }

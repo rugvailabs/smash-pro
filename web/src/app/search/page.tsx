@@ -44,14 +44,9 @@ async function SearchResults({ searchParams }: { searchParams: Promise<{ q?: str
           </h1>
           <p className="num mt-0.5 text-sm text-n600">
             {q
-              ? `${results.length} ${process.env.DEMO_MODE === "1" ? "sample " : ""}${results.length === 1 ? "match" : "matches"}`
+              ? `${results.length} ${results.length === 1 ? "match" : "matches"}`
               : "Type a search above to look across the catalogue."}
           </p>
-          {process.env.DEMO_MODE === "1" && (
-            <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-n400">
-              search runs over preview sample data only
-            </p>
-          )}
         </Container>
       </div>
 

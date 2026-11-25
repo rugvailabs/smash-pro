@@ -4,14 +4,14 @@ import type { Metadata } from "next";
 import { RequireBuyer } from "@/components/require-buyer";
 import { PanelSkeleton } from "@/components/skeletons";
 import { Container } from "@/components/container";
-import { Banner, Chip, KV, NoteFlag, PageHead, Panel, PanelHead, type ChipTone } from "@/components/buyer-ui";
+import { Banner, Chip, KV, PageHead, Panel, PanelHead, type ChipTone } from "@/components/buyer-ui";
 import { getInstitution, getOrders, getRequests } from "@/lib/buyer-api";
 import { inr } from "@/lib/format";
 import type { Order } from "@/lib/types";
 
 /* Buyer dashboard — action items, recent orders, account summary. */
 
-export const metadata: Metadata = { title: "Dashboard" };
+export const metadata: Metadata = { title: "Dashboard", robots: { index: false, follow: false } };
 
 export default function DashboardPage() {
   // session-scoped data → stream behind a skeleton (Cache Components)
@@ -56,9 +56,8 @@ async function DashboardContent() {
     <RequireBuyer>
       <Container as="main" className="pb-16 pt-7">
         <PageHead
-          title={<>Good morning, St.&nbsp;Xavier&rsquo;s</>}
-          sub={<>Here&rsquo;s where your procurement stands today.
-            <NoteFlag className="mt-1">illustrative preview data — metrics &amp; amounts are sample values</NoteFlag></>}
+          title={<>Good morning, {inst.name}</>}
+          sub="Here's where your procurement stands today."
           actions={<Link href="/catalog?cat=cricket" className="inline-flex h-11 items-center rounded-[2px] bg-ember-deep px-5 text-sm font-semibold text-white hover:bg-ember-press">Browse catalogue</Link>}
         />
 

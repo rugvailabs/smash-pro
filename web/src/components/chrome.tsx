@@ -17,46 +17,9 @@ import type { Role } from "@/lib/types";
 import { Container } from "@/components/container";
 
 /* ============================================================
-   Site chrome: preview ribbon · unified header · role tab strip ·
-   pending bar · footer · WhatsApp float. Court Ink, light only.
+   Site chrome: unified header · role tab strip · pending bar ·
+   footer · WhatsApp float. Court Ink, light only.
    ============================================================ */
-
-const ROLE_LABELS: Record<Role, string> = {
-  visitor: "Visitor",
-  pending: "Registered buyer (pending)",
-  buyer: "Approved buyer",
-  supplier: "Supplier",
-  admin: "Smash Pro admin",
-};
-
-export function PreviewRibbon() {
-  const { role, setRole, email } = useRole();
-  return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 bg-n900 px-5 py-1.5 font-mono text-[11px] tracking-wide text-white/75 md:px-10 print:hidden">
-      <b className="font-medium text-white">DEMO</b>
-      {/* compact one-liner on phones; full explainer from sm: up */}
-      <span className="sm:hidden">sample data · illustrative prices</span>
-      <span className="hidden sm:inline">sample data · illustrative prices · real accounts &amp; backend</span>
-      <label className="flex items-center gap-2">
-        Demo account:
-        <select
-          aria-label="Demo account"
-          className="rounded-[2px] border border-white/25 bg-ink2 px-1.5 py-0.5 font-mono text-[11px] text-white"
-          value={role}
-          onChange={(e) => setRole(e.target.value as Role)}
-        >
-          {(Object.keys(ROLE_LABELS) as Role[]).map((r) => (
-            <option key={r} value={r}>{ROLE_LABELS[r]}</option>
-          ))}
-        </select>
-      </label>
-      {email && <span className="hidden sm:inline">{email}</span>}
-      <a className="underline-offset-2 hover:underline md:ml-auto" href="/img/LICENSES.md">
-        image credits
-      </a>
-    </div>
-  );
-}
 
 export function SiteHeader() {
   const { role: liveRole, orgName, signOut } = useRole();
@@ -379,7 +342,7 @@ export function SiteFooter() {
           <span>B2B SPORTS COMMERCE · INDIA</span>
           <span>TERMS</span>
           <span>PRIVACY</span>
-          <span className="md:ml-auto">NEXT.JS PREVIEW · COURT INK v0.2 · ALL DATA ILLUSTRATIVE</span>
+          <a href="/img/LICENSES.md" className="md:ml-auto hover:text-white/70 hover:underline">IMAGE CREDITS</a>
         </Container>
       </div>
     </footer>
