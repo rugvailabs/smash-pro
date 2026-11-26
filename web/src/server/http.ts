@@ -4,7 +4,10 @@ import { AuthError } from "@/server/auth";
 
 /* Thin route-handler wrapper: JSON in/out, uniform error mapping.
    Error("401"/"403"/"404"/"409"/"email-taken"/"cart-empty") and AuthError
-   become proper statuses — cross-role calls surface as 401/403 (PLT-001). */
+   become proper statuses — cross-role calls surface as 401/403 (PLT-001).
+   "400:"/"500:" prefixes carry a server-authored message straight to the
+   client (e.g. storage.ts's "missing env var" check) — only ever use these
+   prefixes for messages safe to show as-is, never by echoing raw input. */
 
 export function json(data: unknown, status = 200) {
   return NextResponse.json(data, { status });
@@ -23,6 +26,10 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     if (msg === "email-taken") return json({ error: "An account with this email already exists" }, 409);
     if (msg === "cart-empty") return json({ error: "Your order is empty" }, 400);
     if (msg.startsWith("400:")) return json({ error: msg.slice(4) }, 400);
+    if (msg.startsWith("500:")) {
+      console.error("[api]", e);
+      return json({ error: msg.slice(4) }, 500);
+    }
     console.error("[api]", e);
     return json({ error: "Something went wrong" }, 500);
   }
