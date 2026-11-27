@@ -177,7 +177,13 @@ function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
     // the two known name-field conventions this importer was first built
     // against, so this has to run BEFORE the looser `model` check below.
     else if (/image\s*\d|image.*path|photo/.test(t)) map.imgCols.push(c);
-    else if (/model|image/.test(t)) map.model = c;
+    // "MODEL/IMAGE" (LI-NING) and bare "Image" (HUNDRED) are this field's
+    // original two conventions; "Product Name"/"Item Name"/"Title" are the
+    // common labels a per-product template (e.g. Yonex) uses instead. Bare
+    // "name" is deliberately NOT matched here — a sheet column like "Brand
+    // Name" would false-positive on it; only the compound phrases are
+    // specific enough to trust as a default guess.
+    else if (/model|image|product\s*name|item\s*name|\btitle\b/.test(t)) map.model = c;
     else if (t === "gst") map.gstPercent = c;
     else if (/dealer/.test(t) || /w\.?\s*o\s*gst/.test(s) || /with\s*gst/.test(s)) {
       if (/w\.?\s*o\s*gst/.test(s)) map.dealerExGst = c;

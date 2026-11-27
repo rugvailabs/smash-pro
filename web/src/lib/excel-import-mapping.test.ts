@@ -156,15 +156,23 @@ test("describeColumns: lists every column with its header text and a real sample
   assert.deepEqual(columns[3], { index: 3, header: "MRP (₹)", sample: "1049" });
 });
 
-test("describeColumns: guess picks up what header-text matching recognises (Dealer, MRP (₹)), but still mis-picks itemCode onto the wrong column — exactly the case manual mapping lets an admin correct", () => {
+test("describeColumns: guess picks up what header-text matching recognises (Dealer, MRP (₹), Product Name), but still mis-picks itemCode onto the wrong column — exactly the case manual mapping lets an admin correct", () => {
   const { guess } = describeColumns(YONEXGRID);
   assert.equal(guess.dealerExGst, 4);
   assert.equal(guess.mrp, 3); // "MRP (₹)" now matches (the earlier /^mrp\b/ fix)
+  assert.equal(guess.model, 2); // "Product Name" now matches too
   // "Supplier Item Code" (col 6) loosely matches /item\s*code/ and wins over
   // the real SKU column (col 0, literally headered "SKU") — auto-detection
   // alone would import every row under the WRONG code; an admin confirming
   // the mapping (describeColumns' whole point) would point this at col 0.
   assert.equal(guess.itemCode, 6);
+});
+
+test("describeColumns: 'Product Name'/'Item Name'/'Title' are all recognised, but bare 'Name' is deliberately not (avoids a false match on something like 'Brand Name')", () => {
+  assert.equal(describeColumns([["Item Code", "Product Name", "MRP", "DEALER"]]).guess.model, 1);
+  assert.equal(describeColumns([["Item Code", "Item Name", "MRP", "DEALER"]]).guess.model, 1);
+  assert.equal(describeColumns([["Item Code", "Title", "MRP", "DEALER"]]).guess.model, 1);
+  assert.equal(describeColumns([["Item Code", "Brand Name", "MRP", "DEALER"]]).guess.model, undefined);
 });
 
 test("GST% convention: a plain whole percent (18, not 0.18) is kept as-is, not multiplied again into 1800", () => {
