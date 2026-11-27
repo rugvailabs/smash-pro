@@ -112,7 +112,7 @@ function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
     let score = 0;
     for (const cell of row) {
       const t = cellText(cell).toLowerCase();
-      if (/item\s*code/.test(t) || /^mrp$/.test(t) || /^msp$/.test(t) || /dealer/.test(t)) score++;
+      if (/item\s*code/.test(t) || /^mrp\b/.test(t) || /^msp$/.test(t) || /dealer/.test(t)) score++;
     }
     if (score > bestScore) {
       bestScore = score;
@@ -136,7 +136,7 @@ function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
       else if (/with\s*gst/.test(s)) map.dealerInclGst = c;
       else if (map.dealerExGst === undefined) map.dealerExGst = c; // single DEALER column, no sub-split
     } else if (/^msp$/.test(t)) map.msp = c;
-    else if (/^mrp$/.test(t)) map.mrp = c;
+    else if (/^mrp\b/.test(t)) map.mrp = c;
     else if (/^color$/.test(t)) map.explicitColor = c;
     else if (/size/.test(t)) map.sizeCols.push(c);
     else if (/status|stock/.test(t)) map.status = c;

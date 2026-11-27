@@ -78,6 +78,17 @@ test("two coded blocks sharing one base model get DISTINCT continuation codes (r
   for (const r of rows) assert.equal(r.groupKey, "AYTW021");
 });
 
+test("MRP header with extra text (regression: 'MRP (₹)' from a Yonex upload sheet was never detected because the match required the exact literal 'mrp', excluding every row for a 'missing MRP' it didn't actually have)", () => {
+  const grid = [
+    ["Item Code", "MODEL/IMAGE", "MRP (₹)", "DEALER", "STOCK"],
+    ["GR303I", "Yonex GR 303i", 1049, 479, "Yes"],
+  ];
+  const { rows } = parseStockSheet(grid);
+  assert.equal(rows.length, 1);
+  assert.equal(rows[0].mrp, 1049);
+  assert.equal(rows[0].warnings.includes("missing MRP"), false);
+});
+
 test("LI-NING-shape sheet: 'no stock' status is detected on a continuation row", () => {
   const { rows } = parseStockSheet(LININGRID);
   const outOfStock = rows.find((r) => r.inStock === false);
