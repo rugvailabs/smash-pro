@@ -47,3 +47,22 @@ export function normalizeMsp(value: unknown): number | null {
   }
   return Math.round(value * 100);
 }
+
+/** The product SKU — free-hand entry, no required category-prefix format.
+ *  Admin can type with or without a hyphen/case ("cr1200", "CR1200") and it
+ *  normalizes to the conventional `LETTERS-DIGITS` display ("CR-1200"); a
+ *  pure-digit SKU ("3455") is left as-is, no letters to hyphenate. Anything
+ *  that doesn't fit that shape is kept verbatim (trimmed, uppercased) —
+ *  this is deliberately not validated against any category/prefix scheme,
+ *  that's admin judgement, not a system rule (see nextSkuSequence for the
+ *  separate, still-strict auto-numbering used by bulk Excel import). */
+export function normalizeSku(value: unknown): string {
+  if (typeof value !== "string") throw new Error("400:SKU is required");
+  const cleaned = value.trim().toUpperCase().replace(/\s+/g, "");
+  if (!cleaned) throw new Error("400:SKU is required");
+  if (cleaned.length > 40) throw new Error("400:SKU must be 40 characters or fewer");
+  const m = /^([A-Z]*)-?(\d+)$/.exec(cleaned);
+  if (!m) return cleaned;
+  const [, letters, digits] = m;
+  return letters ? `${letters}-${digits}` : digits;
+}

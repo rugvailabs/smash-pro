@@ -8,7 +8,7 @@ import { BUYER_TYPES, isBuyerTypeKey, type BuyerTypeKey } from "@/lib/buyer-type
 import { resolveToPaise, visitorDiscountPct, type PriceMode } from "@/lib/pricing-calc";
 import { normalizeGstPercent, normalizeHsn } from "@/lib/product-tax-fields";
 import {
-  normalizeColor, normalizeGroupKey, normalizeMsp, normalizeSize, normalizeSupplierCode,
+  normalizeColor, normalizeGroupKey, normalizeMsp, normalizeSize, normalizeSku, normalizeSupplierCode,
 } from "@/lib/product-catalog-fields";
 import { trustedImageHosts } from "@/server/storage";
 import { SMASH_PRO_PROFILE } from "@/lib/company-profile";
@@ -392,10 +392,7 @@ export async function createProduct(input: {
   groupKey?: string | null;
 }): Promise<{ sku: string }> {
   const s = await requireAdmin();
-  const sku = input.sku.trim().toUpperCase();
-  if (!/^[A-Z]{2}-\d{4}$/.test(sku)) {
-    throw new Error("400:SKU must match the pattern AB-0000");
-  }
+  const sku = normalizeSku(input.sku);
   const name = input.name.trim();
   const sub = input.sub.trim();
   const meta = (input.meta ?? "").trim();

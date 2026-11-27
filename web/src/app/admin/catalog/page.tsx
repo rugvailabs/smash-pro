@@ -66,7 +66,7 @@ async function AdminCatalogContent() {
       <Sect>Catalogue rules</Sect>
       <div className="max-w-[640px] rounded-[2px] border border-n200 bg-chalk p-4 text-sm text-n800">
         <ul className="list-disc space-y-1.5 pl-4">
-          <li>SKU format <span className="font-mono text-[12.5px]">XX-0000</span> — the two-letter prefix matches the category.</li>
+          <li>SKU is free entry — letters+digits normalize to <span className="font-mono text-[12.5px]">XX-0000</span>, digits alone are kept as-is; matching the prefix to the category is admin convention, not enforced.</li>
           <li>Product photography is commissioned through the approved programme; no placeholder imagery is ever attached.</li>
           <li>HSN code and GST % per product (ADR-0014) are optional, admin-entered record-keeping fields only — manually typed, not auto-assigned, and not yet wired into pricing, checkout or invoices, pending OBD-20 / OBD-11 professional tax validation.</li>
           <li>Importing a supplier stock sheet (ADR-0017) always previews before saving, auto-generates SKUs, and imports hidden (inactive) by default — review pricing and activate manually.</li>

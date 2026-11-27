@@ -7,6 +7,7 @@ import { ADMIN_CATEGORIES, AuditNote, btnEmber, inputCls, labelCls } from "@/com
 import { isImgPathPlausible } from "@/components/admin-image-field";
 import { ProductImagesField } from "@/components/admin-product-images-field";
 import { resolveToPaise, visitorDiscountPct, type PriceMode } from "@/lib/pricing-calc";
+import { normalizeSku } from "@/lib/product-catalog-fields";
 import { inr } from "@/lib/format";
 
 /* ============================================================
@@ -55,8 +56,6 @@ import { inr } from "@/lib/format";
    with a Size/Colour picker, resolving to whichever SKU a buyer
    actually orders; each still has its own price/stock/HSN/GST.
    ============================================================ */
-
-const SKU_RE = /^[A-Z]{2}-\d{4}$/;
 
 function ModeToggle({
   value, onChange, idPrefix,
@@ -113,7 +112,9 @@ export function ProductForm({
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setForm({ ...form, [k]: e.target.value });
 
-  const sku = form.sku.trim().toUpperCase();
+  const normalizedSku = useMemo(() => {
+    try { return normalizeSku(form.sku); } catch { return null; }
+  }, [form.sku]);
   const imgTrimmed = img.trim();
   const imgValid = isImgPathPlausible(img);
   const mrp = parseFloat(form.mrp);
@@ -146,7 +147,7 @@ export function ProductForm({
   }, [mrp, purchaseMode, purchaseNum, marginMode, marginNum]);
 
   const canSubmit =
-    SKU_RE.test(sku) && form.name.trim().length > 0 && form.sub.trim().length > 0 &&
+    !!normalizedSku && form.name.trim().length > 0 && form.sub.trim().length > 0 &&
     imgValid &&
     Number.isFinite(mrp) && mrp > 0 &&
     Number.isFinite(purchaseNum) && purchaseNum >= 0 &&
@@ -155,7 +156,8 @@ export function ProductForm({
     !!preview && preview.visitorPaise > 0 && !busy;
 
   const submit = async () => {
-    if (!canSubmit) return;
+    if (!canSubmit || !normalizedSku) return;
+    const sku = normalizedSku;
     if (
       await call("/api/admin/products", {
         body: {
@@ -207,8 +209,12 @@ export function ProductForm({
           <div>
             <label className={labelCls} htmlFor="pf-sku">SKU (required)</label>
             <input id="pf-sku" type="text" value={form.sku} onChange={set("sku")}
-              placeholder="CR-0418" className={`${inputCls} font-mono uppercase`} />
-            <p className="mt-1 text-xs text-n600">Format XX-0000 — two-letter category code, four digits</p>
+              placeholder="e.g. CR1200 or 3455" className={`${inputCls} font-mono uppercase`} />
+            <p className="mt-1 text-xs text-n600">
+              {normalizedSku
+                ? <>Will be saved as <span className="font-mono font-semibold text-ink">{normalizedSku}</span></>
+                : "Free entry — letters+digits, or digits alone; case and a hyphen are optional."}
+            </p>
           </div>
           <div>
             <label className={labelCls} htmlFor="pf-cat">Category (required)</label>
