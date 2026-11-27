@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { detectSubcategory, parseStockSheet } from "./excel-import-mapping";
+import { describeColumns, detectSubcategory, parseStockSheet } from "./excel-import-mapping";
 
 /* ADR-0017: these grids mirror the real structure found analysing the
  * LI-NING and HUNDRED supplier stock sheets — multi-row merged headers,
@@ -135,6 +135,124 @@ test("an empty / unrecognisable sheet reports headerNotFound instead of guessing
   ]);
   assert.equal(result.headerNotFound, true);
   assert.equal(result.rows.length, 0);
+});
+
+/* ADR-0017 follow-up: manual column mapping — a sheet shaped so differently
+ * that header-text pattern-matching can't recognise it (e.g. a flat,
+ * one-row-per-SKU template with columns named "Product Name", "Category",
+ * "MRP (₹)") should still be importable once an admin confirms which
+ * column is which, rather than being permanently excluded. */
+
+const YONEXGRID = [
+  ["SKU", "Category", "Product Name", "MRP (₹)", "Dealer / Purchase Price (₹)", "GST %", "Supplier Item Code", "In Stock"],
+  ["BD-0001", "Badminton", "Yonex GR 303i", 1049, 479, 18, "GR303I", "Yes"],
+  ["BD-0002", "Badminton", "Yonex ZR 100", 1049, 479, 18, "ZR100L", "No stock"],
+];
+
+test("describeColumns: lists every column with its header text and a real sample value", () => {
+  const { columns } = describeColumns(YONEXGRID);
+  assert.equal(columns.length, 8);
+  assert.deepEqual(columns[0], { index: 0, header: "SKU", sample: "BD-0001" });
+  assert.deepEqual(columns[3], { index: 3, header: "MRP (₹)", sample: "1049" });
+});
+
+test("describeColumns: guess picks up what header-text matching recognises (Dealer, MRP (₹)), but still mis-picks itemCode onto the wrong column — exactly the case manual mapping lets an admin correct", () => {
+  const { guess } = describeColumns(YONEXGRID);
+  assert.equal(guess.dealerExGst, 4);
+  assert.equal(guess.mrp, 3); // "MRP (₹)" now matches (the earlier /^mrp\b/ fix)
+  // "Supplier Item Code" (col 6) loosely matches /item\s*code/ and wins over
+  // the real SKU column (col 0, literally headered "SKU") — auto-detection
+  // alone would import every row under the WRONG code; an admin confirming
+  // the mapping (describeColumns' whole point) would point this at col 0.
+  assert.equal(guess.itemCode, 6);
+});
+
+test("GST% convention: a plain whole percent (18, not 0.18) is kept as-is, not multiplied again into 1800", () => {
+  const grid = [
+    ["Item Code", "MODEL/IMAGE", "MRP", "DEALER", "GST %"],
+    ["GR303I", "Yonex GR 303i", 1049, 479, 18],
+  ];
+  const explicitMapping = {
+    itemCode: 0, model: 1, mrp: 2, dealerExGst: 3, gstPercent: 4, sizeCols: [], imgCols: [], headerRowsEnd: 1,
+  };
+  const { rows } = parseStockSheet(grid, explicitMapping);
+  assert.equal(rows[0].gstPercent, 18);
+});
+
+test("parseStockSheet: an explicit mapping is used as-is, recovering a sheet shape auto-detection alone would exclude every row from", () => {
+  const explicitMapping = {
+    itemCode: 0, model: 2, mrp: 3, dealerExGst: 4, gstPercent: 5, status: 7,
+    sizeCols: [], imgCols: [], headerRowsEnd: 1,
+  };
+  const { rows, headerNotFound } = parseStockSheet(YONEXGRID, explicitMapping);
+  assert.equal(headerNotFound, false);
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].supplierCode, "BD-0001");
+  assert.equal(rows[0].name, "Yonex GR 303i");
+  assert.equal(rows[0].mrp, 1049);
+  assert.equal(rows[0].dealerExGst, 479);
+  assert.equal(rows[0].gstPercent, 18);
+  assert.equal(rows[0].inStock, true);
+  assert.equal(rows[1].inStock, false);
+});
+
+test("describeColumns: auto-detects a 'Subcategory' column", () => {
+  const grid = [
+    ["SKU", "Product Name", "Subcategory", "MRP", "DEALER"],
+  ];
+  const { guess } = describeColumns(grid);
+  assert.equal(guess.sub, 2);
+});
+
+test("parseStockSheet: a mapped Subcategory column's real value always wins over the keyword/structural guess", () => {
+  const grid = [
+    ["SKU", "Product Name", "Subcategory", "MRP", "DEALER"],
+    // "Racquet" would normally match detectSubcategory's own keyword rule
+    // and guess "Rackets" — the sheet's own "Badminton Racquets" must win
+    ["BD-0001", "Yonex GR 303i Racquet", "Badminton Racquets", 1049, 479],
+  ];
+  const explicitMapping = {
+    itemCode: 0, model: 1, sub: 2, mrp: 3, dealerExGst: 4, sizeCols: [], imgCols: [], headerRowsEnd: 1,
+  };
+  const { rows } = parseStockSheet(grid, explicitMapping);
+  assert.equal(rows[0].suggestedSub, "Badminton Racquets");
+});
+
+test("describeColumns: auto-detects 'Image N Path' columns by the word 'image' in the header", () => {
+  const grid = [
+    ["SKU", "Product Name", "Image 1 Path (Hero)", "Image 2 Path (Angle/Detail)", "Image 1 Preview", "MRP", "DEALER"],
+  ];
+  const { guess } = describeColumns(grid);
+  assert.deepEqual(guess.imgCols, [2, 3, 4]);
+});
+
+test("parseStockSheet: first valid image path becomes img, the rest become gallery — a blank 'Preview' column in between is skipped, not treated as a real (empty) image", () => {
+  const grid = [
+    ["SKU", "Product Name", "Image 1 Path (Hero)", "Image 2 Path (Angle/Detail)", "Image 1 Preview", "MRP", "DEALER"],
+    ["BD-0001", "Yonex GR 303i", "/img/badminton/bd-0001-gr303i-1.jpg", "/img/badminton/bd-0001-gr303i-2.jpg", null, 1049, 479],
+  ];
+  const explicitMapping = {
+    itemCode: 0, model: 1, imgCols: [2, 3, 4], mrp: 5, dealerExGst: 6, sizeCols: [], headerRowsEnd: 1,
+  };
+  const { rows } = parseStockSheet(grid, explicitMapping);
+  assert.equal(rows[0].img, "/img/badminton/bd-0001-gr303i-1.jpg");
+  assert.deepEqual(rows[0].gallery, ["/img/badminton/bd-0001-gr303i-2.jpg"]);
+  assert.equal(rows[0].warnings.length, 0);
+});
+
+test("parseStockSheet: an image value that isn't a valid /img/... path is dropped, not stored, with a warning — not a reason to fail the whole row", () => {
+  const grid = [
+    ["SKU", "Product Name", "Image Path", "MRP", "DEALER"],
+    ["BD-0001", "Yonex GR 303i", "https://example.com/not-approved.jpg", 1049, 479],
+  ];
+  const explicitMapping = {
+    itemCode: 0, model: 1, imgCols: [2], mrp: 3, dealerExGst: 4, sizeCols: [], headerRowsEnd: 1,
+  };
+  const { rows } = parseStockSheet(grid, explicitMapping);
+  assert.equal(rows[0].img, null);
+  assert.equal(rows[0].gallery, null);
+  assert.ok(rows[0].warnings.some((w) => w.includes("image paths")));
+  assert.equal(rows[0].mrp, 1049); // the rest of the row still parses fine
 });
 
 /* subcategory auto-detection — these keyword/structural checks are

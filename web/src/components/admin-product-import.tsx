@@ -8,25 +8,33 @@ import {
 } from "@/components/admin-ui";
 import { Modal } from "@/components/modal";
 import { inr } from "@/lib/format";
+import type { ColumnDescriptor, HeaderMap } from "@/lib/excel-import-mapping";
 import type { PriceMode } from "@/lib/pricing-calc";
 
 /* ============================================================
-   ADR-0017 — bulk-import a supplier stock sheet (.xlsx). Two-step
+   ADR-0017 — bulk-import a supplier stock sheet (.xlsx). Three-step
    flow, never a blind insert:
-     1. Upload + "Analyse" — server parses the file (ExcelJS +
-        lib/excel-import-mapping.ts) and returns a PREVIEW only; no
-        DB write happens here. Candidate SKUs, parsed MRP/dealer/MSP/
-        GST/colour/size/stock, a per-row groupKey, and a best-effort
-        suggestedSub (rackets/shoes/bags/apparel…, detectSubcategory)
-        are all shown for review before anything is committed — the
-        subcategory guess is editable per displayed row.
-     2. Batch config (category/brand/margin apply to the whole batch;
-        the default subcategory only fills rows with no suggestion)
-        + "Import" — commits via bulkImportProducts(). Rows missing
-        required pricing are automatically excluded and reported, not
-        silently guessed. Imports as inactive by default (admin
-        reviews pricing before publishing) unless "Activate
-        immediately" is checked.
+     1. Upload — server reads the file's columns (ExcelJS +
+        lib/excel-import-mapping.ts describeColumns()) and returns
+        every column's header text + one real sample value, plus a
+        best-effort auto-detected field mapping. No DB write, no row
+        parsing yet.
+     2. Confirm column mapping (ADR-0017 follow-up) — every supplier
+        sheet labels the same column differently (MRP vs "MRP (₹)" vs
+        "Rate"; Item Code vs SKU vs "Product Code"…), so rather than
+        permanently excluding an unrecognised sheet shape (patched
+        reactively, one regex at a time, forever), the admin confirms
+        or corrects which column is which before anything is parsed.
+        The auto-guess pre-fills every field; a well-labeled sheet
+        usually needs zero changes here.
+     3. Preview (using the confirmed mapping) + batch config
+        (category/brand/margin apply to the whole batch; the default
+        subcategory only fills rows with no suggestion) + "Import" —
+        commits via bulkImportProducts(). Rows missing required
+        pricing are automatically excluded and reported, not silently
+        guessed. Imports as inactive by default (admin reviews
+        pricing before publishing) unless "Activate immediately" is
+        checked.
    ============================================================ */
 
 interface PreviewRow {
@@ -48,6 +56,8 @@ interface PreviewRow {
    *  null when the sheet gave no usable signal for this row; admin can
    *  edit the shown rows below, or leave it and fix per-product later. */
   suggestedSub: string | null;
+  img: string | null;
+  gallery: string[] | null;
 }
 
 interface Preview {
@@ -65,7 +75,14 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
   const [skuPrefix, setSkuPrefix] = useState("BD");
   const [analyzing, setAnalyzing] = useState(false);
   const [analyzeErr, setAnalyzeErr] = useState<string | null>(null);
+  // step 1 result: every column this sheet has, auto-detected guess included
+  const [columns, setColumns] = useState<ColumnDescriptor[] | null>(null);
+  // step 2: the admin-confirmed (or still-default) mapping — null only
+  // before step 1 completes
+  const [mapping, setMapping] = useState<HeaderMap | null>(null);
   const [preview, setPreview] = useState<Preview | null>(null);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewErr, setPreviewErr] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   // admin edits to the auto-detected per-row subcategory, keyed by sku —
   // only the displayed (capped) rows are editable here; everything else
@@ -85,8 +102,11 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
 
   const reset = () => {
     setFile(null);
+    setColumns(null);
+    setMapping(null);
     setPreview(null);
     setAnalyzeErr(null);
+    setPreviewErr(null);
     setResult(null);
     setSub("");
     setBrandId("");
@@ -97,7 +117,9 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
   };
   const close = () => { setOpen(false); reset(); };
 
-  const analyze = async () => {
+  /** Step 1: read the sheet's columns (header text + a sample value) and
+   *  the best-effort auto-detected mapping — no row parsing yet. */
+  const loadColumns = async () => {
     if (!file) return;
     const prefix = skuPrefix.trim().toUpperCase();
     if (!/^[A-Z]{2}$/.test(prefix)) {
@@ -106,28 +128,79 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
     }
     setAnalyzing(true);
     setAnalyzeErr(null);
+    setColumns(null);
+    setMapping(null);
     setPreview(null);
     setResult(null);
     try {
       const fd = new FormData();
       fd.append("file", file);
-      fd.append("skuPrefix", prefix);
-      const res = await fetch("/api/admin/products/import/preview", { method: "POST", body: fd });
-      const data = (await res.json().catch(() => null)) as Preview & { error?: string } | null;
-      if (!res.ok || !data) {
-        setAnalyzeErr((data as { error?: string } | null)?.error ?? "Could not read this file — please try again.");
+      const res = await fetch("/api/admin/products/import/columns", { method: "POST", body: fd });
+      const data = (await res.json().catch(() => null)) as { columns?: ColumnDescriptor[]; guess?: HeaderMap; error?: string } | null;
+      if (!res.ok || !data?.columns || !data.guess) {
+        setAnalyzeErr(data?.error ?? "Could not read this file — please try again.");
         return;
       }
-      if (data.headerNotFound) {
-        setAnalyzeErr("Couldn't find a recognisable header row (Item Code / MRP / Dealer / MSP) in this file.");
-        return;
-      }
-      setPreview(data);
+      setColumns(data.columns);
+      setMapping(data.guess);
     } catch {
       setAnalyzeErr("Upload failed — check your connection and try again.");
     } finally {
       setAnalyzing(false);
     }
+  };
+
+  /** Step 2 → 3: parse using the admin-confirmed mapping. */
+  const confirmMappingAndPreview = async () => {
+    if (!file || !mapping) return;
+    const prefix = skuPrefix.trim().toUpperCase();
+    setPreviewing(true);
+    setPreviewErr(null);
+    setPreview(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("skuPrefix", prefix);
+      fd.append("mapping", JSON.stringify(mapping));
+      const res = await fetch("/api/admin/products/import/preview", { method: "POST", body: fd });
+      const data = (await res.json().catch(() => null)) as Preview & { error?: string } | null;
+      if (!res.ok || !data) {
+        setPreviewErr((data as { error?: string } | null)?.error ?? "Could not read this file — please try again.");
+        return;
+      }
+      if (data.headerNotFound || data.rows.length === 0) {
+        setPreviewErr("No product rows found with this mapping — check the SKU/Item Code column is set correctly.");
+        return;
+      }
+      setPreview(data);
+    } catch {
+      setPreviewErr("Upload failed — check your connection and try again.");
+    } finally {
+      setPreviewing(false);
+    }
+  };
+
+  const setMappingField = (field: keyof Omit<HeaderMap, "sizeCols" | "imgCols" | "headerRowsEnd">, value: string) => {
+    setMapping((m) => (m ? { ...m, [field]: value === "" ? undefined : Number(value) } : m));
+  };
+  const singleSizeCol = mapping?.sizeCols[0];
+  const setSizeCol = (value: string) => {
+    setMapping((m) => (m ? { ...m, sizeCols: value === "" ? [] : [Number(value)] } : m));
+  };
+
+  // Main image + one additional image, same imgCols array underneath —
+  // the parser takes whichever columns here actually have a value per row
+  // (so a "Preview" column left mapped but always blank is harmless), in
+  // the order given.
+  const [mainImgCol, secondImgCol] = mapping?.imgCols ?? [];
+  const setImgCol = (slot: 0 | 1, value: string) => {
+    setMapping((m) => {
+      if (!m) return m;
+      const next = [...m.imgCols];
+      if (value === "") next.splice(slot, 1);
+      else next[slot] = Number(value);
+      return { ...m, imgCols: next.filter((v) => v !== undefined) };
+    });
   };
 
   const importableRows = preview?.rows.filter((r) => r.importable) ?? [];
@@ -190,7 +263,7 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
             Upload a supplier stock sheet (.xlsx) — rows are previewed before anything is saved.
           </p>
 
-          {!result && (
+          {!columns && !result && (
             <div className="grid gap-3.5 sm:grid-cols-[1fr_140px_140px] sm:items-end">
               <div>
                 <label className={labelCls} htmlFor="imp-file">Stock sheet (.xlsx)</label>
@@ -209,16 +282,126 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                   className={`${inputCls} font-mono uppercase`}
                 />
               </div>
-              <button onClick={() => void analyze()} disabled={!file || analyzing} className={`${btnEmber} w-full`}>
-                {analyzing ? "Analysing…" : "Analyse file"}
+              <button onClick={() => void loadColumns()} disabled={!file || analyzing} className={`${btnEmber} w-full`}>
+                {analyzing ? "Reading file…" : "Analyse file"}
               </button>
             </div>
           )}
           {analyzeErr && <ActionError error={analyzeErr} />}
 
+          {columns && mapping && !preview && !result && (
+            <>
+              <div className="mt-1 rounded-[2px] border border-n200 bg-n100 p-3.5 text-[13px] text-n800">
+                <p className="mb-3">
+                  We found <b className="num">{columns.length}</b> columns in this file — confirm (or
+                  correct) which one is which before we parse any rows. Every dropdown is pre-filled
+                  with our best guess; a well-labeled sheet usually needs no changes.
+                </p>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {(
+                    [
+                      ["itemCode", "SKU / Item Code"],
+                      ["model", "Product Name"],
+                      ["sub", "Subcategory"],
+                      ["mrp", "MRP"],
+                      ["dealerExGst", "Dealer / Purchase Price"],
+                      ["gstPercent", "GST %"],
+                      ["msp", "MSP"],
+                      ["explicitColor", "Color"],
+                      ["status", "In Stock / Status"],
+                    ] as const
+                  ).map(([field, label]) => (
+                    <div key={field}>
+                      <label className={labelCls} htmlFor={`imp-map-${field}`}>{label}</label>
+                      <select
+                        id={`imp-map-${field}`}
+                        value={mapping[field] ?? ""}
+                        onChange={(e) => setMappingField(field, e.target.value)}
+                        className={inputCls}
+                      >
+                        <option value="">— not in this file —</option>
+                        {columns.map((c) => (
+                          <option key={c.index} value={c.index}>
+                            {c.header}{c.sample ? ` — e.g. "${c.sample}"` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                  <div>
+                    <label className={labelCls} htmlFor="imp-map-size">Size</label>
+                    <select
+                      id="imp-map-size"
+                      value={singleSizeCol ?? ""}
+                      onChange={(e) => setSizeCol(e.target.value)}
+                      className={inputCls}
+                    >
+                      <option value="">— not in this file —</option>
+                      {columns.map((c) => (
+                        <option key={c.index} value={c.index}>
+                          {c.header}{c.sample ? ` — e.g. "${c.sample}"` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls} htmlFor="imp-map-img1">Main image</label>
+                    <select
+                      id="imp-map-img1"
+                      value={mainImgCol ?? ""}
+                      onChange={(e) => setImgCol(0, e.target.value)}
+                      className={inputCls}
+                    >
+                      <option value="">— not in this file —</option>
+                      {columns.map((c) => (
+                        <option key={c.index} value={c.index}>
+                          {c.header}{c.sample ? ` — e.g. "${c.sample}"` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="mt-1 text-xs text-n600">Only an approved /img/... path is kept — anything else is dropped, not stored.</p>
+                  </div>
+                  <div>
+                    <label className={labelCls} htmlFor="imp-map-img2">Additional image</label>
+                    <select
+                      id="imp-map-img2"
+                      value={secondImgCol ?? ""}
+                      onChange={(e) => setImgCol(1, e.target.value)}
+                      className={inputCls}
+                    >
+                      <option value="">— not in this file —</option>
+                      {columns.map((c) => (
+                        <option key={c.index} value={c.index}>
+                          {c.header}{c.sample ? ` — e.g. "${c.sample}"` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                {mapping.itemCode === undefined && (
+                  <p className="mt-3 text-xs font-medium text-warn">
+                    SKU / Item Code isn&rsquo;t mapped — without it, rows can&rsquo;t be told apart and
+                    none will import. Pick a column above.
+                  </p>
+                )}
+              </div>
+              {previewErr && <ActionError error={previewErr} />}
+              <div className="mt-4 flex gap-2.5">
+                <button
+                  onClick={() => void confirmMappingAndPreview()}
+                  disabled={mapping.itemCode === undefined || previewing}
+                  className={btnEmber}
+                >
+                  {previewing ? "Reading rows…" : "Looks right, continue"}
+                </button>
+                <button onClick={reset} className={btnGhostSm}>Choose a different file</button>
+              </div>
+            </>
+          )}
+
           {preview && !result && (
             <>
-              <div className="mt-4 rounded-[2px] border border-n200 bg-n100 p-3.5 text-[13px]">
+              <div className="mt-4 flex items-center justify-between rounded-[2px] border border-n200 bg-n100 p-3.5 text-[13px]">
                 <p>
                   <b className="num text-ink">{preview.rows.length}</b> product rows found ·{" "}
                   <b className="num text-ok">{importableRows.length}</b> ready to import ·{" "}
@@ -234,13 +417,19 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                     into a subcategory (edit below, or leave the rest on the batch default)</>
                   )}
                 </p>
+                <button
+                  onClick={() => setPreview(null)}
+                  className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-n600 underline-offset-2 hover:text-ink hover:underline"
+                >
+                  Edit column mapping
+                </button>
               </div>
 
               <div className="mt-3 max-h-[320px] overflow-auto rounded-[2px] border border-n200">
                 <table className="w-full border-collapse text-sm" style={{ minWidth: 1080 }}>
                   <thead>
                     <tr>
-                      {["Row", "SKU", "Supplier code", "Group", "Name", "Color", "Size", "MRP", "Dealer", "MSP", "GST%", "Stock", "Subcategory", "Status"].map((h) => (
+                      {["Row", "SKU", "Supplier code", "Group", "Name", "Image", "Color", "Size", "MRP", "Dealer", "MSP", "GST%", "Stock", "Subcategory", "Status"].map((h) => (
                         <th key={h} className={thCls}>{h}</th>
                       ))}
                     </tr>
@@ -253,6 +442,15 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                         <td className={`${tdCls} font-mono text-[12px]`}>{r.supplierCode}</td>
                         <td className={`${tdCls} font-mono text-[12px] text-n600`}>{r.groupKey}</td>
                         <td className={tdCls}>{r.name}</td>
+                        <td className={tdCls}>
+                          {r.img ? (
+                            <span className="text-ok" title={r.img}>
+                              ✓{r.gallery && r.gallery.length > 0 ? ` +${r.gallery.length}` : ""}
+                            </span>
+                          ) : (
+                            <span className="text-n400">—</span>
+                          )}
+                        </td>
                         <td className={tdCls}>{r.color ?? <span className="text-n400">—</span>}</td>
                         <td className={tdCls}>{r.size ?? <span className="text-n400">—</span>}</td>
                         <td className={`${tdCls} num text-right`}>{r.mrp !== null ? inr(r.mrp) : "—"}</td>

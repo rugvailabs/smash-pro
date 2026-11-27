@@ -634,6 +634,13 @@ export interface ImportCommitRow {
   /** per-row subcategory (auto-detected or admin-edited in the preview) —
    *  falls back to the batch default, then "Imported", when absent. */
   sub?: string | null;
+  /** sheet-provided image path(s) (ADR-0017 follow-up — column mapping can
+   *  now point at a supplier template's own image-path columns, e.g. a
+   *  Yonex upload sheet's "Image 1/2 Path"); same assertImgPath authority
+   *  as the Add Product form — an approved `/img/...` path only, never
+   *  trusted as an arbitrary external URL. */
+  img?: string | null;
+  gallery?: string[] | null;
 }
 
 /** Bulk-creates products from a parsed supplier stock sheet (ADR-0017 —
@@ -723,6 +730,11 @@ export async function bulkImportProducts(input: {
       const rowSubTrimmed = (r.sub ?? "").trim();
       if (rowSubTrimmed.length > 120) throw new Error("400:Subcategory must be 120 characters or fewer");
       const sub = rowSubTrimmed || defaultSub;
+      // already filtered to approved /img/... paths by the parser
+      // (lib/excel-import-mapping.ts) — re-validated here anyway, same
+      // authority as every other image-setting path in this app.
+      const img = r.img ? assertImgPath(r.img) : null;
+      const gallery = assertGallery(r.gallery);
 
       seenSku.add(r.sku);
       // groupKey is deliberately NOT part of this key — real supplier sheets
@@ -742,7 +754,7 @@ export async function bulkImportProducts(input: {
             stdPaise, mrpPaise,
             purchaseMode: "fixed", purchaseValue: r.dealerExGst, purchasePaise,
             marginMode, marginValue, marginPaise,
-            img: null, gallery: null, hsn: null, gstPercent,
+            img, gallery, hsn: null, gstPercent,
             supplierCode, mspPaise, color, size, inStock: r.inStock, groupKey,
             configurable: false, directShip: false, specs: [], active: input.activate,
           },

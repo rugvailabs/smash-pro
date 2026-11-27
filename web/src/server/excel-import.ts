@@ -2,7 +2,7 @@ import "server-only";
 import ExcelJS from "exceljs";
 import { requireAdmin } from "@/server/auth";
 import { nextSkuSequence } from "@/server/admin";
-import { parseStockSheet, type ImportedRow } from "@/lib/excel-import-mapping";
+import { describeColumns, parseStockSheet, type ColumnDescriptor, type HeaderMap, type ImportedRow } from "@/lib/excel-import-mapping";
 
 /* ============================================================
    ADR-0017 — reads an admin-uploaded supplier stock sheet (.xlsx) into
@@ -60,15 +60,58 @@ async function readGrid(buffer: ArrayBuffer): Promise<CellValue[][]> {
   return grid;
 }
 
+export interface ImportColumns {
+  columns: ColumnDescriptor[];
+  guess: HeaderMap;
+}
+
+/** Reads an uploaded stock sheet's columns (header text + a real sample
+ *  value) and the best-effort auto-detected mapping, for the admin to
+ *  confirm/correct before parsing (ADR-0017 follow-up — column mapping). */
+export async function getImportColumns(buffer: ArrayBuffer): Promise<ImportColumns> {
+  await requireAdmin();
+  const grid = await readGrid(buffer);
+  return describeColumns(grid);
+}
+
+/** Coerces an admin-submitted mapping (arbitrary JSON from the client) into
+ *  a safe HeaderMap — out-of-range or non-numeric column indices are
+ *  dropped rather than trusted, same spirit as every other admin-input
+ *  validator in this app; a malformed field just parses as absent instead
+ *  of throwing, since worst case is a row missing a value it would
+ *  otherwise have had (caught by the existing per-row warnings), not a
+ *  broken import. */
+function sanitizeMapping(raw: unknown, columnCount: number): HeaderMap | undefined {
+  if (raw === null || typeof raw !== "object") return undefined;
+  const r = raw as Record<string, unknown>;
+  const col = (v: unknown): number | undefined =>
+    typeof v === "number" && Number.isInteger(v) && v >= 0 && v < columnCount ? v : undefined;
+  const map: HeaderMap = {
+    itemCode: col(r.itemCode), model: col(r.model), gstPercent: col(r.gstPercent), sub: col(r.sub),
+    dealerExGst: col(r.dealerExGst), dealerInclGst: col(r.dealerInclGst), msp: col(r.msp),
+    mrp: col(r.mrp), explicitColor: col(r.explicitColor), status: col(r.status),
+    sizeCols: Array.isArray(r.sizeCols) ? r.sizeCols.map(col).filter((v): v is number => v !== undefined) : [],
+    imgCols: Array.isArray(r.imgCols) ? r.imgCols.map(col).filter((v): v is number => v !== undefined) : [],
+    headerRowsEnd: typeof r.headerRowsEnd === "number" && Number.isInteger(r.headerRowsEnd) && r.headerRowsEnd >= 0
+      ? r.headerRowsEnd : 1,
+  };
+  return map;
+}
+
 /** Parses an uploaded stock sheet and assigns each row a candidate SKU
- *  (continuing the existing `<prefix>-####` sequence) — preview only. */
-export async function previewImport(buffer: ArrayBuffer, skuPrefix: string): Promise<ImportPreview> {
+ *  (continuing the existing `<prefix>-####` sequence) — preview only.
+ *  `mapping` — an admin-confirmed column mapping from getImportColumns();
+ *  when present, it's used instead of auto-detecting headers from label
+ *  text (see parseStockSheet). */
+export async function previewImport(buffer: ArrayBuffer, skuPrefix: string, mapping?: unknown): Promise<ImportPreview> {
   await requireAdmin();
   const prefix = skuPrefix.trim().toUpperCase();
   if (!/^[A-Z]{2}$/.test(prefix)) throw new Error("400:SKU prefix must be two letters");
 
   const grid = await readGrid(buffer);
-  const { rows, skippedBlankRows, headerNotFound } = parseStockSheet(grid);
+  const columnCount = Math.max(0, ...grid.map((row) => row.length));
+  const explicitMapping = mapping !== undefined ? sanitizeMapping(mapping, columnCount) : undefined;
+  const { rows, skippedBlankRows, headerNotFound } = parseStockSheet(grid, explicitMapping);
   if (headerNotFound) return { rows: [], skippedBlankRows, headerNotFound: true };
   if (rows.length === 0) return { rows: [], skippedBlankRows, headerNotFound: false };
 

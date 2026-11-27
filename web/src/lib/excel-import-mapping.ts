@@ -45,7 +45,21 @@ export interface ImportedRow {
   /** best-effort subcategory guess (see detectSubcategory) — null when no
    *  signal was found; admin confirms/overrides before commit either way */
   suggestedSub: string | null;
+  /** main product image — only ever a path under the approved `/img/...`
+   *  library tree (IMG_PATH_RE below), same authority as assertImgPath in
+   *  server/admin.ts; a sheet-provided path that doesn't match is dropped
+   *  (not a row failure — it's an optional field) with a warning. */
+  img: string | null;
+  /** additional images beyond the first, same path authority as `img`. */
+  gallery: string[] | null;
 }
+
+/** Mirrors assertImgPath in server/admin.ts / IMG_RE in
+ *  admin-image-field.tsx — kept as a local constant rather than imported so
+ *  this file stays a dependency-free pure module; the real authority at
+ *  commit time is still assertImgPath, this is just an early filter so an
+ *  obviously-malformed sheet value doesn't get stored as if it were real. */
+const IMG_PATH_RE = /^\/img\/[a-z0-9/_-]+\.(jpg|jpeg|png|webp)$/i;
 
 export interface ParseResult {
   rows: ImportedRow[];
@@ -77,7 +91,7 @@ function looksLikeSize(v: Cell): boolean {
   return Number.isFinite(n) && n > 0 && n <= 60 && Math.abs(n * 2 - Math.round(n * 2)) < 1e-9;
 }
 
-interface HeaderMap {
+export interface HeaderMap {
   itemCode?: number;
   model?: number;
   gstPercent?: number;
@@ -93,20 +107,40 @@ interface HeaderMap {
    *  one (e.g. LI-NING) the same column slot is reused for finish/colour
    *  text on non-footwear rows, so these are resolved per-row instead. */
   sizeCols: number[];
+  /** every column whose header mentions "image" (e.g. "Image 1 Path
+   *  (Hero)", "Image 2 Path (Angle/Detail)") — first becomes `img`, the
+   *  rest become `gallery`, in column order. */
+  imgCols: number[];
+  /** an explicit per-row "Subcategory" column, when the sheet carries one
+   *  (e.g. a per-product template, unlike LI-NING/HUNDRED's raw stock
+   *  sheets which never do) — always wins over the keyword/structural
+   *  guess in detectSubcategory(), since real sheet data beats a guess. */
+  sub?: number;
   status?: number;
   headerRowsEnd: number; // first row index (0-based) after the header block
 }
 
-/** Scans the first `maxScan` rows for recognisable header text, combining
- *  a top label row (e.g. "DEALER", "MRP") with the sub-label row directly
- *  below it (e.g. "W.O GST", "With GST") when present. Returns undefined
- *  columns for anything not found — callers treat those as absent, not an
- *  error (e.g. HUNDRED has no GST % column at all). */
-function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
-  const map: HeaderMap = { headerRowsEnd: 0, sizeCols: [] };
+/** One column as shown to an admin confirming/correcting the auto-detected
+ *  mapping — see describeColumns() below. */
+export interface ColumnDescriptor {
+  index: number;
+  /** best-available label for this column — the detected header text, or a
+   *  positional fallback ("Column 3") when the sheet has none. */
+  header: string;
+  /** one real value from the first data row, for a human to recognise the
+   *  column by content when the header text alone is ambiguous or missing. */
+  sample: string;
+}
+
+/** Scans the first `maxScan` rows for the row most likely to be the header
+ *  block (scored by matching a few unambiguous keywords), returning its top
+ *  label row and the sub-label row directly below it (e.g. "DEALER" / "W.O
+ *  GST" | "With GST"). bestRow stays -1 when nothing scores — callers decide
+ *  what to do (auto-detection bails out; the manual-mapping UI still shows
+ *  columns, assuming a single header row at the very top). */
+function scanHeaderRow(grid: Grid, maxScan: number): { bestRow: number; top: Cell[]; sub: Cell[] } {
   let bestRow = -1;
   let bestScore = 0;
-
   for (let r = 0; r < Math.min(maxScan, grid.length); r++) {
     const row = grid[r];
     let score = 0;
@@ -119,16 +153,30 @@ function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
       bestRow = r;
     }
   }
-  if (bestRow === -1) return { ...map, headerRowsEnd: 0 };
+  return { bestRow, top: grid[bestRow] ?? [], sub: grid[bestRow + 1] ?? [] };
+}
 
-  const top = grid[bestRow] ?? [];
-  const sub = grid[bestRow + 1] ?? [];
+/** Combines a header scan into column index → field assignments. Returns
+ *  undefined columns for anything not found — callers treat those as
+ *  absent, not an error (e.g. HUNDRED has no GST % column at all). */
+function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
+  const map: HeaderMap = { headerRowsEnd: 1, sizeCols: [], imgCols: [] };
+  const { bestRow, top, sub } = scanHeaderRow(grid, maxScan);
+  if (bestRow === -1) return map;
+
   const ncols = Math.max(top.length, sub.length);
-
   for (let c = 0; c < ncols; c++) {
     const t = cellText(top[c]).toLowerCase();
     const s = cellText(sub[c]).toLowerCase();
     if (/item\s*code/.test(t)) map.itemCode = c;
+    else if (/sub\s*cat/.test(t)) map.sub = c;
+    // A real image-PATH column ("Image 1 Path (Hero)", "Image 2 Preview")
+    // is distinguished from LI-NING's "MODEL/IMAGE" combined name column
+    // and HUNDRED's bare "Image"-labeled name column (checked next) by a
+    // trailing digit or the words "path"/"photo" — neither ever appears on
+    // the two known name-field conventions this importer was first built
+    // against, so this has to run BEFORE the looser `model` check below.
+    else if (/image\s*\d|image.*path|photo/.test(t)) map.imgCols.push(c);
     else if (/model|image/.test(t)) map.model = c;
     else if (t === "gst") map.gstPercent = c;
     else if (/dealer/.test(t) || /w\.?\s*o\s*gst/.test(s) || /with\s*gst/.test(s)) {
@@ -154,6 +202,30 @@ function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
   }
   map.headerRowsEnd = end;
   return map;
+}
+
+/** Describes every column in the sheet (best-available header text + a
+ *  real sample value) alongside the best-effort auto-detected mapping, for
+ *  an admin to confirm or correct before parsing — the fix for a sheet
+ *  shaped differently enough that no amount of header-text pattern-matching
+ *  would have recognised it (see ADR-0017 follow-up: every supplier labels
+ *  the same column differently, there's no finite list of synonyms to
+ *  pre-empt). Assumes a single header row at the very top when
+ *  detectHeaders() found no scorable keyword row at all — the common case
+ *  for a sheet whose column names just don't match the known vocabulary. */
+export function describeColumns(grid: Grid, maxScan = 8): { columns: ColumnDescriptor[]; guess: HeaderMap } {
+  const guess = detectHeaders(grid, maxScan);
+  const { bestRow, top, sub } = scanHeaderRow(grid, maxScan);
+  const headerRow = bestRow === -1 ? (grid[0] ?? []) : top;
+  const sampleRow = grid[guess.headerRowsEnd] ?? [];
+  const ncols = Math.max(headerRow.length, sub.length, sampleRow.length);
+
+  const columns: ColumnDescriptor[] = [];
+  for (let c = 0; c < ncols; c++) {
+    const header = cellText(headerRow[c]) || cellText(sub[c]) || `Column ${c + 1}`;
+    columns.push({ index: c, header, sample: cellText(sampleRow[c]) });
+  }
+  return { columns, guess };
 }
 
 function baseCode(code: string): string {
@@ -200,10 +272,17 @@ export function detectSubcategory(row: { name: string; size: string | null; colo
 /** Parses a supplier stock-sheet grid into import-ready rows. `grid[r][c]`
  *  is the raw cell value; row 0 is the sheet's first row (1-indexed
  *  `sourceRow` in the output matches the original sheet for cross-
- *  reference). */
-export function parseStockSheet(grid: Grid): ParseResult {
-  const headers = detectHeaders(grid);
-  if (headers.itemCode === undefined && headers.model === undefined) {
+ *  reference).
+ *
+ *  `explicitMapping` — when provided (an admin-confirmed mapping from
+ *  describeColumns(), see admin-product-import.tsx), it's used AS-IS
+ *  instead of running header-text detection at all; this is what makes an
+ *  unrecognised sheet shape still importable instead of permanently
+ *  excluded, since the admin is telling the parser exactly which column is
+ *  which rather than the parser having to guess from label text. */
+export function parseStockSheet(grid: Grid, explicitMapping?: HeaderMap): ParseResult {
+  const headers = explicitMapping ?? detectHeaders(grid);
+  if (!explicitMapping && headers.itemCode === undefined && headers.model === undefined) {
     return { rows: [], skippedBlankRows: 0, headerNotFound: true };
   }
 
@@ -298,9 +377,34 @@ export function parseStockSheet(grid: Grid): ParseResult {
     const statusText = cellText(get(headers.status)).toLowerCase();
     const inStock = !/no\s*stock/.test(statusText);
 
+    // Two conventions seen across sheets: LI-NING stores a fraction (0.05 ->
+    // 5%); a plain per-product template (e.g. Yonex) stores the already-
+    // whole percent (18 -> 18%). Every real GST rate is >= 1 as a whole
+    // percent (5/12/18/28) and < 1 as a fraction, so that split reliably
+    // tells the two apart — only exact 0% is ambiguous, and maps to 0 either way.
     const gstPercentRaw = cellNumber(get(headers.gstPercent));
-    const gstPercent = gstPercentRaw !== null ? Math.round(gstPercentRaw * 100 * 100) / 100 : null; // 0.05 -> 5
+    const gstPercent = gstPercentRaw !== null
+      ? Math.round((gstPercentRaw > 1 ? gstPercentRaw : gstPercentRaw * 100) * 100) / 100
+      : null;
     const rowName = name || supplierCode;
+
+    // First non-empty image column becomes the main image, the rest
+    // (also non-empty — a sheet's "Image N Preview" column sitting between
+    // path columns is just always blank and drops out here) become the
+    // gallery. A value present but not shaped like an approved `/img/...`
+    // path is dropped, not treated as real — optional field, not a reason
+    // to fail the whole row.
+    const imgRaw = headers.imgCols.map((c) => cellText(get(c))).filter((v) => v !== "");
+    const imgValid = imgRaw.filter((v) => IMG_PATH_RE.test(v));
+    if (imgValid.length < imgRaw.length) warnings.push("one or more image paths don't look like an approved /img/... path — skipped");
+    const img = imgValid[0] ?? null;
+    const gallery = imgValid.length > 1 ? imgValid.slice(1) : null;
+
+    // A sheet's own Subcategory column (when mapped) is real data, not a
+    // guess — it always wins over detectSubcategory()'s keyword/structural
+    // heuristic, which exists only for sheets that don't carry one at all.
+    const sheetSub = cellText(get(headers.sub));
+    const suggestedSub = sheetSub || detectSubcategory({ name: rowName, size, color });
 
     rows.push({
       supplierCode,
@@ -317,7 +421,9 @@ export function parseStockSheet(grid: Grid): ParseResult {
       inStock,
       sourceRow: r + 1,
       warnings,
-      suggestedSub: detectSubcategory({ name: rowName, size, color }),
+      suggestedSub,
+      img,
+      gallery,
     });
   }
 
