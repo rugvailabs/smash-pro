@@ -1,5 +1,6 @@
 import "server-only";
 import ExcelJS from "exceljs";
+import JSZip from "jszip";
 import { requireAdmin } from "@/server/auth";
 import { nextSkuSequence } from "@/server/admin";
 import { describeColumns, parseStockSheet, type ColumnDescriptor, type HeaderMap, type ImportedRow } from "@/lib/excel-import-mapping";
@@ -44,9 +45,62 @@ function flattenCell(raw: ExcelJS.CellValue): CellValue {
   return String(raw);
 }
 
+/** Some real supplier sheets embed product photos as pictures anchored to
+ *  cells (not the text/URL "Image path" columns this importer actually
+ *  reads) — exceljs's drawing-reconciliation step throws on a subset of
+ *  these (`Cannot read properties of undefined (reading 'anchors')`, a
+ *  known upstream limitation, not specific to any one supplier; confirmed
+ *  against the current pinned exceljs version, already the latest
+ *  release). None of this importer's fields ever come from an embedded
+ *  picture, so rather than fail the upload, strip every drawing/media part
+ *  from the raw .xlsx zip (and the `<drawing/>` reference + relationship
+ *  that point at them) before handing it to exceljs — the cell text/number
+ *  data this importer actually needs is untouched. */
+async function stripEmbeddedDrawings(buffer: ArrayBuffer): Promise<ArrayBuffer> {
+  const zip = await JSZip.loadAsync(buffer);
+  let changed = false;
+
+  for (const path of Object.keys(zip.files)) {
+    if (/^xl\/(drawings|media)\//.test(path)) {
+      zip.remove(path);
+      changed = true;
+    }
+  }
+
+  const worksheetPaths = Object.keys(zip.files).filter((p) => /^xl\/worksheets\/sheet\d+\.xml$/.test(p));
+  for (const wsPath of worksheetPaths) {
+    const file = zip.file(wsPath);
+    if (!file) continue;
+    const xml = await file.async("string");
+    const strippedXml = xml.replace(/<drawing[^>]*\/>/g, "");
+    if (strippedXml !== xml) {
+      zip.file(wsPath, strippedXml);
+      changed = true;
+    }
+
+    const relsPath = wsPath.replace("xl/worksheets/", "xl/worksheets/_rels/") + ".rels";
+    const relsFile = zip.file(relsPath);
+    if (relsFile) {
+      const relsXml = await relsFile.async("string");
+      const strippedRels = relsXml.replace(/<Relationship[^>]*Type="[^"]*\/drawing"[^>]*\/>/g, "");
+      if (strippedRels !== relsXml) {
+        zip.file(relsPath, strippedRels);
+        changed = true;
+      }
+    }
+  }
+
+  if (!changed) return buffer;
+  return await zip.generateAsync({ type: "arraybuffer" });
+}
+
 async function readGrid(buffer: ArrayBuffer): Promise<CellValue[][]> {
   const wb = new ExcelJS.Workbook();
-  await wb.xlsx.load(buffer);
+  try {
+    await wb.xlsx.load(buffer);
+  } catch {
+    await wb.xlsx.load(await stripEmbeddedDrawings(buffer));
+  }
   const sheet = wb.worksheets[0];
   if (!sheet) throw new Error("400:No worksheet found in the uploaded file");
   const grid: CellValue[][] = [];
