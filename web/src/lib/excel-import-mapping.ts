@@ -52,6 +52,21 @@ export interface ImportedRow {
   img: string | null;
   /** additional images beyond the first, same path authority as `img`. */
   gallery: string[] | null;
+  /** sheet-provided brand name, when a Brand column is mapped — resolved
+   *  to a real brand record at commit time (server/admin.ts), creating one
+   *  if it's new; falls back to the batch-level brand when absent. */
+  brandName: string | null;
+  /** sheet-provided category name (a mapped Category column) — resolved to
+   *  a real category slug by name at commit time; falls back to the
+   *  batch-level category when absent or unresolvable. */
+  categoryName: string | null;
+  /** free-text product meta/tagline, when a Meta Line column is mapped. */
+  meta: string | null;
+  /** HSN code, when an HSN column is mapped — format-checked at commit. */
+  hsn: string | null;
+  /** per-row ProSmash margin %, when a Margin column is mapped — always a
+   *  percent of dealer price; overrides the batch-wide margin for this row. */
+  marginPercent: number | null;
 }
 
 /** Mirrors assertImgPath in server/admin.ts / IMG_RE in
@@ -116,6 +131,24 @@ export interface HeaderMap {
    *  sheets which never do) — always wins over the keyword/structural
    *  guess in detectSubcategory(), since real sheet data beats a guess. */
   sub?: number;
+  /** an explicit per-row "Brand" column — resolved to a real brand record
+   *  at commit time (server/admin.ts), creating one if the name is new.
+   *  Falls back to the batch-level brand when a row has none. */
+  brand?: number;
+  /** an explicit per-row "Category" column — resolved to a real category
+   *  slug by name at commit time; falls back to the batch-level category
+   *  when absent or unresolvable (never a reason to fail the row). */
+  category?: number;
+  /** free-text product meta/tagline (e.g. "Meta Line") — same optional,
+   *  never-validated-against-anything field as the Add Product form's. */
+  meta?: number;
+  /** HSN code (ADR-0014) — optional record-keeping only, same as the Add
+   *  Product form; format-checked (4-8 digits) at commit, not here. */
+  hsn?: number;
+  /** a per-row ProSmash margin %, when the sheet carries one — always a
+   *  PERCENT of dealer price (never fixed-₹), overriding the batch-wide
+   *  margin for that row only. */
+  marginPercent?: number;
   status?: number;
   headerRowsEnd: number; // first row index (0-based) after the header block
 }
@@ -170,6 +203,11 @@ function detectHeaders(grid: Grid, maxScan = 8): HeaderMap {
     const s = cellText(sub[c]).toLowerCase();
     if (/item\s*code/.test(t)) map.itemCode = c;
     else if (/sub\s*cat/.test(t)) map.sub = c;
+    else if (/\bcategory\b/.test(t)) map.category = c;
+    else if (/brand/.test(t)) map.brand = c;
+    else if (/\bmeta\b/.test(t)) map.meta = c;
+    else if (/\bhsn\b/.test(t)) map.hsn = c;
+    else if (/margin/.test(t)) map.marginPercent = c;
     // A real image-PATH column ("Image 1 Path (Hero)", "Image 2 Preview")
     // is distinguished from LI-NING's "MODEL/IMAGE" combined name column
     // and HUNDRED's bare "Image"-labeled name column (checked next) by a
@@ -411,6 +449,11 @@ export function parseStockSheet(grid: Grid, explicitMapping?: HeaderMap): ParseR
     // heuristic, which exists only for sheets that don't carry one at all.
     const sheetSub = cellText(get(headers.sub));
     const suggestedSub = sheetSub || detectSubcategory({ name: rowName, size, color });
+    const brandName = cellText(get(headers.brand)) || null;
+    const categoryName = cellText(get(headers.category)) || null;
+    const meta = cellText(get(headers.meta)) || null;
+    const hsn = cellText(get(headers.hsn)) || null;
+    const marginPercent = cellNumber(get(headers.marginPercent));
 
     rows.push({
       supplierCode,
@@ -430,6 +473,11 @@ export function parseStockSheet(grid: Grid, explicitMapping?: HeaderMap): ParseR
       suggestedSub,
       img,
       gallery,
+      brandName,
+      categoryName,
+      meta,
+      hsn,
+      marginPercent,
     });
   }
 

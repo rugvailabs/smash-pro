@@ -187,6 +187,52 @@ test("GST% convention: a plain whole percent (18, not 0.18) is kept as-is, not m
   assert.equal(rows[0].gstPercent, 18);
 });
 
+test("describeColumns: auto-detects a 'Brand' column", () => {
+  const grid = [["SKU", "Product Name", "Brand", "MRP", "DEALER"]];
+  assert.equal(describeColumns(grid).guess.brand, 2);
+});
+
+test("parseStockSheet: a mapped Brand column's value is carried per-row as brandName", () => {
+  const grid = [
+    ["SKU", "Product Name", "Brand", "MRP", "DEALER"],
+    ["BD-0001", "Yonex GR 303i", "Yonex", 1049, 479],
+  ];
+  const explicitMapping = {
+    itemCode: 0, model: 1, brand: 2, mrp: 3, dealerExGst: 4, sizeCols: [], imgCols: [], headerRowsEnd: 1,
+  };
+  const { rows } = parseStockSheet(grid, explicitMapping);
+  assert.equal(rows[0].brandName, "Yonex");
+});
+
+test("describeColumns: auto-detects Category, Meta Line, HSN Code, and ProSmash Margin % columns — and Category doesn't false-match on Subcategory", () => {
+  const grid = [[
+    "SKU", "Category", "Product Name", "Subcategory", "Meta Line",
+    "MRP", "DEALER", "HSN Code", "ProSmash Margin %",
+  ]];
+  const { guess } = describeColumns(grid);
+  assert.equal(guess.category, 1);
+  assert.equal(guess.sub, 3);
+  assert.equal(guess.meta, 4);
+  assert.equal(guess.hsn, 7);
+  assert.equal(guess.marginPercent, 8);
+});
+
+test("parseStockSheet: mapped Category/Meta/HSN/Margin columns are carried per-row", () => {
+  const grid = [
+    ["SKU", "Category", "Product Name", "Meta Line", "MRP", "DEALER", "HSN Code", "ProSmash Margin %"],
+    ["BD-0001", "Badminton", "Yonex GR 303i", "Pre-strung beginner edition", 1049, 479, "950630", 10],
+  ];
+  const explicitMapping = {
+    itemCode: 0, category: 1, model: 2, meta: 3, mrp: 4, dealerExGst: 5, hsn: 6, marginPercent: 7,
+    sizeCols: [], imgCols: [], headerRowsEnd: 1,
+  };
+  const { rows } = parseStockSheet(grid, explicitMapping);
+  assert.equal(rows[0].categoryName, "Badminton");
+  assert.equal(rows[0].meta, "Pre-strung beginner edition");
+  assert.equal(rows[0].hsn, "950630");
+  assert.equal(rows[0].marginPercent, 10);
+});
+
 test("parseStockSheet: an explicit mapping is used as-is, recovering a sheet shape auto-detection alone would exclude every row from", () => {
   const explicitMapping = {
     itemCode: 0, model: 2, mrp: 3, dealerExGst: 4, gstPercent: 5, status: 7,

@@ -87,7 +87,8 @@ function sanitizeMapping(raw: unknown, columnCount: number): HeaderMap | undefin
   const col = (v: unknown): number | undefined =>
     typeof v === "number" && Number.isInteger(v) && v >= 0 && v < columnCount ? v : undefined;
   const map: HeaderMap = {
-    itemCode: col(r.itemCode), model: col(r.model), gstPercent: col(r.gstPercent), sub: col(r.sub),
+    itemCode: col(r.itemCode), model: col(r.model), gstPercent: col(r.gstPercent), sub: col(r.sub), brand: col(r.brand),
+    category: col(r.category), meta: col(r.meta), hsn: col(r.hsn), marginPercent: col(r.marginPercent),
     dealerExGst: col(r.dealerExGst), dealerInclGst: col(r.dealerInclGst), msp: col(r.msp),
     mrp: col(r.mrp), explicitColor: col(r.explicitColor), status: col(r.status),
     sizeCols: Array.isArray(r.sizeCols) ? r.sizeCols.map(col).filter((v): v is number => v !== undefined) : [],

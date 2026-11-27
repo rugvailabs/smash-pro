@@ -641,6 +641,23 @@ export interface ImportCommitRow {
    *  trusted as an arbitrary external URL. */
   img?: string | null;
   gallery?: string[] | null;
+  /** sheet-provided brand name (a mapped Brand column) — resolved to a real
+   *  brand record below, creating one if the name is new; falls back to
+   *  the batch-level brand when a row has none. */
+  brandName?: string | null;
+  /** sheet-provided category name (a mapped Category column) — resolved to
+   *  a real category slug by name below; falls back to the batch-level
+   *  category when absent or unresolvable. */
+  categoryName?: string | null;
+  /** free-text product meta/tagline, when a Meta Line column is mapped —
+   *  same optional field as the Add Product form's. */
+  meta?: string | null;
+  /** HSN code, when an HSN column is mapped — format-checked below. */
+  hsn?: string | null;
+  /** per-row ProSmash margin % (always percent-of-dealer-price), when a
+   *  Margin column is mapped — overrides the batch-wide margin for this
+   *  row only. */
+  marginPercent?: number | null;
 }
 
 /** Bulk-creates products from a parsed supplier stock sheet (ADR-0017 —
@@ -697,6 +714,39 @@ export async function bulkImportProducts(input: {
   const marginMode = assertMode(input.marginMode ?? "percent", "Margin");
   const marginValue = assertEntryValue(input.marginValue ?? 0, marginMode, "Margin");
 
+  // Per-row brand (a mapped Brand column) resolves to a real brand record,
+  // creating one the first time a new name is seen in this batch — a cache
+  // keyed by lowercased name avoids both a repeat lookup per row (a sheet
+  // like this one repeats "Yonex" 62 times) and a duplicate-brand race
+  // within the same import.
+  const brandIdByName = new Map(
+    (await db.select({ id: schema.brands.id, name: schema.brands.name }).from(schema.brands))
+      .map((b) => [b.name.toLowerCase(), b.id] as const)
+  );
+  async function resolveBrandId(brandName: string | null | undefined): Promise<number | null> {
+    const trimmed = (brandName ?? "").trim();
+    if (!trimmed) return input.brandId;
+    const key = trimmed.toLowerCase();
+    const existing = brandIdByName.get(key);
+    if (existing !== undefined) return existing;
+    const [created] = await db.insert(schema.brands).values({ name: trimmed }).returning({ id: schema.brands.id });
+    brandIdByName.set(key, created.id);
+    return created.id;
+  }
+
+  // Per-row category (a mapped Category column) resolves by NAME to a real
+  // category slug — unlike brand, categories are a fixed curated list
+  // (never auto-created here); an unresolvable name just falls back to the
+  // batch default rather than failing the row.
+  const catSlugByName = new Map(
+    (await db.select({ slug: schema.categories.slug, name: schema.categories.name }).from(schema.categories))
+      .map((c) => [c.name.toLowerCase(), c.slug] as const)
+  );
+  function resolveCatSlug(categoryName: string | null | undefined): string {
+    const trimmed = (categoryName ?? "").trim();
+    return (trimmed && catSlugByName.get(trimmed.toLowerCase())) || cat.slug;
+  }
+
   const failed: { sku: string; error: string }[] = [];
   const seenSku = new Set<string>();
   // Exact duplicates (same name/sub/colour/size/prices/GST/group — i.e. the
@@ -716,7 +766,14 @@ export async function bulkImportProducts(input: {
       assertStd(r.mrp);
       const mrpPaise = Math.round(r.mrp * 100);
       const purchasePaise = resolveToPaise("fixed", r.dealerExGst, mrpPaise);
-      const marginPaise = resolveToPaise(marginMode, marginValue, purchasePaise);
+      // A per-row Margin column (always percent-of-dealer-price) overrides
+      // the batch-wide margin for that row only; absent/non-numeric falls
+      // back to the uniform batch margin, same as every other optional
+      // per-row override in this function.
+      const rowMarginPercent = typeof r.marginPercent === "number" && Number.isFinite(r.marginPercent) ? r.marginPercent : null;
+      const rowMarginMode: PriceMode = rowMarginPercent !== null ? "percent" : marginMode;
+      const rowMarginValue = rowMarginPercent !== null ? assertEntryValue(rowMarginPercent, "percent", "Margin") : marginValue;
+      const marginPaise = resolveToPaise(rowMarginMode, rowMarginValue, purchasePaise);
       const stdPaise = purchasePaise + marginPaise;
       assertStd(stdPaise / 100);
 
@@ -730,18 +787,25 @@ export async function bulkImportProducts(input: {
       const rowSubTrimmed = (r.sub ?? "").trim();
       if (rowSubTrimmed.length > 120) throw new Error("400:Subcategory must be 120 characters or fewer");
       const sub = rowSubTrimmed || defaultSub;
+      const metaTrimmed = (r.meta ?? "").trim();
+      if (metaTrimmed.length > 300) throw new Error("400:Meta is too long");
+      const hsn = normalizeHsn(r.hsn);
+      const rowCatSlug = resolveCatSlug(r.categoryName);
       // already filtered to approved /img/... paths by the parser
       // (lib/excel-import-mapping.ts) — re-validated here anyway, same
       // authority as every other image-setting path in this app.
       const img = r.img ? assertImgPath(r.img) : null;
       const gallery = assertGallery(r.gallery);
+      const brandId = await resolveBrandId(r.brandName);
 
       seenSku.add(r.sku);
       // groupKey is deliberately NOT part of this key — real supplier sheets
       // have been seen assigning two different group codes to what is
       // otherwise an identical row (same name/colour/size/prices), so
       // trusting it here under-merges true duplicates.
-      const dedupeKey = [name, sub, color ?? "", size ?? "", gstPercent ?? "", mrpPaise, purchasePaise].join("|");
+      const dedupeKey = [
+        name, sub, color ?? "", size ?? "", gstPercent ?? "", mrpPaise, purchasePaise, brandId ?? "", rowCatSlug,
+      ].join("|");
       const existingGroup = merged.get(dedupeKey);
       if (existingGroup) {
         existingGroup.qty += 1;
@@ -750,11 +814,11 @@ export async function bulkImportProducts(input: {
         merged.set(dedupeKey, {
           qty: 1,
           row: {
-            sku: r.sku, name, catSlug: cat.slug, sub, meta: "", brandId: input.brandId,
+            sku: r.sku, name, catSlug: rowCatSlug, sub, meta: metaTrimmed, brandId,
             stdPaise, mrpPaise,
             purchaseMode: "fixed", purchaseValue: r.dealerExGst, purchasePaise,
-            marginMode, marginValue, marginPaise,
-            img, gallery, hsn: null, gstPercent,
+            marginMode: rowMarginMode, marginValue: rowMarginValue, marginPaise,
+            img, gallery, hsn, gstPercent,
             supplierCode, mspPaise, color, size, inStock: r.inStock, groupKey,
             configurable: false, directShip: false, specs: [], active: input.activate,
           },

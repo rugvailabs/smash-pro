@@ -58,6 +58,17 @@ interface PreviewRow {
   suggestedSub: string | null;
   img: string | null;
   gallery: string[] | null;
+  /** sheet-provided brand name (a mapped Brand column) — resolved to a
+   *  real brand record at commit time, creating one if it's new; falls
+   *  back to the batch-level Brand dropdown when a row has none. */
+  brandName: string | null;
+  /** sheet-provided category name (a mapped Category column) — resolved to
+   *  a real category by name at commit time; falls back to the batch
+   *  Category dropdown when absent or unresolvable. */
+  categoryName: string | null;
+  meta: string | null;
+  hsn: string | null;
+  marginPercent: number | null;
 }
 
 interface Preview {
@@ -302,10 +313,15 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                     [
                       ["itemCode", "SKU / Item Code"],
                       ["model", "Product Name"],
+                      ["category", "Category"],
                       ["sub", "Subcategory"],
+                      ["brand", "Brand"],
+                      ["meta", "Meta Line"],
                       ["mrp", "MRP"],
                       ["dealerExGst", "Dealer / Purchase Price"],
                       ["gstPercent", "GST %"],
+                      ["hsn", "HSN Code"],
+                      ["marginPercent", "ProSmash Margin %"],
                       ["msp", "MSP"],
                       ["explicitColor", "Color"],
                       ["status", "In Stock / Status"],
@@ -429,7 +445,11 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                 <table className="w-full border-collapse text-sm" style={{ minWidth: 1080 }}>
                   <thead>
                     <tr>
-                      {["Row", "SKU", "Supplier code", "Group", "Name", "Image", "Color", "Size", "MRP", "Dealer", "MSP", "GST%", "Stock", "Subcategory", "Status"].map((h) => (
+                      {[
+                        "Row", "SKU", "Supplier code", "Group", "Name", "Category", "Brand", "Image",
+                        "Color", "Size", "MRP", "Dealer", "MSP", "GST%", "HSN", "Margin %", "Stock",
+                        "Subcategory", "Status",
+                      ].map((h) => (
                         <th key={h} className={thCls}>{h}</th>
                       ))}
                     </tr>
@@ -442,6 +462,8 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                         <td className={`${tdCls} font-mono text-[12px]`}>{r.supplierCode}</td>
                         <td className={`${tdCls} font-mono text-[12px] text-n600`}>{r.groupKey}</td>
                         <td className={tdCls}>{r.name}</td>
+                        <td className={tdCls}>{r.categoryName ?? <span className="text-n400">—</span>}</td>
+                        <td className={tdCls}>{r.brandName ?? <span className="text-n400">—</span>}</td>
                         <td className={tdCls}>
                           {r.img ? (
                             <span className="text-ok" title={r.img}>
@@ -457,6 +479,8 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                         <td className={`${tdCls} num text-right`}>{r.dealerExGst !== null ? inr(r.dealerExGst) : "—"}</td>
                         <td className={`${tdCls} num text-right`}>{r.msp !== null ? inr(r.msp) : "—"}</td>
                         <td className={`${tdCls} num text-right`}>{r.gstPercent ?? "—"}</td>
+                        <td className={`${tdCls} font-mono text-[12px]`}>{r.hsn ?? <span className="text-n400">—</span>}</td>
+                        <td className={`${tdCls} num text-right`}>{r.marginPercent ?? <span className="text-n400">—</span>}</td>
                         <td className={tdCls}>{r.inStock ? "In stock" : "No stock"}</td>
                         <td className={tdCls}>
                           <input
@@ -493,7 +517,7 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                 </p>
                 <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
                   <div>
-                    <label className={labelCls} htmlFor="imp-cat">Category</label>
+                    <label className={labelCls} htmlFor="imp-cat">Default category</label>
                     <select id="imp-cat" value={catSlug} onChange={(e) => setCatSlug(e.target.value)} className={inputCls}>
                       {ADMIN_CATEGORIES.map((c) => (
                         <option key={c.slug} value={c.slug}>{c.label}</option>
@@ -546,7 +570,11 @@ export function ImportProductsButton({ brands }: { brands: { id: number; name: s
                 </div>
                 <p className="mt-2 text-xs text-n600">
                   Each row&apos;s own subcategory above (auto-detected, editable) is used when present;
-                  the default here only fills in rows with no detected subcategory. Margin is
+                  the default here only fills in rows with no detected subcategory. Category, Brand,
+                  and Margin all work the same way — a mapped column&apos;s value wins per row
+                  (Brand creates a new brand record if it&apos;s new; an unresolvable Category name
+                  falls back to the default here); these fields only fill in rows with none. Meta
+                  Line and HSN Code, when mapped, are carried straight through per row. Margin is
                   optional too — leave blank and fix per product in the list afterward (category,
                   margin, and every other field are all editable there).
                 </p>
